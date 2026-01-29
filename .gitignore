@@ -52,3 +52,4 @@ rsconnect/
 .quarto
 inst/doc
 .vscode/
+MRCIGVAR_refactor/
