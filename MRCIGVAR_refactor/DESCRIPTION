@@ -1,0 +1,28 @@
+Package: MRCIGVAR
+Title: Multi Regime Cointegrated Global VAR Modelling
+Version: 0.0.0.9000
+Authors@R: c(person("Pu", "Chen", , "pu.chen@curtin.edu.au", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-9659-8697")), person("Uno", "Fang", , "uno.fang@curtin.edu.au", role = "aut", comment = c(ORCID = "0000-0002-6818-2707")), person("Jose", "Loureiro", , "jose.loureiro@curtin.edu.au", role = "aut", comment = c(ORCID = "0000-0003-4643-1781")))
+Description: This package contains functions for data generation with flexible model specifications, parameter estimation, model selection, impulse response functions, and parameter constraint tests for the following classes of econometric models including VAR, CIVAR, MRVAR, MRCIVAR, GVAR, CIGVAR, MRGVAR, and MRCIGVAR.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends: 
+    R (>= 2.10)
+Imports:
+    tseries,
+    vars,
+    Matrix,
+    ggplot2,
+    gridExtra,
+    stats
+Suggests:
+    knitr,
+    devtools,
+    roxygen2,
+    testthat,
+    rmarkdown
+LazyData: true
+VignetteBuilder: knitr
+URL: https://github.com/CurtinIDS/MRCIGVAR
+BugReports: https://github.com/CurtinIDS/MRCIGVAR/issues
