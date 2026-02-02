@@ -35,14 +35,14 @@
 #' n = 5
 #' p = (1:15)*0; dim(p) = c(5,3)
 #' p[,1] = 3; p[,2]=3;
-#' res_d = CIGVARData(m=4,n=5,p=p,T=100,type="const")
+#' res_d = cigvar_data(m=4,n=5,p=p,T=100,type="const")
 #' max(abs(res_d$Y))
 #' plot(ts(res_d$Y[,1:10]))
 #' res_d$r_npo
-#' STAT(res_d$G)
-#' res_e = CIGVARest(res_d)
+#' spectral_radius(res_d$G)
+#' res_e = cigvar_estimate(res_d)
 #' res_e$Summary
-#' STAT(res_d$G)
+#' spectral_radius(res_d$G)
 #' plot(ts(res_d$Y[,1:10]))
 #'
 #' @export
@@ -333,22 +333,22 @@ cigvar_data <- function(m, n, p, T, W = NA, r_npo = NA, Ao = NA, Bo = NA, Co = N
 #' @param crk   : number of cointegration relations. It equals n-r, where r is the number of unit roots.
 #' @return An object of CIVAR(p) containing the generated data, the parameters used and the exogenous variables. res = list(n,p,type,r_np,Phi,A,B,Co,Sigma,Y,X,resid,U,Y1,Yo,check)
 #' @examples
-#' res_d = CIVARData(n=2,p=2,T=100,type="const")
-#' res_d = CIVARData(n=2,p=2,T=10,Co=c(1:2)*0,type="none")
-#' res_d = CIVARData(n=2,p=2,T=10,Co=c(1:2)*NA,  type="const")
+#' res_d = civar_data(n=2,p=2,T=100,type="const")
+#' res_d = civar_data(n=2,p=2,T=10,Co=c(1:2)*0,type="none")
+#' res_d = civar_data(n=2,p=2,T=10,Co=c(1:2)*NA,  type="const")
 #'
 #' p = 3
 #' n = 4
 #' r_np = matrix(c(1,2,1.5,1.5,2.5,2.5,2,-1.5,2,-4,1.9,-2.1),4,3)
 #'
-#' res_d  = CIVARData(n=4,p=3,T=200,r_np=r_np,Co=matrix(0,n,1) ,type="none",crk=3)
-#' res_e  = CIVARest(res=res_d)
+#' res_d  = civar_data(n=4,p=3,T=200,r_np=r_np,Co=matrix(0,n,1) ,type="none",crk=3)
+#' res_e  = civar_estimate(res=res_d)
 #' sum(abs(res_e$B-res_d$B))
 #' sum(abs(res_e$Co-res_d$Co))
 #'
 #'
-#' res_d  = CIVARData(n=4,p=3,T=200)
-#' res_e = CIVARest(res=res_d)
+#' res_d  = civar_data(n=4,p=3,T=200)
+#' res_e = civar_estimate(res=res_d)
 #' sum(abs(res_e$B-res_d$B))
 #' sum(abs(res_e$Co-res_d$Co))
 #' plot(ts(res_d$Y))
@@ -462,7 +462,7 @@ civar_data <- function (n, p, T, r_np, A, B, Co, C1,U, Sigma, type, X, mu, Yo, c
   if (anyNA(type)) {
     type = "const"
   }
-  #type_soll = Type(Co, X, type)
+  #type_soll = infer_deterministic_type(Co, X, type)
   #if (!type_soll == type)
   #  return(list("type mismatch", type_soll, type))
   if (!anyNA(Co) & (!nrow(as.matrix(Co)) == n))
@@ -578,8 +578,8 @@ civar_data <- function (n, p, T, r_np, A, B, Co, C1,U, Sigma, type, X, mu, Yo, c
 #' @examples
 #'
 #' T = 100
-#' res_d <- CCIVARData(n1=4,n2=3,crk=3,p=3,T=T,type="const")
-#' res_e <- CCIVARest(res=res_d)
+#' res_d <- ccivar_data(n1=4,n2=3,crk=3,p=3,T=T,type="const")
+#' res_e <- cciva_rest(res=res_d)
 #' res_e$Summary
 #'
 #'
@@ -636,13 +636,13 @@ ccivar_data<- function(n1,n2,crk,p,T,type,Bc=NA) {
 #' @return  a list contains estimation and test results of the mixed VECM
 #' @examples
 #'
-#' #RR <- MIxCIVARData(n=9,p=2,T=209,r=5,k=2,type="const",Bo=NA,Y=NA,D=NA)
+#' #RR <- m_ix_civar_data(n=9,p=2,T=209,r=5,k=2,type="const",Bo=NA,Y=NA,D=NA)
 #' ## DGP of I(1) and I(0) mixed VECM
 #' #plot(ts(RR$Y))
 #' #
 #' #### testing the mixed VECM via testing the restrictions on beta
-#' #res_d <- CIVARData(n=9,p=2,T=209,type="const",crk=4)
-#' #res_e = CIVARest(res=res_d)
+#' #res_d <- civar_data(n=9,p=2,T=209,type="const",crk=4)
+#' #res_e = civar_estimate(res=res_d)
 #' #res_e$Summary
 #' #n = 9; crk = 4; k = 2; r = 5
 #' #CC  <- c(8,9,17,18)
@@ -657,7 +657,7 @@ ccivar_data<- function(n1,n2,crk,p,T,type,Bc=NA) {
 #' #
 #' #G%*%psi; H2%*%phi + h
 #' #
-#' #ABtest = CIVARTest(res=res_d,H=H2,h=h,phi=phi,G=G,Dxflag=0)
+#' #ABtest = civar_test(res=res_d,H=H2,h=h,phi=phi,G=G,Dxflag=0)
 #' #ABtest$betar
 #' #ABtest$alphar
 #' #ABtest$VECMR$coefficients
@@ -665,7 +665,7 @@ ccivar_data<- function(n1,n2,crk,p,T,type,Bc=NA) {
 #' #1-pchisq(ABtest$LR,14)   ### The Ho of last two are I(0) is rejected
 #' #
 #' #res_d$Y = RR$Y           ### replacing the data of two I(0) variables
-#' #ABtest = CIVARTest(res=res_d,H=H2,h=h,phi=phi,G=G,Dxflag=0)
+#' #ABtest = civar_test(res=res_d,H=H2,h=h,phi=phi,G=G,Dxflag=0)
 #' #ABtest$betar
 #' #ABtest$alphar
 #' #ABtest$VECMR$coefficients
@@ -709,21 +709,21 @@ m_ix_civar_data = function(n,p,T,r,k,type,Bo=NA,Y=NA,X=NA,D=NA,Go=NA,B=NA,Sigma 
   B1[1:r,1:r,1]    =  Bo[1:r,1:r,1]  +  diag(r)
   B1[1:n,1:r,p]    = -Bo[1:n,1:r,p-1]
   if (p>2) for (i in 2:(p-1)) B1[1:n,1:r,i]  = Bo[1:n,1:r,i] - Bo[1:n,1:r,i-1]
-  #STAT(B1)
+  #spectral_radius(B1)
 
   if (anyNA(B)) {
     B2 <- B1*0
     for (i in 1:p) B2[,,i] <- D%*%B1[,,i]%*%solve(D)
   } else B2 <- B
 
-  #STAT(B2)
+  #spectral_radius(B2)
 
   #Co = seq(1,n,1)/seq(1,n,1)
   #U[1:2,] <- 0
-  #res_d  = VARData(n=n,p=p,T=T,B=Bo,Co=Co*0,type="const",U=U,Yo=U[1:p,]*0)
+  #res_d  = var_data(n=n,p=p,T=T,B=Bo,Co=Co*0,type="const",U=U,Yo=U[1:p,]*0)
   #ZZ <- res_d$Y[,1:r]; Z = ZZ*0; for (i in 3:T) Z[i,] = Z[i-1,]+ZZ[i,];X <- res_d$Y[,(r+1):n]
-  #res_dd = VARData(n=n,p=p,T=T,B=B1,Co=Co*0,type="const",U=U,Yo=Yo)
-  #res_ddd= VARData(n=n,p=p,T=T,B=B2,Co=Co*0,type="const",U=U%*%t(D),Yo=U[1:p,]*0)
+  #res_dd = var_data(n=n,p=p,T=T,B=B1,Co=Co*0,type="const",U=U,Yo=Yo)
+  #res_ddd= var_data(n=n,p=p,T=T,B=B2,Co=Co*0,type="const",U=U%*%t(D),Yo=U[1:p,]*0)
   #Y =  cbind(Z,X)%*%t(D)
   #res_ddd$Y - Y
 
@@ -851,7 +851,7 @@ m_ix_civar_data = function(n,p,T,r,k,type,Bo=NA,Y=NA,X=NA,D=NA,Go=NA,B=NA,Sigma 
   #AA  <- t(GABtest$LSKOEFR[1:((p-1)*n),])
   #dim(AA) <- c(n,n,(p-1))
   #BB3[,,2:p] <- AA
-  #B3 <-CIB3B(BB3)
+  #B3 <-cib3_b(BB3)
   #res_e$B <- B3
   #res_e$Sigma <- t(GABtest$VECMR$residuals)%*%GABtest$VECMR$residuals/T
   #for (i in 1:n) {
@@ -882,13 +882,13 @@ m_ix_civar_data = function(n,p,T,r,k,type,Bo=NA,Y=NA,X=NA,D=NA,Go=NA,B=NA,Sigma 
 #' p = (1:12)*0; dim(p) = c(4,3);p[,1] = 2; p[,2]=1;   p[,3]=1; p[2,2]=2;
 #' p    ## country-wise lag specification
 #'
-#' res_d = GVARData(m=2,n=4,p=p,T=200,type="exog0",X=X)
-#' res_e = GVARest(res = res_d)
+#' res_d = gvar_data(m=2,n=4,p=p,T=200,type="exog0",X=X)
+#' res_e = gvar_estimate(res = res_d)
 #' res_e$Summary
 #'
-#' IRF_CB = irf_GVAR_CB(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
+#' IRF_CB = irf_gvar_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
 #' dim(IRF_CB)
-#' IRF_g = IRF_graph(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
+#' IRF_g = plot_irf(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
 #'
 #' @export
 gvar_data <- function (m, n, p, T, W = NA, r_npo = NA, Ao = NA, Bo = NA, Co = NA, Uo = NA, Sigmao = NA, type = NA, X = NA, mu = NA)
@@ -1111,21 +1111,21 @@ gvar_data <- function (m, n, p, T, W = NA, r_npo = NA, Ao = NA, Bo = NA, Co = NA
 #' dim(XX) = c(T,2,5,2)
 #' p[,3,]=2
 #'
-#' res_d <- MRCIGVARData(m=3,n=5,p=p,TH=TH,T=T,S=2, SESVI=c(1,4,7,10,13),type="exog0",r=rep(1,5),
+#' res_d <- mrcigvar_data(m=3,n=5,p=p,TH=TH,T=T,S=2, SESVI=c(1,4,7,10,13),type="exog0",r=rep(1,5),
 #' DFYflag=0,Ncommfakt=1,X=XX)    ## m: number of variables, n: number of countries
 #'
 #' max(abs(res_d$Y))
 #' plot(ts(res_d$Y[,1:10]))
-#' STAT(res_d$Go[,,,2])
-#' STAT(res_d$GC[,,,1]);STAT(res_d$GC[,,,2]);
-#' STAT(res_d$Go[,,,1])
+#' spectral_radius(res_d$Go[,,,2])
+#' spectral_radius(res_d$GC[,,,1]);spectral_radius(res_d$GC[,,,2]);
+#' spectral_radius(res_d$Go[,,,1])
 #' max(abs(res_d$Y))
 #'
 #' Ao=res_d$Ao;Bo=res_d$Bo;Co=res_d$Co;
 #'
-#' res_d <- MRCIGVARData(m=3,n=5,p=p,TH=TH,T=T,S=2, SESVI=c(1,4,7,10,13),type="exog0",Ao=Ao,Bo=Bo,
+#' res_d <- mrcigvar_data(m=3,n=5,p=p,TH=TH,T=T,S=2, SESVI=c(1,4,7,10,13),type="exog0",Ao=Ao,Bo=Bo,
 #' Co=Co,r = rep(1,5),DFYflag = 0,Ncommfakt=1,X=XX) ##m:number of variables, n:number of countries
-#' res_e  = MRCIGVARest(res=res_d)
+#' res_e  = mrcigvar_estimate(res=res_d)
 #'
 #'
 #' @export
@@ -1463,15 +1463,15 @@ mrcigvar_data <- function(m,n,p,T,S,W=NA,SESVI=NA,TH=NA,Go=NA,Ao=NA,Bo=NA,Sigmao
 #'
 #' This function will generate data from a MRCIGVAR object. It will generate enough data for estimation purpose.
 #'
-#' @param res     : an output of MRCIGVARest
+#' @param res     : an output of mrcigvar_estimate
 #' @return	: an MRCIGVAR object.
 #'
 #' @export
 #' @keywords internal
 mrcigvar_data_r <- function(res) {
-  ### res_e : an estimated MRGVAR model that is an output of MRCIGVARest
+  ### res_e : an estimated MRGVAR model that is an output of mrcigvar_estimate
   ### T     : number of observations
-  ### Remarks: MRCIGVARDataR is used in bootstrapping to generate sufficient observations such that in the regime of rare occurrence also contains
+  ### Remarks: mrcigvar_data_r is used in bootstrapping to generate sufficient observations such that in the regime of rare occurrence also contains
   ###          sufficient observations for estimation purposed
   ###
   ###  MINH:   minimum number of observations of a nation in the rare occurrence regime.
@@ -1544,10 +1544,10 @@ mrcigvar_data_r <- function(res) {
 #' Sigma[,,2] = diag(4)
 #' p=matrix(0,2,2)
 #' p[,1] = c(3,3)
-#' res_d = MRCIVARDatam(n=4,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
+#' res_d = mrcivar_data_m(n=4,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
 #' colnames(res_d$Y) = c("w","p","I","Q")
 #' max(abs(res_d$Y))
-#' res_e = MRCIVARestm1(res=res_d)
+#' res_e = mrcivar_estimatem1(res=res_d)
 #' res_e$Summary
 #'
 #' p=matrix(0,2,2)
@@ -1558,12 +1558,12 @@ mrcigvar_data_r <- function(res) {
 #' XX = cbind(XX,XX); dim(XX) = c(T,1,2)
 #' dim(XX)
 #'
-#' res_d = MRCIVARDatam(n=4,p=p,T=T,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="exog0",r=1,X=XX)
-#' res_e = MRCIVARestm1(res=res_d)
+#' res_d = mrcivar_data_m(n=4,p=p,T=T,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="exog0",r=1,X=XX)
+#' res_e = mrcivar_estimatem1(res=res_d)
 #' res_e$Summary
 #'
-#' res_d = MRCIVARDatam(n=4,p=p,T=T,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="exog1",r=1,X=XX)
-#' res_e = MRCIVARestm1(res=res_d)
+#' res_d = mrcivar_data_m(n=4,p=p,T=T,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="exog1",r=1,X=XX)
+#' res_e = mrcivar_estimatem1(res=res_d)
 #' res_e$Summary
 #'
 #' @export
@@ -1847,18 +1847,18 @@ mrcivar_data_m = function(n=2,p=matrix(2,2,2),T=100,S=2,SESVI,TH,Bo,Co,Sigmao,Uo
 #' p = rep(1,12); dim(p) = c(2,3,2)
 #' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
 #' TH = c(1:2)*0; dim(TH) = c(1,2)
-#' res_d <- MRGVARData(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
+#' res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
 #' max(res_d$Y)
 #'
 #' ### estimation of the MRGVAR model
 #' colnames(res_d$Y) = c("P","Q","Pa","Qa")
-#' res_e = MRGVARest(res=res_d)
+#' res_e = mrgvar_estimate(res=res_d)
 #' res_e$Summary
 #'
-#' IRF_CB  = irf_MRGVAR_CB(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
+#' IRF_CB  = irf_mrgvar_cb(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
 #' conf=c(0.05,0.95))
-#' IRF_g = IRF_graph(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
-#' #IRF_g = IRF_graph(IRF_CB[[2]])   # accumulated IRF
+#' IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
+#' #IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
 #' @export
 
 mrgvar_data=function(m,n,p,T,S,W=NA,SESVI=NA,TH=NA,Go=NA,Ao=NA,Bo=NA,Sigmao=NA,Uo=NA,SV=NA,type=NA,Co=NA,X=NA,Yo=NA,d=NA) {
@@ -2131,15 +2131,15 @@ mrgvar_data=function(m,n,p,T,S,W=NA,SESVI=NA,TH=NA,Go=NA,Ao=NA,Bo=NA,Sigmao=NA,U
 #'
 #' This function will generate data from a MRGVAR object. It will generate enough data for estimation purpose.
 #'
-#' @param res     : an output of MRGVARest
+#' @param res     : an output of mrgvar_estimate
 #' @return an MRGVAR object.
 #'
 #' @export
 #' @keywords internal
 mrgvar_data_r=function(res) {
-### res_e : an estimated MRGVAR model that is an output of MRGVARest
+### res_e : an estimated MRGVAR model that is an output of mrgvar_estimate
 ### T     : number of observations
-### Remarks: MRGVARDataR is used in bootstrapping to generate sufficient observations such that in the regime of rare occurrence also contains
+### Remarks: mrgvar_data_r is used in bootstrapping to generate sufficient observations such that in the regime of rare occurrence also contains
 ###          sufficient observations for estimation purposed
 ###
 ###  MINH:   minimum number of observations of a nation in the rare occurrence regime.
@@ -2167,7 +2167,7 @@ mrgvar_data_r=function(res) {
     repeat {
 	 Uo_run = array(0, c(T, n * m, S))
        for (s in 1:S) Uo_run[, , s] = rnorm_sigma(T, res$Sigmao[,,s])       #### zhe ge you wenti
-    	 res_run = MRGmrgvar_data n, p, T, S, W, SESVI, TH, res$Go, Ao = NA, Bo = NA, Sigmao = NA, Uo = Uo_run, SV, type, Co, X)
+    	 res_run = mrgvar_data(m, n, p, T, S, W, SESVI, TH, res$Go, Ao = NA, Bo = NA, Sigmao = NA, Uo = Uo_run, SV, type, Co, X)
        for (i in 1:n) { MINH = min(MINH,sum(res_run$Y[,SESVI[i]]>TH[1,i]),sum(res_run$Y[,SESVI[i]]<TH[1,i]))}
        if (MINH > (max(p)*(m*2)+2*m)) break
           else {T=T+T; print(c(MINH,T)); MINH=T}
@@ -2204,11 +2204,11 @@ mrgvar_data_r=function(res) {
 #'
 #' @examples
 #' p = matrix(c(3,3,0,0),2,2)
-#' res_d = MRVARData(n=2,p=p,T=200,S=2,SESVI=1,type="const")
+#' res_d = mrvar_data(n=2,p=p,T=200,S=2,SESVI=1,type="const")
 #' colnames(res_d$Y) = c("Y","P")
-#' STAT(res_d$B[,,,1])
-#' STAT(res_d$B[,,,2])
-#' res_e = MRVARest(res=res_d)
+#' spectral_radius(res_d$B[,,,1])
+#' spectral_radius(res_d$B[,,,2])
+#' res_e = mrvar_estimate(res=res_d)
 #' res_e$Summary
 #' @export
 mrvar_data = function(n,p,T,S,SESVI,TH,Bo,Co,Sigmao,Uo,SV,type,X,mu,Yo,Do,d) {
@@ -2452,15 +2452,15 @@ mrvar_data = function(n,p,T,S,SESVI,TH,Bo,Co,Sigmao,Uo,SV,type,X,mu,Yo,Do,d) {
 #' @param Yo    : a p x n matrix of initial values of the VAR(p) process
 #' @return An object of VAR(p) containing the generated data, the used parameters and the exogenous variables. res = list(n,p,type,r_np,Phi,A,B,Co,Sigma,Y,X,resid,U,Y1,Yo,check)
 #' @examples
-#' res_d = VARData(n=2,p=2,T=100,type="const")
-#' res_d = VARData(n=2,p=2,T=10,Co=c(1:2)*0,type="none")
-#' res_d = VARData(n=2,p=2,T=10,Co=c(1:2),  type="const")
-#' res_d = VARData(n=3,p=2,T=200,type="exog1",X=matrix(rnorm(400),200,2))
-#' res_d = VARData(n=3,p=2,T=200,Co=matrix(c(0,0,0,1,2,3,3,2,1),3,3), type="exog0",
+#' res_d = var_data(n=2,p=2,T=100,type="const")
+#' res_d = var_data(n=2,p=2,T=10,Co=c(1:2)*0,type="none")
+#' res_d = var_data(n=2,p=2,T=10,Co=c(1:2),  type="const")
+#' res_d = var_data(n=3,p=2,T=200,type="exog1",X=matrix(rnorm(400),200,2))
+#' res_d = var_data(n=3,p=2,T=200,Co=matrix(c(0,0,0,1,2,3,3,2,1),3,3), type="exog0",
 #' X=matrix(rnorm(400),200,2))
 #'
-#' res_d = VARData(n=2,p=2,T=100,type="const")
-#' res_d = VARData(n=3,p=2,T=200,type="exog1",X=matrix(rnorm(400),200,2))
+#' res_d = var_data(n=2,p=2,T=100,type="const")
+#' res_d = var_data(n=3,p=2,T=200,type="exog1",X=matrix(rnorm(400),200,2))
 #' @export
 var_data = function(n,p,T,r_np,A,B,Co,U,Sigma,type,X,mu,Yo)  {
 ### T     : number of observations
@@ -2557,7 +2557,7 @@ var_data = function(n,p,T,r_np,A,B,Co,U,Sigma,type,X,mu,Yo)  {
 
 
   if (anyNA(U)) {
-  	Uh = rnormrnorm_sigmagmao)
+  	Uh = rnorm_sigma(T,Sigmao)
   	U = Uh%*%t(A)
      	}  else  {
         Uh =  U %*% solve(t(A))
@@ -2631,3 +2631,4 @@ var_data = function(n,p,T,r_np,A,B,Co,U,Sigma,type,X,mu,Yo)  {
   names(result)=c("n","p","type","r_np","Phi","A","B","Co","Sigma","Y","X","resid","U","Y1","Yo","check")
   return(result)
 }
+

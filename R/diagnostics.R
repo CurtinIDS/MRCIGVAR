@@ -33,3 +33,4 @@ sigma_npd = function(res,StateT) {
       sigmanpd = as.matrix(Matrix::nearPD(sigmaT,conv.tol = 1e-10)[[1]])
       return(sigmanpd)
 }
+

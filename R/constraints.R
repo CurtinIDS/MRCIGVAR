@@ -188,9 +188,9 @@ ab_civar_test <- function(R0,R1,G,H,h,alpha,beta,Omega,Y0,Z1,Z2) {
 #' @examples
 #' X = matrix(stats::rnorm(2*207),207,2)
 #' colnames(X) = c("ex1","ex2")
-#' res_d  = CIVARData(n=6,p=2,T=207,crk=2,type="exog1", X=as.matrix(X))
+#' res_d  = civar_data(n=6,p=2,T=207,crk=2,type="exog1", X=as.matrix(X))
 #' colnames(res_d$Y) =  c("w","p","U_l","r","yn","y")
-#' res_e =  CIVARest(res=res_d)
+#' res_e =  civar_estimate(res=res_d)
 #' res_e$tst$erg
 #' res_e$tst$beta
 #' res_e$tst$VECMS
@@ -203,7 +203,7 @@ ab_civar_test <- function(R0,R1,G,H,h,alpha,beta,Omega,Y0,Z1,Z2) {
 #'
 #' G0%*%psi0; H2%*%phi2+h2
 #'
-#' ABtest = CIVARTest(res=res_d,H=H2,h=h2,phi=phi2,G=G0,Dxflag=0)
+#' ABtest = civar_test(res=res_d,H=H2,h=h2,phi=phi2,G=G0,Dxflag=0)
 #' ABtest$betar
 #' ABtest$alphar
 #' ABtest$VECMR$coefficients
@@ -211,9 +211,9 @@ ab_civar_test <- function(R0,R1,G,H,h,alpha,beta,Omega,Y0,Z1,Z2) {
 #' #1-pchisq(ABtest$LR,2)   ### the fourth is the used restrictions
 #'
 #'
-#' res_d  = CIVARData(n=7,p=2,T=207,crk=2,type="const")
+#' res_d  = civar_data(n=7,p=2,T=207,crk=2,type="const")
 #' colnames(res_d$Y) =  c("w","p","U_l","r","yn","y","fsi")
-#' res_e =  CIVARest(res=res_d)
+#' res_e =  civar_estimate(res=res_d)
 #' res_e$tst$erg
 #' res_e$tst$beta
 #' res_e$tst$VECMS
@@ -226,7 +226,7 @@ ab_civar_test <- function(R0,R1,G,H,h,alpha,beta,Omega,Y0,Z1,Z2) {
 #'
 #' G0%*%psi0; H2%*%phi2+h2
 #'
-#' ABtest = CIVARTest(res=res_d,H=H2,h=h2,phi=phi2,G=G0,Dxflag=1)
+#' ABtest = civar_test(res=res_d,H=H2,h=h2,phi=phi2,G=G0,Dxflag=1)
 #' ABtest$LR
 #' ABtest$betar
 #' ABtest$alphar
@@ -846,3 +846,4 @@ f_constrained <- function(x, beta=beta,alpha=alpha,G=G,H=H,phi=phi,psi=psi,h=h, 
   SSR <- det(t(residuals) %*% residuals)
   return(SSR)
 }
+

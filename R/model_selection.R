@@ -16,17 +16,17 @@
 #' p = (1:15)*0; dim(p) = c(5,3)
 #' p[,1] = 3; p[,2]=3;
 #' p[2,1] = 2;  p[3,1] = 2
-#' res_d = CIGVARData(m=2,n=5,p=p,T=5000,type="const",DFYflag=0)
+#' res_d = cigvar_data(m=2,n=5,p=p,T=5000,type="const",DFYflag=0)
 #' res_d$r_npo
 #' res_d$check
 #'
 #' plot(ts(res_d$Y[1:100,1:10]))
 #'
-#' res_e = CIGVARest(res_d)
+#' res_e = cigvar_estimate(res_d)
 #' res_e$Summary
 #' res_e$crk = c(1,1,1,1,1)
 #' L_V = c(4,4)
-#' CIGVARSelecte = CIGVAR_Select(res=res_e,L_V=c(4,4))
+#' CIGVARSelecte = cigvar_select_(res=res_e,L_V=c(4,4))
 #' CIGVARSelecte[which.min(CIGVARSelecte[,17]),]
 #' CIGVARSelecte[which.min(CIGVARSelecte[,19]),]
 #'
@@ -46,7 +46,7 @@ for (l_f in 2: L_V[2] )   {
       res_dd$p[I,2] = l_f
 
 
-    	res_s = CIGcigvar_estimates_dd)
+    	res_s = cigvar_estimate(res_dd)
       Criteria[idx,] = c(as.vector(res_dd$p),res_s$Summary$AIC_g,res_s$Summary$BIC_g,sum(res_s$Summary$AIC),sum(res_s$Summary$BIC))
       #colnames(Criteria) = c("l_d","l_f","AIC_g","BIC_g","AIC","BIC")
     }
@@ -61,13 +61,13 @@ return(Criteria)
 #'
 #' n = 4
 #' p = (1:12)*0; dim(p) = c(4,3);p[,1] = 2; p[,2]=1; p[2:3,2] = 2
-#' res_d = GVARData(m=2,n=4,p=p,T=4000,type="const")
+#' res_d = gvar_data(m=2,n=4,p=p,T=4000,type="const")
 #'
 #'
 #' I = 3
 #' L_V = c(4,4)
 #' res_d$p
-#' GVARSelect = GVAR_Select(res=res_d,L_V=c(4,4),I=2)
+#' GVARSelect = gvar_select_(res=res_d,L_V=c(4,4),I=2)
 #' GVARSelect[which.min(GVARSelect[,3]),]
 #' GVARSelect[which.min(GVARSelect[,4]),]
 #'
@@ -100,16 +100,16 @@ for (l_d in 1: L_V[1] )   {
 	if (l_d>=l_f) {
             if (type=="exog0") { type_holder = type; XX = cbind(XX,XXX[,,I]); Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=0}
 	      if (type=="exog1") { type_holder = type; XX = cbind(XX,XXX[,,I]); Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=1}
-		res_dd = VARData(n=m,p=var_data,Co=Co,type=type_holder,X=as.matrix(XX))
+		res_dd = var_data(n=m,p=l_d,T=T,Co=Co,type=type_holder,X=as.matrix(XX))
 		res_dd$Y = Yi
 	}   else  {
             XX = XX[(l_f-l_d+1):T,];
 	   	if (type=="exog0") { type_holder = type; XX = cbind(XX,XXX[(l_f-l_d+1):T,,I]);Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=0 }
 	   	if (type=="exog1") { type_holder = type; XX = cbind(XX,XXX[(l_f-l_d+1):T,,I]);Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=1 }
-		res_dd = VARData(n=m,p=var_dataT-(l_f-l_d)),Co=Co,type=type_holder,X=XX)
+		res_dd = var_data(n=m,p=l_d,T=(T-(l_f-l_d)),Co=Co,type=type_holder,X=XX)
 		res_dd$Y = Yi[(l_f-l_d+1):T,]
 	}
-	res_e = VARest(var_estimates_dd)
+	res_e = var_estimate(res=res_dd)
 	Criteria[idx,] = c (l_d,l_f,res_e$Summary$AIC,res_e$Summary$BIC)
     }
 }
@@ -120,7 +120,7 @@ return(Criteria)
 
 
 #'
-#' @param  res  : an MRCIGVAR object generated from MRCIGVARData or estimated from MRCIGVARest.
+#' @param  res  : an MRCIGVAR object generated from mrcigvar_data or estimated from MRCIGVARest.
 #' @param  L_V  : a 2 components vector containing the maxima of the domestic lag length and the foreign lag length respectively.
 #' @param  TH_V  : a vector containing possible threshold values .
 #' @return a matrix with different lag specifications,  threshold values and the corresponding information criteria.
@@ -133,15 +133,15 @@ return(Criteria)
 #'
 #' TH = c(1:4)*0; dim(TH) = c(1,4)
 #'
-#' res_d <- MRCIGVARData(m=2,n=4,p=p,TH=TH,T=400,S=2, SESVI=c(1,3,5,7),r=rep(1,4))
+#' res_d <- mrcigvar_data(m=2,n=4,p=p,TH=TH,T=400,S=2, SESVI=c(1,3,5,7),r=rep(1,4))
 #'
-#' res_em = MRCIGVARest(res=res_d)
+#' res_em = mrcigvar_estimate(res=res_d)
 #'
 #' L_v = c(3,3)
 #' TH_v = c(0,0.1)
 #' res_d$p
 #'
-#' MRCIGVARSelect = MRCIGVAR_Select(res=res_d,L_V=L_v,TH_V=TH_v)
+#' MRCIGVARSelect = mrcigvar_select_(res=res_d,L_V=L_v,TH_V=TH_v)
 #' dim(MRCIGVARSelect)
 #' MRCIGVARSelect[which.min(MRCIGVARSelect[,28]),]
 #'
@@ -185,14 +185,14 @@ mrcigvar_select_ = function(res,L_V=L_V,TH_V=TH_V)  {
 #' p=matrix(0,2,2)
 #' p[,1] = c(3,2)
 #'
-#' res_d = MRCIVARDatam(n=4,p=p,T=2610,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=1)
-#' res_e = MRCIVARestm1(res=res_d)
+#' res_d = mrcivar_data_m(n=4,p=p,T=2610,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=1)
+#' res_e = mrcivar_estimatem1(res=res_d)
 #'
 #' TH_v = c(0,0.1)
 #' L_v = c(6,6)
 #'
-#' Selm = MRCIVAR_Selectm(res=res_e,L_V=L_v,TH_V=TH_v)
-#' MRVAR_Select_Summary(Selm)
+#' Selm = mrcivar_select_m(res=res_e,L_V=L_v,TH_V=TH_v)
+#' mrvar_select__summary(Selm)
 #'
 #' @export
 mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
@@ -220,7 +220,7 @@ mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
         res_dd$p[2,1] = l_f
         res_dd$TH     = TH_V[l_th]
 
-        #res_dd = MRCIVARDatam(n=n,p=p,T=T,S=S,SESVI=SESVI,TH=TH,Sigmao=NA,type=type,r=r)
+        #res_dd = mrcivar_data_m(n=n,p=p,T=T,S=S,SESVI=SESVI,TH=TH,Sigmao=NA,type=type,r=r)
         #res_dd$Y= res$Y
 
         # for MRCIVARestm
@@ -242,24 +242,24 @@ mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
 #' p[,2,] = 1; p[1,1,1] = 1; p[3,1,1] = 1; p[2,1,2] = 1
 #'
 #' TH = c(1:5)*0; dim(TH) = c(1,5)
-#' res_d <- MRGVARData(m=3,n=5,p=p,TH =TH,T=400,S=2,SESVI=((1:5)*3-2))
+#' res_d <- mrgvar_data(m=3,n=5,p=p,TH =TH,T=400,S=2,SESVI=((1:5)*3-2))
 #' max(abs(res_d$Y))		# to make sure it is not explosive
 #' colnames(res_d$Y) = c("Y11","Y21","Y31","Y12","Y22","Y32","Y13","Y23","Y33","Y14",
 #' "Y24","Y34","Y15","Y25","Y35")
-#' res_e = MRGVARest(res=res_d)
+#' res_e = mrgvar_estimate(res=res_d)
 #'
 #' ### four numbers for the maxima lag length in country I:
 #' ### regime 1: domestic foreign regime 2: domestic and foreign
 #' L_v  = c(3,3,3,3)
 #' ### a vector containing possible threshold values
 #' TH_v = c(-0.1, -0.05, 0,0.05, 0.1  )
-#' CC = MRGVAR_Select(res=res_d,I=1,L_V=L_v,TH_V=TH_v)
+#' CC = mrgvar_select_(res=res_d,I=1,L_V=L_v,TH_V=TH_v)
 #'  CCC = CC[[1]]
 #'
 #' CCC[which.min(CCC[,9]),]
 #' CCC[which.min(CCC[,18]),]
 #'
-#' CC = MRGVAR_Select(res=res_d,I=2,L_V=L_v,TH_V=TH_v)
+#' CC = mrgvar_select_(res=res_d,I=2,L_V=L_v,TH_V=TH_v)
 #' CCC = CC[[1]]
 #'
 #' CCC[which.min(CCC[,9]),]
@@ -268,7 +268,7 @@ mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
 #' @export
 #'
 mrgvar_select_ <- function(res,I,L_V,TH_V) {
-  ##    res   object of MRGVARData
+  ##    res   object of mrgvar_data
   ##    I     index of the equation under investigation, I =1 we investigate the first equation, I = 10 we investigate the 10th equation.
   ##    L_V   maximum of the lags of regimes (4 4 4 4) Regime 1 domestic lags 4   foreign lags 4   regime 2 lags 4  4
   ##    TH_V  vector of threshold values that will be estimated for each chosen lag combinations
@@ -358,7 +358,7 @@ mrgvar_select_ <- function(res,I,L_V,TH_V) {
               if (!anyNA(X)) for (s in 1:S) XX[,1:(m*p[i,2,s]+p[i,3,s]),s] = ZZ[,c(1:(m*p[i,2,s]),(m*Pi+1):(m*Pi+p[i,3,s])),s]
               if (anyNA(X))  for (s in 1:S) XX[,1:(m*p[i,2,s]),s] = ZZ[,c(1:(m*p[i,2,s])),s]
 
-              ### put data into a MRVARData object in order to replace the data and order parameters
+              ### put data into a mrvar_data object in order to replace the data and order parameters
               pp = t(p[i,,]); pp[,2] = pp[,2]*m; ppp = pp[,1:2]; ppp[,2] = pp[,2]+pp[,3]
               if (SESVI[i]/m > SESVI[i]%/%m)   SESVIi = SESVI[i]- (SESVI[i]%/%m)*m  else SESVIi = m
 
@@ -431,20 +431,20 @@ sigma_npd_select_r = function(res,StateT) {
 
 
 #'
-#' @param  res  : an MRVAR object generated from MRVARData or estimated from MRVARest.
+#' @param  res  : an MRVAR object generated from mrvar_data or estimated from MRVARest.
 #' @param  L_V  : a 2 components vector containing the maxima lags in the two regimes, respectively.
 #' @param  TH_V  : a vector containing the possible threshold values over which the model selection criteria values will be calculated.
 #' @return a matrix with different lag specifications and threshold values as well as the corresponding information criterion values.
 #' @examples
 #'
-#' res_d = MRVARData(n=4,p=matrix(c(2,1,2,2,0,0,0,0),4,2),T=800,S=2,SESVI=1)
+#' res_d = mrvar_data(n=4,p=matrix(c(2,1,2,2,0,0,0,0),4,2),T=800,S=2,SESVI=1)
 #' max(res_d$Y)
 #' colnames(res_d$Y) = c("P","Y","R","U")
-#' res_e = MRVARest(res=res_d)
+#' res_e = mrvar_estimate(res=res_d)
 #' TH_v = c(0,0.0)
 #' L_v = c(5,5)
-#' Sel = MRVAR_Select(res=res_e,L_V=L_v,TH_V=TH_v)
-#' MRVAR_Select_Summary(Sel)
+#' Sel = mrvar_select_(res=res_e,L_V=L_v,TH_V=TH_v)
+#' mrvar_select__summary(Sel)
 #' @export
 mrvar_select_ <- function (res, L_V = L_V, TH_V = TH_V)
 {
@@ -489,7 +489,7 @@ mrvar_select_ <- function (res, L_V = L_V, TH_V = TH_V)
 
 
 #'
-#' @param Sel An output of MRVAR_Select
+#' @param Sel An output of mrvar_select_
 #'
 #' @return The optimal model according to BIC or AIC
 #' @export

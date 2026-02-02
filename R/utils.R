@@ -290,7 +290,7 @@ b2_cib <- function (B)
 
 
 #'
-#' @param  tst  : an output of CIGVARest
+#' @param  tst  : an output of cigvar_estimate
 #' @return A list containing three components.
 #' \itemize{
 #'     \item B          : the coefficient matrices of the domestic variables
@@ -1028,7 +1028,7 @@ varbs_commtrend = function(m,p,T,r, Ncommtrend,n,S,r_npo) {
 	r_npi 		= c(1:(r[i]*Pmini))/c(1:(r[i]*Pmini))*1.5
       dim(r_npi) 		= c(r[i],Pmini)
       r_npi[1:r[i],1]  	= 1
-	VAR_Ione[[i]]  	= VARDatavar_data,p=Pmini,T=100,r_np=r_npi)
+	VAR_Ione[[i]]  	= var_data(n=r[i],p=Pmini,T=100,r_np=r_npi)
   }
 
 
@@ -1059,7 +1059,7 @@ varbs_commtrend = function(m,p,T,r, Ncommtrend,n,S,r_npo) {
             	r_np <- r_npo[(r[i]+1):m,1:p[i,1,s],i,s]
             	dim(r_np) = c(NIzero,p[i,1,s])
                   #A = matrix(rnorm(NIzero*NIzero),NIzero,NIzero); A = eigen(t(A)%*%A)[[2]]
-	            VAR_IZero = VARDatavar_data, p[i, 1,s],T=100,r_np=r_np,)
+	            VAR_IZero = var_data(NIzero, p[i, 1,s],T=100,r_np=r_np,)
 
             	for (j in 1: p[i,1,s]) {
                		Dblock    = matrix(0,m,m)
@@ -1067,9 +1067,10 @@ varbs_commtrend = function(m,p,T,r, Ncommtrend,n,S,r_npo) {
                		if (dim(VAR_Ione[[i]]$B)[3]>=j) Dblock[(NIzero+1):m,(NIzero+1):m] = VAR_Ione[[i]]$B[,,j]
                		Bo[, , j, i,s] = B%*%Dblock%*%solve(B)
       		}
-            	#alpha[[i]] = B2CIB(VARD$B)[[2]]
-            	#beta[[i]]  = B2CIB(VARD$B)[[3]]
-			B2CIBab  	= B2CIB(Bo[, , 1:p[i, 1,s], ib2_cib            	alphai[[s]] = B2CIBab[[2]]
+            	#alpha[[i]] = b2_cib(VARD$B)[[2]]
+            	#beta[[i]]  = b2_cib(VARD$B)[[3]]
+			B2CIBab  	= b2_cib(Bo[, , 1:p[i, 1,s], i,s])
+            	alphai[[s]] = B2CIBab[[2]]
             	betai[[s]]  = B2CIBab[[3]]
       	}
             alpha[[i]] = alphai
@@ -1435,13 +1436,13 @@ strsplit1 <- function(x, split) {
 #' @export
 #'
 #' @examples
-#' Type(Co=matrix(c(0,0,1,1),2,2),EXOG= c(1:10),type="exog0")
-#' Type(Co=matrix(c(1,1,1,1),2,2),EXOG= c(1:10),type="exog1")
-#' Type(Co=matrix(c(1,1,1,1,0,0),2,3),EXOG= c(1:10),type=NA)
-#' Type(Co=c(1,1),EXOG= NA,type=NA)
-#' Type(Co=c(0,0),EXOG= NA,type=NA)
-#' VARData(n=2,p=2,T=100,Co=matrix(c(2,2,1,1),2,2),type="exog0",X=c(1:100))
-#' VARData(n=2,p=2,T=100,Co=matrix(c(1,1,1,1),2,2),type="exog1",X=c(1:100))
+#' infer_deterministic_type(Co=matrix(c(0,0,1,1),2,2),EXOG= c(1:10),type="exog0")
+#' infer_deterministic_type(Co=matrix(c(1,1,1,1),2,2),EXOG= c(1:10),type="exog1")
+#' infer_deterministic_type(Co=matrix(c(1,1,1,1,0,0),2,3),EXOG= c(1:10),type=NA)
+#' infer_deterministic_type(Co=c(1,1),EXOG= NA,type=NA)
+#' infer_deterministic_type(Co=c(0,0),EXOG= NA,type=NA)
+#' var_data(n=2,p=2,T=100,Co=matrix(c(2,2,1,1),2,2),type="exog0",X=c(1:100))
+#' var_data(n=2,p=2,T=100,Co=matrix(c(1,1,1,1),2,2),type="exog1",X=c(1:100))
 infer_deterministic_type <- function (Co, EXOG, type)
 {
   if (anyNA(Co) & anyNA(EXOG) & anyNA(type))
@@ -1478,7 +1479,7 @@ infer_deterministic_type <- function (Co, EXOG, type)
 #'
 #' @examples
 #' @keywords internal
-#' Roots2coef(3,c(1.1,1.2,1.3))
+#' roots_to_coef(3,c(1.1,1.2,1.3))
 roots_to_coef = function(p,r_p) {
    if (missing(r_p)) r_p <- 0.5/(stats::runif(p)-0.5)  #random number outside unit circle
    if (min(abs(r_p)) < 1) {
@@ -1698,3 +1699,4 @@ shift_z2m <- function(Z2,kz,n1,p,p2) {
   }
   return(Z2)
 }
+

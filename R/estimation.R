@@ -6,7 +6,7 @@
 #'
 #' This function estimates the parameters of a CIGVAR(m,n,p) object based on provided data.
 #' It runs a VECM estimation country/unit by country/unit under a given cointegration rank and pieces the results together to obtain a CIGVAR.
-#' @param  res  a CIGVAR object of an output of CIGVARData including at least values of m,n,p,type,Y,crk and optionally X.
+#' @param  res  a CIGVAR object of an output of cigvar_data including at least values of m,n,p,type,Y,crk and optionally X.
 #' @return a CIGVAR object with estimated parameter values, AIC, BIC and LH
 #' @examples
 #'
@@ -20,19 +20,19 @@
 #' r_npo[,,4] = matrix(c(1,2,3,2,3,3,3,3,3),3,3)
 #' r_npo[,,5] = matrix(c(1,2,3,2,3,3,3,3,3),3,3)
 #'
-#' res_d = CIGVARData(m=3,n=5,p=p,T=500,r_npo=r_npo,type="const",DFYflag=0,Ncommfakt=1)
+#' res_d = cigvar_data(m=3,n=5,p=p,T=500,r_npo=r_npo,type="const",DFYflag=0,Ncommfakt=1)
 #' max(res_d$Y)
-#' STAT(res_d$G)
+#' spectral_radius(res_d$G)
 #' plot(ts(res_d$Y[,1:10]))
-#' res_e = CIGVARest(res_d)
+#' res_e = cigvar_estimate(res_d)
 #' res_e$Summary
 #' res_e$Summary$CRK_Test
 #' ## adjust the model specification according to the cointegration rank test
 #' res_d$crk = c(1,2,2,2,2)
-#' res_e = CIGVARest(res_d)
+#' res_e = cigvar_estimate(res_d)
 #' res_e$Summary
 #' ## unit roots in the CIGVAR model
-#' STAT(res_e$G)
+#' spectral_radius(res_e$G)
 #' @export
 cigvar_estimate <- function (res)  {
   m = res$m
@@ -109,12 +109,12 @@ cigvar_estimate <- function (res)  {
       if (is.null(colnames(Xi))) colnames(Xi)   = paste0(rep("exog",ncol(Xi)),c(1:ncol(Xi)))
     }   else  { Xi = NA }
 
-    #tst <- MRCVECMest2(y, x, model = Model, type = "eigen", P = P, crk = crk[i], q = 0.95, Dxflag = 1,X=Xi)
+    #tst <- mrcvec_mest2(y, x, model = Model, type = "eigen", P = P, crk = crk[i], q = 0.95, Dxflag = 1,X=Xi)
     tst <- mrcvec_mest2(y, x, model = Model, type = "eigen", P = P, crk = crk[i], q = 0.95, Dxflag = DFYflag,X=Xi,CZ=as.matrix(Z))
     #tst <- MRCVECMest2a(y,x, model = Model, type = "eigen",    P = P, crk = crk[i], q = 0.95, Dxflag = DFYflag,X=Xi,CZ=as.matrix(Z))
 
 
-    #BAC = VECM2VAR(param = tst[[2]][[1]], beta = tst$beta, q = c(crk[i], P[1, 1] - 1, P[1, 2] - 1),kz=0,Dxflag=DFYflag)
+    #BAC = vecm2_var(param = tst[[2]][[1]], beta = tst$beta, q = c(crk[i], P[1, 1] - 1, P[1, 2] - 1),kz=0,Dxflag=DFYflag)
     BAC = vecm2_var(param = tst[[2]][[1]], beta = tst$beta, q = c(crk[i], P[1, 1] - 1, P[1, 2] - 1),kz=Ncommfakt,Dxflag=DFYflag)
 
     Tresid[(T - dim(tst[[2]]$residuals)[1] + 1):T, ] = tst[[2]]$residuals
@@ -176,22 +176,22 @@ cigvar_estimate <- function (res)  {
 #'
 #' This function estimates parameters of a specified CIVAR(p) model based on provided data.
 #'
-#' @param  res  :an object of CIVAR(p) containing the components which are the output of CIVARData including at least: n, p, Y, crk, and optionally X and type.
+#' @param  res  :an object of CIVAR(p) containing the components which are the output of civar_data including at least: n, p, Y, crk, and optionally X and type.
 #' @return res  an object of CIVAR(p) containing estimated parameter values, AIC, BIC, LH and the estimated VECM in regression format.
 #' @examples
 #' p = 3
 #' n = 4
 #' r_np = matrix(c(1,2,1.5,1.5,2.5,2.5,2,-1.5,2,-4,1.9,-2.1),4,3)
 #'
-#' res_d  = CIVARData(n=4,p=3,T=200,r_np=r_np,Co =(1:n)/(1:n)*0,type="none",crk=3)
-#' res_e  = CIVARest(res=res_d)
-#' res_d  = CIVARData(n=4,p=3,T=200)
+#' res_d  = civar_data(n=4,p=3,T=200,r_np=r_np,Co =(1:n)/(1:n)*0,type="none",crk=3)
+#' res_e  = civar_estimate(res=res_d)
+#' res_d  = civar_data(n=4,p=3,T=200)
 #' B = res_d$B
 #' plot(ts(res_d$Y))
 #' res_d$Co
 #' res_d$type
 #' res_d$crk
-#' res_e = CIVARest(res=res_d)
+#' res_e = civar_estimate(res=res_d)
 #'
 #'
 #'
@@ -1000,14 +1000,14 @@ mrcvec_mestm <- function (y, x, s, model = c("I", "II", "III", "IV", "V"), type 
 #'
 #' This function estimates parameters of a specified conditional cointegrated VAR based on provided data.
 #'
-#' @param res a CCIVAR object that can be an output of CCIVARData containing at least n1,n2, Y, X, and crk.
+#' @param res a CCIVAR object that can be an output of ccivar_data containing at least n1,n2, Y, X, and crk.
 #'
 #' @return a CCIVAR object with estimated parameter values, AIC, BIC, conditional VECM in a regression format.
 #'
 #' @examples
 #' T = 100
-#' res_d <- CCIVARData(n1=4,n2=3,crk=3,p=3,T=T,type="const")
-#' res_e <- CCIVARest(res=res_d)
+#' res_d <- ccivar_data(n1=4,n2=3,crk=3,p=3,T=T,type="const")
+#' res_e <- cciva_rest(res=res_d)
 #' res_e$Summary
 #'
 #' @export
@@ -1078,13 +1078,13 @@ cciva_rest <- function (res)
 #' p = (1:12)*0; dim(p) = c(4,3);p[,1] = 2; p[,2]=1;   p[,3]=1; p[2,2]=2;
 #' p
 #'
-#' res_d = GVARData(m=2,n=4,p=p,T=200,type="exog0",X=X)
-#' res_e = GVARest(res = res_d)
+#' res_d = gvar_data(m=2,n=4,p=p,T=200,type="exog0",X=X)
+#' res_e = gvar_estimate(res = res_d)
 #' res_e$Summary
 #'
-#' IRF_CB = irf_GVAR_CB(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
+#' IRF_CB = irf_gvar_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
 #' dim(IRF_CB)
-#' IRF_g = IRF_graph(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
+#' IRF_g = plot_irf(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
 #'
 #'
 #' @export
@@ -1227,7 +1227,7 @@ gvar_estimate <- function (res)  {
 #'
 #' This function estimates parameters of a multi regime cointegrated global VAR(p) model. The adjustment speeds to the cointegration relations are assumed to be different in different regimes.
 #'
-#' @param res   : an MRCIVAR object of the output of MRCIGVARData
+#' @param res   : an MRCIVAR object of the output of mrcigvar_data
 #' @return      : an MRCIVAR object with estimated parameters and test statistics.
 #' @examples
 #' m = 2
@@ -1241,20 +1241,20 @@ gvar_estimate <- function (res)  {
 #'
 #' ## case of n = 3, m = 2, S = 2     ## m: number of variables, n: number of countries
 #'
-#' res_d <- MRCIGVARData(m=2,n=3,p=p,TH=TH,T=300,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
+#' res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=300,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
 #' # Ao
 #' max(abs(res_d$Y))
 #' plot(ts(res_d$Y))
-#' STAT(res_d$Go[,,,2])
-#' STAT(res_d$Go[,,,1])
+#' spectral_radius(res_d$Go[,,,2])
+#' spectral_radius(res_d$Go[,,,1])
 #' max(abs(res_d$Y))
 #' res_d$type
 #' res_d$W
 #' #   Ao =  res_d$Ao;  Bo =  res_d$Bo;  Co =  res_d$Co;
-#' #   res_d <- MRCIGVARData(m=2,n=3,p=p,TH=TH,T=300,S=2, SESVI=c(1,3,5),Ao=Ao,Bo=Bo,Co=Co)
+#' #   res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=300,S=2, SESVI=c(1,3,5),Ao=Ao,Bo=Bo,Co=Co)
 #'
 #' max(res_d$Y)
-#' res_e  = MRCIGVARest(res=res_d)
+#' res_e  = mrcigvar_estimate(res=res_d)
 #' res_e$Summary
 #'
 #' @export
@@ -1376,7 +1376,7 @@ mrcigvar_estimate <- function(res) {
       MRXi = NA
       ORXi = NA
     }
-    #ORtst <- MRCVECMest2(y, x, model = Model, type = "trace",P = pjOR, crk = crk, q = 0.95, Dxflag = 0,X=ORXi)
+    #ORtst <- mrcvec_mest2(y, x, model = Model, type = "trace",P = pjOR, crk = crk, q = 0.95, Dxflag = 0,X=ORXi)
     ORtst <- mrcvec_mest2(y,x, model = Model, type = "trace", P = pjOR, crk = crk, q = 0.95, Dxflag = DFYflag, X=ORXi, CZ=as.matrix(Z))
     nrowresidOR = nrow(ORtst[[2]]$residuals)
     UOR = ORtst[[2]]$residuals
@@ -1384,7 +1384,7 @@ mrcigvar_estimate <- function(res) {
     ORLHP[i] = -(T * m/2) * log(2 * 3.1415) - (T * m/2) + T/2 * log(det(solve(SigmaOR)))
     ORAIC[i] = 2 * m * (m * pjOR[1, 1] - m + crk + (m + 1)/2) -  2 * ORLHP[i]
     ORBIC[i] = log(T) * m * (m * pjOR[1, 1] - m + crk + (m +  1)/2) - 2 * ORLHP[i]
-    #tst <- MRCVECMestm(y, x, s = Sti, model = Model, type = "trace", P = pj, crk = crk, q = 0.95,X=MRXi)
+    #tst <- mrcvec_mestm(y, x, s = Sti, model = Model, type = "trace", P = pj, crk = crk, q = 0.95,X=MRXi)
     tst <- mrcvec_mestm(y, x, s = Sti, model = Model, type = "trace", P = pj, crk = crk, q = 0.95,Dxflag = DFYflag, X=MRXi,CZ=as.matrix(Z))
     VECM_domestic[[i]]     = tst$VECM1
     VECM_domesticS[[i]]    = tst$VECM1S
@@ -1434,8 +1434,8 @@ mrcigvar_estimate <- function(res) {
     AB2 = vecm2_var(param = tst$VECM1[[1]][c(crk+(1:crk), (crk*2 + m * (pj[1, 1] - 1 + pj[1, 2] - 1)) + 1:(m * (pj[2,1] + pj[2, 2] - 2)),ConnectPoint+ADD2), ], beta = tst$betaS, q = c(crk,(pj[2, 1] - 1), (pj[2, 2] - 1)),kz=kz,Dxflag=DFYflag)
 
 
-    #AB1 = VECM2VAR(param = tst$VECM1[[1]][c(1:crk,2*crk +(1: (m * (pj[1,1] - 1 + pj[1, 2] - 1)))), ], beta = tst$betaS, q = c(crk,(pj[1, 1] - 1), (pj[1, 2] - 1)),Dxflag=DFYflag)
-    #AB2 = VECM2VAR(param = tst$VECM1[[1]][c(crk+(1:crk), (crk*2 + m * (pj[1, 1] - 1 + pj[1, 2] - 1)) + 1:(m * (pj[2,1] + pj[2, 2] - 2))), ], beta = tst$betaS, q = c(crk,(pj[2, 1] - 1), (pj[2, 2] - 1)),Dxflag=DFYflag)
+    #AB1 = vecm2_var(param = tst$VECM1[[1]][c(1:crk,2*crk +(1: (m * (pj[1,1] - 1 + pj[1, 2] - 1)))), ], beta = tst$betaS, q = c(crk,(pj[1, 1] - 1), (pj[1, 2] - 1)),Dxflag=DFYflag)
+    #AB2 = vecm2_var(param = tst$VECM1[[1]][c(crk+(1:crk), (crk*2 + m * (pj[1, 1] - 1 + pj[1, 2] - 1)) + 1:(m * (pj[2,1] + pj[2, 2] - 2))), ], beta = tst$betaS, q = c(crk,(pj[2, 1] - 1), (pj[2, 2] - 1)),Dxflag=DFYflag)
     Bo[, , 1:pj[1, 1], i, 1] = AB1[[1]]
     Ao[, , 1:pj[1, 2], i, 1] = AB1[[2]]
     Bo[, , 1:pj[2, 1], i, 2] = AB2[[1]]
@@ -1514,7 +1514,7 @@ mrcigvar_estimate <- function(res) {
 
 #'
 #'This function executes a Johansen test of cointegration ranks and estimates the parameters of a MRCIVAR(n,p,S) model.
-#' @param res an MRCIVAR object of the output of MRCIVARDatam
+#' @param res an MRCIVAR object of the output of mrcivar_data_m
 #'
 #' @return an estimated MRCIVAR object containing estimated parameters and test results
 #' @export
@@ -1527,10 +1527,10 @@ mrcigvar_estimate <- function(res) {
 #' p=matrix(0,2,2)
 #' p[,1] = c(3,3)
 #'
-#' res_d = MRCIVARDatam(n=4,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
+#' res_d = mrcivar_data_m(n=4,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
 #' colnames(res_d$Y) = c("w","p","I","Q")
 #' max(abs(res_d$Y))
-#' res_e = MRCIVARestm1(res=res_d)
+#' res_e = mrcivar_estimatem1(res=res_d)
 #' res_e$Summary
 #'
 mrcivar_estimatem1 <- function (res)
@@ -1809,18 +1809,18 @@ abc_mrciva_restm <- function(res=res,H=H,h=h,phi=phi,G=G,psi=psi) {
 #' p = rep(1,12); dim(p) = c(2,3,2)
 #' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
 #' TH = c(1:2)*0; dim(TH) = c(1,2)
-#' res_d <- MRGVARData(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
+#' res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
 #' max(res_d$Y)
 #'
 #' ### estimation of the MRGVAR model
 #' colnames(res_d$Y) = c("P","Q","Pa","Qa")
-#' res_e = MRGVARest(res=res_d)
+#' res_e = mrgvar_estimate(res=res_d)
 #' res_e$Summary
 #'
-#' IRF_CB  = irf_MRGVAR_CB(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
+#' IRF_CB  = irf_mrgvar_cb(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
 #' conf=c(0.05,0.95))
-#' IRF_g = IRF_graph(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
-#' #IRF_g = IRF_graph(IRF_CB[[2]])   # accumulated IRF
+#' IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
+#' #IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
 #' @export
 mrgvar_estimate <- function (res)
 {
@@ -1992,16 +1992,16 @@ mrgvar_estimate <- function (res)
 #'
 #' This function estimates the parameters of a specified MRVAR(n,p,S) based on provided data.
 #'
-#' @param  res  :an object of MRVAR that is an output of MRVARData including at least: n, S, p, type, Y, SESVI, TH, d, and optionally X.
+#' @param  res  :an object of MRVAR that is an output of mrvar_data including at least: n, S, p, type, Y, SESVI, TH, d, and optionally X.
 #' @return an MRVAR object that is a list containing estimated parameters and some test statistics.
 #'
 #' @examples
 #' p = matrix(c(3,3,0,0),2,2)
-#' res_d = MRVARData(n=2,p=p,T=200,S=2,SESVI=1,type="const")
+#' res_d = mrvar_data(n=2,p=p,T=200,S=2,SESVI=1,type="const")
 #' colnames(res_d$Y) = c("Y","P")
-#' STAT(res_d$B[,,,1])
-#' STAT(res_d$B[,,,2])
-#' res_e = MRVARest(res=res_d)
+#' spectral_radius(res_d$B[,,,1])
+#' spectral_radius(res_d$B[,,,2])
+#' res_e = mrvar_estimate(res=res_d)
 #' res_e$Summary
 #'
 #' @export
@@ -2220,13 +2220,13 @@ mrvar_estimate <- function (res)
 #'
 #' This function estimates parameters of a specified VAR(p) model based on provided data.
 #'
-#' @param  res  :a VAR(p) object which is an output of VARData including at least: n, p, type, Y and optionally X and type.
+#' @param  res  :a VAR(p) object which is an output of var_data including at least: n, p, type, Y and optionally X and type.
 #' @return res  :a VAR(p) containing estimated parameter values, AIC, BIC and LH.
 #' @examples
-#' res_d = VARData(n=2,p=2,T=100,type="const")
-#' res_e = VARest(res=res_d);
-#' IRF_CB = irf_VAR_CB(res=res_e,nstep=20, comb=NA, irf = "gen1", runs = 100, conf = c(0.05, 0.95))
-#' IRF_list <-IRF_graph(IRF_CB)
+#' res_d = var_data(n=2,p=2,T=100,type="const")
+#' res_e = var_estimate(res=res_d);
+#' IRF_CB = irf_var_cb(res=res_e,nstep=20, comb=NA, irf = "gen1", runs = 100, conf = c(0.05, 0.95))
+#' IRF_list <-plot_irf(IRF_CB)
 #' res_e$Summary
 #'
 #' @export
@@ -2323,3 +2323,4 @@ var_estimate <- function (res)
 
   return(res)
 }
+

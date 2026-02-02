@@ -19,18 +19,18 @@
 #' p = (1:15)*0; dim(p) = c(5,3)
 #' p[,1] = 3; p[,2]=3;
 #' p[2,1] = 2;  p[3,1] = 2
-#' res_d = CIGVARData(m=2,n=5,p=p,T=500,type="const",DFYflag=0)
+#' res_d = cigvar_data(m=2,n=5,p=p,T=500,type="const",DFYflag=0)
 #' res_d$r_npo
 #' res_d$check
-#' res_e = CIGVARest(res_d)
+#' res_e = cigvar_estimate(res_d)
 #' res_e$Summary
 #'
 #' ### Impulse response function
 #'
-#' IRF_CB = irf_CIGVAR_CB(res=res_e,nstep=20,comb=NA,irf="gen1",runs=200,conf=c(0.05,0.95))
+#' IRF_CB = irf_cigvar_cb(res=res_e,nstep=20,comb=NA,irf="gen1",runs=200,conf=c(0.05,0.95))
 #'
 #' dim(IRF_CB)
-#' IRF_g = IRF_graph(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
+#' IRF_g = plot_irf(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
 #'
 #'
 #'
@@ -102,16 +102,16 @@ irf_cigvar_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "ge
 #' @return an array of dimension (n, n, nstep, 3).
 #' @examples
 #'
-#' res_d = CIVARData(n=4,p=2,T=84,Co=matrix(c(1,1,1,1),4,1)*0,type="none",crk=1)
-#' res_e = CIVARest(res=res_d)
+#' res_d = civar_data(n=4,p=2,T=84,Co=matrix(c(1,1,1,1),4,1)*0,type="none",crk=1)
+#' res_e = civar_estimate(res=res_d)
 #' res_e$Summary
 #'
-#' IRF_CB = irf_CIVAR_CB(res=res_e, nstep=20, comb=NA, irf = "gen1", runs = 20, conf = c(0.05, 0.95))
-#' IRF_g = IRF_graph(IRF_CB)
+#' IRF_CB = irf_civar_cb(res=res_e, nstep=20, comb=NA, irf = "gen1", runs = 20, conf = c(0.05, 0.95))
+#' IRF_g = plot_irf(IRF_CB)
 #'
-#' IRF_CB     = irf_CIVAR_CB(res=res_e, nstep=30, comb=NA, irf = "PTdecomp", G = NA, A0=NA,B0=NA,
+#' IRF_CB     = irf_civar_cb(res=res_e, nstep=30, comb=NA, irf = "PTdecomp", G = NA, A0=NA,B0=NA,
 #'  runs = 20, conf = c(0.05, 0.95))
-#' IRF_g = IRF_graph(IRF_CB)
+#' IRF_g = plot_irf(IRF_CB)
 #' # The first three shocks have permanent effects,
 #' # while the fourth shock does not have a permanent effect.
 #'
@@ -119,13 +119,13 @@ irf_cigvar_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "ge
 #'
 #' T=100
 #' X=matrix(rnorm(2*T),T,2)
-#' res_d = VARData(n=3,p=2,T=T,Co=matrix(c(0,0,0,1,2,3,3,2,1),3,3), type="exog0",X=X) ;
-#' res_e = VARest(res=res_d);
+#' res_d = var_data(n=3,p=2,T=T,Co=matrix(c(0,0,0,1,2,3,3,2,1),3,3), type="exog0",X=X) ;
+#' res_e = var_estimate(res=res_d);
 #' res_d$Co
 #' res_e$Summary
-#' IRF_CB = irf_VAR_CB(res=res_e,nstep=20, comb=NA, irf = "irfX", Xshks=c(1:2),
+#' IRF_CB = irf_var_cb(res=res_e,nstep=20, comb=NA, irf = "irfX", Xshks=c(1:2),
 #' runs = 100, conf = c(0.05, 0.95))
-#' IRF_list <-IRF_graph(IRF_CB,Names =c("Y1","Y2","Y3"),INames=c("X1","X2"),
+#' IRF_list <-plot_irf(IRF_CB,Names =c("Y1","Y2","Y3"),INames=c("X1","X2"),
 #' response = c(1:3), impulse = c(1:3), n = 3)
 #'
 #' @export
@@ -214,7 +214,7 @@ irf_civar_cb   <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "g
 #'
 #' This function generates impulse response functions of an estimated GVAR
 #'
-#' @param  res  : an output of GVARest
+#' @param  res  : an output of gvar_estimate
 #' @param  nstep : length of the impulse response functions
 #' @param  comb : an mn vector specifying combined impulse such as global shocks, regional shocks, or concerted actions.
 #' @param  irf  : types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse.
@@ -231,12 +231,12 @@ irf_civar_cb   <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "g
 #'
 #' n = 4
 #' p = (1:12)*0; dim(p) = c(4,3);p[,1] = 2; p[,2]=2; p[,3]=1;
-#' res_d = GVARData(m=2,n=4,p=p,T=200,type="exog0",X=X)
-#' res_e = GVARest(res=res_d)
-#' IRF = irf_GVAR(res_e,nstep=10,comb=NA,irf="gen")
-#' IRF_CB = irf_GVAR_CB(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
+#' res_d = gvar_data(m=2,n=4,p=p,T=200,type="exog0",X=X)
+#' res_e = gvar_estimate(res=res_d)
+#' IRF = irf_gvar(res_e,nstep=10,comb=NA,irf="gen")
+#' IRF_CB = irf_gvar_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
 #' dim(IRF_CB)
-#' IRF_g = IRF_graph(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
+#' IRF_g = plot_irf(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
 #'
 #' @export
 #' @keywords internal
@@ -256,7 +256,7 @@ irf_gvar = function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1")) {
 #'
 #' This function generates impulse response functions of an estimated GVAR with confidence bands
 #'
-#' @param  res  : an object of GVAR that is a list of the output of GVARest
+#' @param  res  : an object of GVAR that is a list of the output of gvar_estimate
 #' @param  nstep : length of the impulse response functions
 #' @param  comb : an mn vector specifying combined impulse such as global shocks, regional shocks, or concerted actions.
 #' @param  irf  : types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse.
@@ -267,15 +267,15 @@ irf_gvar = function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1")) {
 #' n = 5
 #' p = (1:15)*0; dim(p) = c(5,3)
 #' p[,1] = 2; p[,2]=1;
-#' res_d = GVARData(m=2,n=5,p=p,T=100,type="const")
+#' res_d = gvar_data(m=2,n=5,p=p,T=100,type="const")
 #' max(res_d$Y)
 #' dim(res_d$Y)
-#' res_e = GVARest(res = res_d)
+#' res_e = gvar_estimate(res = res_d)
 #' res_e$Summary
 #'
-#' IRF_CB = irf_GVAR_CB(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
+#' IRF_CB = irf_gvar_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
 #' dim(IRF_CB)
-#' IRF_g = IRF_graph(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
+#' IRF_g = plot_irf(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
 #'
 #' @export
 irf_gvar_cb =function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1"),runs=200,conf=c(0.05,0.95)) {
@@ -306,7 +306,7 @@ irf_gvar_cb =function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1"),
             res_e   = gvar_estimate(res_run)
             B_run   = res_e$G
             sigma_run = res_e$Sigmao
-                #responseR[,,,i] <- irf_B_sigma(B_run,sigma_run,nstep,comb,irf=irf)
+                #responseR[,,,i] <- irf_from_params(B_run,sigma_run,nstep,comb,irf=irf)
             responseR[,,,i]  <- irf_gvar(res_e,nstep,comb,irf)
         }
         responseR[,,,1] = response[,,,1]
@@ -325,7 +325,7 @@ irf_gvar_cb =function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1"),
 
 #'
 #' This function calculates the regime specific impulse response functions of an estimated MRCIGVAR(n,p,S,r). Using G\[,,,s\] and Sigma\[,,s\] matrices of the estimated MRCIGVAR, this function can produce impulse response functions for any possible combinations of states.
-#' @param res a MRCIGVAR object that can be an output of MRCIGVARData, MRCIGVARest, or MRCIGVARest.
+#' @param res a MRCIGVAR object that can be an output of mrcigvar_data, mrcigvar_estimate, or MRCIGVARest.
 #' @param nstep the length of impulse response function
 #' @param comb a vector specify the concerted action in policy-simulation impulse response function
 #' @param state an n-vector specifying the specific state for each country.
@@ -347,20 +347,20 @@ irf_gvar_cb =function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1"),
 #' ## case of n = 3, m = 2, S = 2    m: number of variables, n: number of countries
 #'
 #'
-#' res_d <- MRCIGVARData(m=2,n=3,p=p,TH=TH,T=100,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
+#' res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=100,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
 #' max(abs(res_d$Y))
-#' STAT(res_d$Go[,,,2])
-#' STAT(res_d$Go[,,,1])
-#' res_e  = MRCIGVARest(res=res_d)
+#' spectral_radius(res_d$Go[,,,2])
+#' spectral_radius(res_d$Go[,,,1])
+#' res_e  = mrcigvar_estimate(res=res_d)
 #'
 #' res_e$Summary
 #'
-#' IRF_CB = irf_MRCIGVAR_CB(res=res_e, nstep=10, comb=NA, state = c(2,1,1), irf = "gen1",runs=20,
+#' IRF_CB = irf_mrcigvar_cb(res=res_e, nstep=10, comb=NA, state = c(2,1,1), irf = "gen1",runs=20,
 #'  conf = c(0.05, 0.95), NT = 1)
 #'
 #' str(IRF_CB)
 #'
-#' IRF_g = IRF_graph(IRF_CB[[1]])
+#' IRF_g = plot_irf(IRF_CB[[1]])
 #'
 #' @export
 #'
@@ -438,7 +438,7 @@ irf_mrcigvar_cb <- function (res, nstep, comb, state = c(2, 1), irf = c("gen", "
 #'
 #' This function calculates the regime specific impulse response functions of an estimated MRCIGVAR(n,p,S).
 #' Using the estimated G\[,,,s\] and Sigma\[,,s\] matrices of the MRGVAR, this function calculated the regime speicfic impulse response functions.
-#' @param res a list of estimated MRCIGVAR as output of MRCIGVARest or MRCIGVARest
+#' @param res a list of estimated MRCIGVAR as output of mrcigvar_estimate or mrcigvar_estimate
 #' @param nstep the length of impulse response function
 #' @param comb a vector specify the concerted action in policy-simulation impulse response function
 #' @param state an n vector specifying the speciic state for each country.
@@ -458,21 +458,21 @@ irf_mrcigvar_cb <- function (res, nstep, comb, state = c(2, 1), irf = c("gen", "
 #' ## case of n = 3, m = 2, S = 2    m: number of variables, n: number of countries
 #'
 #'
-#' res_d <- MRCIGVARData(m=2,n=3,p=p,TH=TH,T=300,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
+#' res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=300,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
 #' max(abs(res_d$Y))
-#' STAT(res_d$Go[,,,2])
-#' STAT(res_d$Go[,,,1])
-#' res_e  = MRCIGVARest(res=res_d)
+#' spectral_radius(res_d$Go[,,,2])
+#' spectral_radius(res_d$Go[,,,1])
+#' res_e  = mrcigvar_estimate(res=res_d)
 #'
 #' res_e$Summary
 #'
-#' IRF_CB = irf_MRCIGVAR_CB(res=res_e, nstep=10, comb=NA, state = c(2,1,1), irf = "gen1",
+#' IRF_CB = irf_mrcigvar_cb(res=res_e, nstep=10, comb=NA, state = c(2,1,1), irf = "gen1",
 #' runs = 20, conf = c(0.05, 0.95), NT = 1)
 #'
 #' str(IRF_CB)
 #'
-#' IRF_g = IRF_graph(IRF_CB[[1]])
-#' IRFF2 = irf_MRCIGVAR(res=res_e,nstep=10,comb=NA,state=c(2,2,2),irf='gen')
+#' IRF_g = plot_irf(IRF_CB[[1]])
+#' IRFF2 = irf_mrcigvar(res=res_e,nstep=10,comb=NA,state=c(2,2,2),irf='gen')
 #' plot(IRFF2[1,1,],type="l")
 #'
 #'
@@ -490,7 +490,7 @@ irf_mrcigvar = function(res,nstep,comb,state=state,irf=c("gen","chol","chol1","g
 	    Ao 	= res$Ao
       W	= res$W
       B     = bo_ao_ws2_gs(Bo,Ao,W,m,n,pp,state)
-      if (anyNA(sigmaNPDS))	sigma = Sigmsigma_npd,state)  else  sigma = sigmaNPDS
+      if (anyNA(sigmaNPDS))	sigma = sigma_npd(res,state)  else  sigma = sigmaNPDS
       response <- array(0,dim=c(neq,nvar,nstep));
       response <- irf_from_params(B,sigma,nstep,comb,irf=irf)
 	return(response)
@@ -521,24 +521,24 @@ irf_mrcigvar = function(res,nstep,comb,state=state,irf=c("gen","chol","chol1","g
 #'r  = rep(1,n)
 #'
 #' ## case of n = 3, m = 2, S = 2    m: number of variables, n: number of countries
-#' res_d <- MRCIGVARData(m=2,n=3,p=p,TH=TH,T=200,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
+#' res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=200,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
 #' max(abs(res_d$Y))
-#' STAT(res_d$Go[,,,2])
-#' STAT(res_d$Go[,,,1])
-#' res_e  = MRCIGVARest(res=res_d)
+#' spectral_radius(res_d$Go[,,,2])
+#' spectral_radius(res_d$Go[,,,1])
+#' res_e  = mrcigvar_estimate(res=res_d)
 #'
-#' STAT(res_e$Go[,,,2])
-#' STAT(res_e$Go[,,,1])
+#' spectral_radius(res_e$Go[,,,2])
+#' spectral_radius(res_e$Go[,,,1])
 #'
 #' plot(ts(res_d$Y))
 #' #res_e$Summary
 #'
-#' if (!((max(Mod(STAT(res_e$Go[,,,1])))>1.0001)|(max(Mod(STAT(res_e$Go[,,,2])))>1.0001)) ) {
-#'   GIRF <- girf_MRCIGVAR_RM(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#' if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1.0001)|(max(Mod(spectral_radius(res_e$Go[,,,2])))>1.0001)) ) {
+#'   GIRF <- girf_mrcigvar_rm(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
 #'   resid_method="parametric")
-#'   GIRF_CB <- girf_MRCIGVAR_RM_CB(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#'   GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
 #'   resid_method="parametric",conf=c(0.05,0.95),N=100)
-#'   IRF_g = IRF_graph(GIRF_CB)
+#'   IRF_g = plot_irf(GIRF_CB)
 #' }
 #'
 #' @export
@@ -627,7 +627,7 @@ girf_mrcigvar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
     for (k in 1:DIMresid[2]) {
       YR[,,k] = mrcigvar_data(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residR[[i]][,,k,],SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)$Y
       YS[,,k] = mrcigvar_data(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residS[[i]][,,k,],SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)$Y
-      ## to delete YS[[i]] = MRGVARData(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residS[[i]],SV=SV,type=type,Co=Co,X=X,Yo=Yo*0,d=d)
+      ## to delete YS[[i]] = mrgvar_data(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residS[[i]],SV=SV,type=type,Co=Co,X=X,Yo=Yo*0,d=d)
     }
 
     MYR = MYR + 1/R*YR
@@ -672,24 +672,24 @@ girf_mrcigvar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
 #'r  = rep(1,n)
 #'
 #' ## case of n = 3, m = 2, S = 2    m: number of variables, n: number of countries
-#' res_d <- MRCIGVARData(m=2,n=3,p=p,TH=TH,T=200,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
+#' res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=200,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
 #' max(abs(res_d$Y))
-#' STAT(res_d$Go[,,,2])
-#' STAT(res_d$Go[,,,1])
-#' res_e  = MRCIGVARest(res=res_d)
+#' spectral_radius(res_d$Go[,,,2])
+#' spectral_radius(res_d$Go[,,,1])
+#' res_e  = mrcigvar_estimate(res=res_d)
 #'
-#' STAT(res_e$Go[,,,2])
-#' STAT(res_e$Go[,,,1])
+#' spectral_radius(res_e$Go[,,,2])
+#' spectral_radius(res_e$Go[,,,1])
 #'
 #' plot(ts(res_d$Y))
 #' #res_e$Summary
 #'
-#' if (!((max(Mod(STAT(res_e$Go[,,,1])))>1)|(max(Mod(STAT(res_e$Go[,,,2])))>1)) ) {
-#'   GIRF <- girf_MRCIGVAR_RM(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#' if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1)|(max(Mod(spectral_radius(res_e$Go[,,,2])))>1)) ) {
+#'   GIRF <- girf_mrcigvar_rm(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
 #'   resid_method="parametric")
-#'   GIRF_CB <- girf_MRCIGVAR_RM_CB(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#'   GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
 #'   resid_method="parametric",conf=c(0.05,0.95),N=100)
-#'   IRF_g = IRF_graph(GIRF_CB)
+#'   IRF_g = plot_irf(GIRF_CB)
 #' }
 #'
 #' @export
@@ -723,8 +723,8 @@ girf_mrcigvar_rm_cb <- function(res,shock,R,nstep,Omega_hist=NA,resid_method="pa
   GIRFBd[,,,1]= girf_mrcigvar_rm(res,shock,R,nstep,Omega_hist,resid_method)
 
   for (i in 1:N) {
-    #res_run = MRGVARData(m=m,n=n,p=p,T=T,S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=NA,SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)
-    #res_e   = MRGVARest(res_run)
+    #res_run = mrgvar_data(m=m,n=n,p=p,T=T,S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=NA,SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)
+    #res_e   = mrgvar_estimate(res_run)
     res_run  = mrcigvar_data_r(res)
     if (length(colnames(res_run$Y))==0) colnames(res_run$Y) = paste("res_runY",1:ncol(res_run$Y),sep="")
     res_erun   = mrcigvar_estimate(res_run)
@@ -768,16 +768,16 @@ girf_mrcigvar_rm_cb <- function(res,shock,R,nstep,Omega_hist=NA,resid_method="pa
 #' Sigma[,,2] = diag(n)
 #' p=matrix(0,2,2)
 #' p[,1] = c(3,3)
-#' res_d = MRCIVARDatam(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
+#' res_d = mrcivar_data_m(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
 #' #colnames(res_d$Y) = c("w","p","I","Q")
 #' max(abs(res_d$Y))
-#' res_e = MRCIVARestm1(res=res_d)
+#' res_e = mrcivar_estimatem1(res=res_d)
 #' #res_e$Summary
-#' if (! max(Mod(STAT(res_e$Bo[,,,1])),Mod(STAT(res_e$Bo[,,,2])) ) > 1.0001 ) {
+#' if (! max(Mod(spectral_radius(res_e$Bo[,,,1])),Mod(spectral_radius(res_e$Bo[,,,2])) ) > 1.0001 ) {
 #'
-#'   IRF  = irf_MRCIVAR_CB(res_e,nstep=20,irf="gen1",runs=100,comb=NA,G=NA,conf=c(0.05,0.95))
-#'   IRF_g1 <- IRF_graph(IRF[[1]])        # irf of regime 1
-#'   IRF_g2<- IRF_graph(IRF[[2]])         # irf of regime 2
+#'   IRF  = irf_mrcivar_cb(res_e,nstep=20,irf="gen1",runs=100,comb=NA,G=NA,conf=c(0.05,0.95))
+#'   IRF_g1 <- plot_irf(IRF[[1]])        # irf of regime 1
+#'   IRF_g2<- plot_irf(IRF[[2]])         # irf of regime 2
 #'
 #' }
 #'
@@ -869,19 +869,19 @@ irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"),runs = 100,
 #' Sigma[,,2] = diag(n)
 #' p=matrix(0,2,2)
 #' p[,1] = c(3,3)
-#' res_d = MRCIVARDatam(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
+#' res_d = mrcivar_data_m(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
 #' #colnames(res_d$Y) = c("w","p","I","Q")
 #' max(abs(res_d$Y))
-#' res_e = MRCIVARestm1(res=res_d)
+#' res_e = mrcivar_estimatem1(res=res_d)
 #' res_e$Summary
-#' Mod(STAT(res_e$B[,,,1]))
-#' Mod(STAT(res_e$B[,,,2]))
+#' Mod(spectral_radius(res_e$B[,,,1]))
+#' Mod(spectral_radius(res_e$B[,,,2]))
 #'
-#' if (!((max(Mod(STAT(res_e$B[,,,1])))>1)|(max(Mod(STAT(res_e$B[,,,2])))>1)) ) {
-#'   girf_MRCIVAR_RM(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,resid_method="parametric")
-#'   GIRF <- girf_MRCIVAR_RM_CB(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#' if (!((max(Mod(spectral_radius(res_e$B[,,,1])))>1)|(max(Mod(spectral_radius(res_e$B[,,,2])))>1)) ) {
+#'   girf_mrcivar_rm(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,resid_method="parametric")
+#'   GIRF <- girf_mrcivar_rm_cb(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
 #'   resid_method="parametric",conf_level=c(0.05,0.95),N=100)
-#'   IRF_g<- IRF_graph(GIRF)
+#'   IRF_g<- plot_irf(GIRF)
 #' }
 #' @export
 #' @keywords internal
@@ -891,7 +891,7 @@ girf_mrcivar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
   ####                  	GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
   ####
   ####
-  #### res is the output of MRVARest
+  #### res is the output of mrvar_estimate
   n = res$n
   p = res$p
   S = res$S
@@ -1010,20 +1010,20 @@ girf_mrcivar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
 #' Sigma[,,2] = diag(n)
 #' p=matrix(0,2,2)
 #' p[,1] = c(3,3)
-#' res_d = MRCIVARDatam(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
+#' res_d = mrcivar_data_m(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
 #' #colnames(res_d$Y) = c("w","p","I","Q")
 #' max(abs(res_d$Y))
-#' res_e = MRCIVARestm1(res=res_d)
+#' res_e = mrcivar_estimatem1(res=res_d)
 #' res_e$Summary
-#' Mod(STAT(res_e$B[,,,1]))
-#' Mod(STAT(res_e$B[,,,2]))
+#' Mod(spectral_radius(res_e$B[,,,1]))
+#' Mod(spectral_radius(res_e$B[,,,2]))
 #'
 #' #res_e$Summary
-#' if (! max(Mod(STAT(res_e$Bo[,,,1])),Mod(STAT(res_e$Bo[,,,2])) ) > 1.0001 ) {
+#' if (! max(Mod(spectral_radius(res_e$Bo[,,,1])),Mod(spectral_radius(res_e$Bo[,,,2])) ) > 1.0001 ) {
 #'
-#'  IRF  = irf_MRCIVAR_CB(res_e,nstep=20,irf="gen1",runs=10,comb=NA,G=NA,conf=c(0.05,0.95))
-#'  IRF_g1 <- IRF_graph(IRF[[1]])        # irf of regime 1
-#'  IRF_g2<- IRF_graph(IRF[[2]])         # irf of regime 2
+#'  IRF  = irf_mrcivar_cb(res_e,nstep=20,irf="gen1",runs=10,comb=NA,G=NA,conf=c(0.05,0.95))
+#'  IRF_g1 <- plot_irf(IRF[[1]])        # irf of regime 1
+#'  IRF_g2<- plot_irf(IRF[[2]])         # irf of regime 2
 #'
 #' }
 #'
@@ -1072,7 +1072,7 @@ girf_mrcivar_rm_cb <- function (res, shock, R, nstep, Omega_hist=NA, resid_metho
 #'
 #' This function calculates the regime specific impulse response functions of an estimated MRGVAR(n,p,S).
 #' Using the estimated G\[,,,s\] and Sigma\[,,s\] matrices of the MRGVAR, this function calculated the regime specific impulse response functions.
-#' @param res a list of estimated MRGVAR as output of MRGVARest
+#' @param res a list of estimated MRGVAR as output of mrgvar_estimate
 #' @param nstep the length of impulse response function
 #' @param comb a vector specify the concerted action in policy-simulation impulse response function
 #' @param state an n vector specifying the specific state for each country.
@@ -1088,15 +1088,15 @@ girf_mrcivar_rm_cb <- function (res, shock, R, nstep, Omega_hist=NA, resid_metho
 #' p = rep(1,12); dim(p) = c(2,3,2)
 #' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
 #' TH = c(1:2)*0; dim(TH) = c(1,2)
-#' res_d <- MRGVARData(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
+#' res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
 #' max(res_d$Y)
 #'
 #' ### estimation of the MRGVAR model
 #' colnames(res_d$Y) = c("P","Q","Pa","Qa")
-#' res_e = MRGVARest(res=res_d)
+#' res_e = mrgvar_estimate(res=res_d)
 #' res_e$Summary
 #'
-#' IRF  = irf_MRGVAR(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1")
+#' IRF  = irf_mrgvar(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1")
 #'
 #' @export
 #' @keywords internal
@@ -1115,8 +1115,8 @@ irf_mrgvar = function(res=res,state=state,nstep=nstep,comb=comb,irf = c("gen", "
 	    Ao 	= res$Ao
       W	= res$W
       B     = bo_ao_ws2_gs(Bo,Ao,W,m,n,pp,state)
-      #if (anyNA(sigmaNPDS))	sigma = SigmaNPD(res,state)  else  sigma = sigmaNPDS
-      if (anyNA(sigmaNPDS))	sigma = Sigmsigma_npd_select_r,state)   else  sigma = sigmaNPDS
+      #if (anyNA(sigmaNPDS))	sigma = sigma_npd(res,state)  else  sigma = sigmaNPDS
+      if (anyNA(sigmaNPDS))	sigma = sigma_npd_select_r(res,state)   else  sigma = sigmaNPDS
 
       response <- array(0,dim=c(neq,nvar,nstep));
       response <- irf_from_params(B,sigma,nstep,comb,irf=irf,G=G,smat=smat)
@@ -1130,7 +1130,7 @@ irf_mrgvar = function(res=res,state=state,nstep=nstep,comb=comb,irf = c("gen", "
 #'
 #'                   GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
 #'
-#' @param  res   : an MRGVAR object containing the components of the output of MRGVARData or MRGVARest.
+#' @param  res   : an MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.
 #' @param  shock : an mn-vector containing the shocks as impulse.
 #' @param  R     : the number of runs to integrate out the random effects in order to obtain the means (see equation above).
 #' @param  nstep : the length of the responses
@@ -1142,24 +1142,24 @@ irf_mrgvar = function(res=res,state=state,nstep=nstep,comb=comb,irf = c("gen", "
 #' p = rep(1,12); dim(p) = c(2,3,2)
 #' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
 #' TH = c(1:2)*0; dim(TH) = c(1,2)
-#' res_d <- MRGVARData(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
+#' res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
 #' max(res_d$Y)
 #'
 #' ### estimation of the MRGVAR model
 #' colnames(res_d$Y) = c("P","Q","Pa","Qa")
-#' res_e = MRGVARest(res=res_d)
+#' res_e = mrgvar_estimate(res=res_d)
 #' res_e$Summary
 #'
-#' IRF_CB  = irf_MRGVAR_CB(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
+#' IRF_CB  = irf_mrgvar_cb(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
 #' conf=c(0.05,0.95))
-#' IRF_g = IRF_graph(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
-#' IRF_g = IRF_graph(IRF_CB[[2]])   # accumulated IRF
+#' IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
+#' IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
 #'
-#' GIRF    = girf_MRGVAR_RM(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#' GIRF    = girf_mrgvar_rm(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
 #' resid_method='parametric')
-#' GIRF_CB = girf_MRGVAR_RM_CB(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#' GIRF_CB = girf_mrgvar_rm_cb(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
 #' resid_method='parametric',conf=c(0.05,0.95),N=10)
-#' IRF_g   = IRF_graph(GIRF_CB,Names=c("P","Q","Pa","Qa"))    #IRF
+#' IRF_g   = plot_irf(GIRF_CB,Names=c("P","Q","Pa","Qa"))    #IRF
 #' @export
 #' @keywords internal
 girf_mrgvar_rm <- function(res,shock,R,nstep,Omega_hist,resid_method) {
@@ -1253,7 +1253,7 @@ girf_mrgvar_rm <- function(res,shock,R,nstep,Omega_hist,resid_method) {
     for (k in 1:DIMresid[2]) {
       YR[,,k] = mrgvar_data(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residR[[i]][,,k,],SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)$Y
       YS[,,k] = mrgvar_data(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residS[[i]][,,k,],SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)$Y
-      ## to delete YS[[i]] = MRGVARData(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residS[[i]],SV=SV,type=type,Co=Co,X=X,Yo=Yo*0,d=d)
+      ## to delete YS[[i]] = mrgvar_data(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residS[[i]],SV=SV,type=type,Co=Co,X=X,Yo=Yo*0,d=d)
     }
 
     MYR = MYR + 1/R*YR
@@ -1278,7 +1278,7 @@ girf_mrgvar_rm <- function(res,shock,R,nstep,Omega_hist,resid_method) {
 #'
 #' It also generates the bootstrapped confidence intervals.
 #'
-#' @param  res   : a MRGVAR object containing the components of the output of MRGVARData or MRGVARest.
+#' @param  res   : a MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.
 #' @param  shock : an mn-vector containing the shocks as impulse.
 #' @param  R     : the number of runs to integrate out the random effects in order to obtain the means (see equation above).
 #' @param  nstep : the length of the responses
@@ -1292,22 +1292,22 @@ girf_mrgvar_rm <- function(res,shock,R,nstep,Omega_hist,resid_method) {
 #' p = rep(1,12); dim(p) = c(2,3,2)
 #' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
 #' TH = c(1:2)*0; dim(TH) = c(1,2)
-#' res_d <- MRGVARData(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
+#' res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
 #' max(res_d$Y)
 #'
 #' ### estimation of the MRGVAR model
 #' colnames(res_d$Y) = c("P","Q","Pa","Qa")
-#' res_e = MRGVARest(res=res_d)
+#' res_e = mrgvar_estimate(res=res_d)
 #' res_e$Summary
 #'
-#' Mod(STAT(res_e$Go[,,,1]))
-#' Mod(STAT(res_e$Go[,,,2]))
+#' Mod(spectral_radius(res_e$Go[,,,1]))
+#' Mod(spectral_radius(res_e$Go[,,,2]))
 #'
-#' GIRF    = girf_MRGVAR_RM(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#' GIRF    = girf_mrgvar_rm(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
 #' resid_method='parametric')
-#' GIRF_CB = girf_MRGVAR_RM_CB(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#' GIRF_CB = girf_mrgvar_rm_cb(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
 #' resid_method='parametric',conf=c(0.05,0.95),N=10)
-#' GIRF_g  = IRF_graph(GIRF_CB,Names=c("P","Q","Pa","Qa"))
+#' GIRF_g  = plot_irf(GIRF_CB,Names=c("P","Q","Pa","Qa"))
 #'
 #' @export
 girf_mrgvar_rm_cb <- function(res,shock,R,nstep,Omega_hist=NA,resid_method="parametric",conf,N) {
@@ -1340,8 +1340,8 @@ girf_mrgvar_rm_cb <- function(res,shock,R,nstep,Omega_hist=NA,resid_method="para
   GIRFBd[,,,1]= girf_mrgvar_rm(res,shock,R=2*R,nstep,Omega_hist,resid_method)[[1]]
 
   for (i in 1:N) {
-    #res_run = MRGVARData(m=m,n=n,p=p,T=T,S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=NA,SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)
-    #res_e   = MRGVARest(res_run)
+    #res_run = mrgvar_data(m=m,n=n,p=p,T=T,S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=NA,SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)
+    #res_e   = mrgvar_estimate(res_run)
     res_run = mrgvar_data_r(res)
     if (length(colnames(res_run$Y))==0) colnames(res_run$Y) = paste("res_runY",1:ncol(res_run$Y),sep="")
     res_erun   = mrgvar_estimate(res_run)
@@ -1366,7 +1366,7 @@ girf_mrgvar_rm_cb <- function(res,shock,R,nstep,Omega_hist=NA,resid_method="para
 #'
 #' This function calculates the regime specific impulse response functions of an estimated MRGVAR(n,p,S).
 #' Using the estimated G\[,,,s\] and Sigma\[,,s\] matrices of the MRGVAR, this function calculated the regime specific impulse response functions.
-#' @param res a list of estimated MRGVAR as output of MRGVARest
+#' @param res a list of estimated MRGVAR as output of mrgvar_estimate
 #' @param state an n vector specifying the specific state for each country.
 #' @param nstep the length of impulse response function
 #' @param comb a vector specify the concerted action in policy-simulation impulse response function
@@ -1384,18 +1384,18 @@ girf_mrgvar_rm_cb <- function(res,shock,R,nstep,Omega_hist=NA,resid_method="para
 #' p = rep(1,12); dim(p) = c(2,3,2)
 #' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
 #' TH = c(1:2)*0; dim(TH) = c(1,2)
-#' res_d <- MRGVARData(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
+#' res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
 #' max(res_d$Y)
 #'
 #' ### estimation of the MRGVAR model
 #' colnames(res_d$Y) = c("P","Q","Pa","Qa")
-#' res_e = MRGVARest(res=res_d)
+#' res_e = mrgvar_estimate(res=res_d)
 #' res_e$Summary
 #'
-#' IRF_CB  = irf_MRGVAR_CB(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
+#' IRF_CB  = irf_mrgvar_cb(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
 #' conf=c(0.05,0.95))
-#' IRF_g = IRF_graph(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
-#' #IRF_g = IRF_graph(IRF_CB[[2]])   # accumulated IRF
+#' IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
+#' #IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
 #'
 #' @export
 irf_mrgvar_cb = function (res, state = c(2, 1), nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"), G=NA,smat=NA,sigmaNPDS=NA,runs = 200, conf = c(0.05, 0.95),NT = 1)
@@ -1492,7 +1492,7 @@ accir_fconf_r = function(IRF) {
 #'
 #'This function calculates global or regional responses from a set of bootstrapped impulse response functions and a weighting matrix for the aggregation of the global responses.
 #'
-#' @param IRF_CB an output of irf_MRGVAR_CB
+#' @param IRF_CB an output of irf_mrgvar_cb
 #' @param comb_all a weighting matrix for the aggregation of the global responses
 #'
 #' @return a list containing the global impulse response functions and the accumulated global impulse response functions.
@@ -1553,14 +1553,14 @@ irf_gloabal_response_cb <- function(IRF_CB,comb_all) {
 #' @return an (n x n x nstep+1) matrix of impulse response functions. The rows represent response the columns represent impulses.
 #' @examples
 #' p = matrix(c(2,1,0,0),2,2)
-#' res_d = MRVARData(n=2,p=p,T=300,S=2,SESVI=1,type="none")
+#' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1,type="none")
 #' max(res_d$Y)
 #' colnames(res_d$Y) = c("R","P")
-#' res_e = MRVARest(res=res_d)
-#' RF3 = girf_MRVAR_RM(RES=res_e,shock=c(1,1),R = 100,nstep=20,Omega_hist=NA,resid_method="parametric")
-#' RF4 = girf_MRVAR_RM_CB(RES=res_e, shock=c(1,1), R=100, nstep=20, Omega_hist=NA,
+#' res_e = mrvar_estimate(res=res_d)
+#' RF3 = girf_mrvar_rm(RES=res_e,shock=c(1,1),R = 100,nstep=20,Omega_hist=NA,resid_method="parametric")
+#' RF4 = girf_mrvar_rm_cb(RES=res_e, shock=c(1,1), R=100, nstep=20, Omega_hist=NA,
 #' resid_method = "parametric", conf_level=c(0.05,0.95), N=100)
-#' IRF_list <-IRF_graph(RF4)
+#' IRF_list <-plot_irf(RF4)
 #'
 #' @export
 #' @keywords internal
@@ -1571,7 +1571,7 @@ girf_mrvar_rm <- function(RES,shock,R,nstep,Omega_hist=NA,resid_method) {
   ####                  	GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
   ####
   ####
-  #### RES is the output of MRVARest
+  #### RES is the output of mrvar_estimate
   n = RES$n
   p = RES$p
   S = RES$S
@@ -1682,14 +1682,14 @@ girf_mrvar_rm <- function(RES,shock,R,nstep,Omega_hist=NA,resid_method) {
 #' @return an (n, n, nstep+1,3) array containing the impulse response functions with lower and upper confidence bonds. The rows represent response, and the columns represent impulses.
 #' @examples
 #' p = matrix(c(2,1,0,0),2,2)
-#' res_d = MRVARData(n=2,p=p,T=300,S=2,SESVI=1,type="none")
+#' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1,type="none")
 #' max(res_d$Y)
 #' colnames(res_d$Y) = c("R","P")
-#' res_e = MRVARest(res=res_d)
-#' RF3 = girf_MRVAR_RM(RES=res_e,shock=c(1,1),R = 200,nstep=20,Omega_hist=NA,resid_method="parametric")
-#' RF4 = girf_MRVAR_RM_CB(RES=res_e, shock=c(1,1), R=200, nstep=20, Omega_hist=NA,
+#' res_e = mrvar_estimate(res=res_d)
+#' RF3 = girf_mrvar_rm(RES=res_e,shock=c(1,1),R = 200,nstep=20,Omega_hist=NA,resid_method="parametric")
+#' RF4 = girf_mrvar_rm_cb(RES=res_e, shock=c(1,1), R=200, nstep=20, Omega_hist=NA,
 #' resid_method = "parametric", conf_level=c(0.05,0.95), N=100)
-#' IRF_list <-IRF_graph(RF4)
+#' IRF_list <-plot_irf(RF4)
 #' @export
 girf_mrvar_rm_cb <- function (RES, shock, R, nstep, Omega_hist=NA, resid_method = "parametric", conf_level, N)
 {
@@ -1733,7 +1733,7 @@ girf_mrvar_rm_cb <- function (RES, shock, R, nstep, Omega_hist=NA, resid_method 
 
 #'
 #' This function calculates the regime specific impulse response functions of an estimated MRVAR(n,p,S), using Bo\[,,,s\] and Sigma\[,,s\] matrices of the estimated MRVAR(n,p,S).
-#' @param RESS an output of MRVARest
+#' @param RESS an output of mrvar_estimate
 #' @param nstep the length of impulse response function
 #' @param comb a vector specify the weights used in GVAR models. For MRVAR its value is NA.
 #' @param irf types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse in GVAR.
@@ -1741,15 +1741,15 @@ girf_mrvar_rm_cb <- function (RES, shock, R, nstep, Omega_hist=NA, resid_method 
 #' @examples
 #'
 #' p = matrix(c(2,1,0,0),2,2)
-#' res_d = MRVARData(n=2,p=p,T=300,S=2,SESVI=1)
+#' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1)
 #' max(abs(res_d$Y))
-#' res_e  = MRVARest(res_d)
+#' res_e  = mrvar_estimate(res_d)
 #' res_e$Summary
 #'
-#' IRF    = irf_MRVAR_NM(res_e,nstep=10,comb=NA,irf="gen")
-#' IRF_CB = irf_MRVAR_NM_CB(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.90))
-#' IRF_list1 <-IRF_graph(IRF_CB[,,,,1])
-#' IRF_list2 <-IRF_graph(IRF_CB[,,,,2])
+#' IRF    = irf_mrvar_nm(res_e,nstep=10,comb=NA,irf="gen")
+#' IRF_CB = irf_mrvar_nm_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.90))
+#' IRF_list1 <-plot_irf(IRF_CB[,,,,1])
+#' IRF_list2 <-plot_irf(IRF_CB[,,,,2])
 #'
 #' @export
 #' @keywords internal
@@ -1786,15 +1786,15 @@ irf_mrvar_nm <-function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", "gen
 #' @return an (n,n,nstep,3,2) array containing the IRF of the two regimes. The IRF columns represent the impulse and the rows the responses.
 #' @examples
 #' p = matrix(c(2,1,0,0),2,2)
-#' res_d = MRVARData(n=2,p=p,T=300,S=2,SESVI=1)
+#' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1)
 #' max(abs(res_d$Y))
-#' res_e  = MRVARest(res_d)
+#' res_e  = mrvar_estimate(res_d)
 #' res_e$Summary
 #'
-#' IRF    = irf_MRVAR_NM(res_e,nstep=10,comb=NA,irf="gen")
-#' IRF_CB = irf_MRVAR_NM_CB(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.90))
-#' IRF_list1 <-IRF_graph(IRF_CB[,,,,1])
-#' IRF_list2 <-IRF_graph(IRF_CB[,,,,2])
+#' IRF    = irf_mrvar_nm(res_e,nstep=10,comb=NA,irf="gen")
+#' IRF_CB = irf_mrvar_nm_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.90))
+#' IRF_list1 <-plot_irf(IRF_CB[,,,,1])
+#' IRF_list2 <-plot_irf(IRF_CB[,,,,2])
 #'
 #' @export
 irf_mrvar_nm_cb <- function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"), runs = 200, conf = c(0.05, 0.95))
@@ -1869,15 +1869,15 @@ irf_mrvar_nm_cb <- function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", 
 #' @return an (n,n,nstep,3,2) array containing the IRF of the two regimes. The IRF columns represent the impulse and the rows the responses.
 #' @examples
 #' p = matrix(c(2,1,0,0),2,2)
-#' res_d = MRVARData(n=2,p=p,T=300,S=2,SESVI=1)
+#' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1)
 #' max(abs(res_d$Y))
-#' res_e  = MRVARest(res_d)
+#' res_e  = mrvar_estimate(res_d)
 #' res_e$Summary
 #'
 #'
-#' IRF_CB = irf_MRVAR_CB(res_e,nstep=20,comb=NA,irf="gen1",runs=100,conf=c(0.05,0.90))
-#' IRF_list1 <-IRF_graph(IRF_CB[[1]])
-#' IRF_list2 <-IRF_graph(IRF_CB[[2]])
+#' IRF_CB = irf_mrvar_cb(res_e,nstep=20,comb=NA,irf="gen1",runs=100,conf=c(0.05,0.90))
+#' IRF_list1 <-plot_irf(IRF_CB[[1]])
+#' IRF_list2 <-plot_irf(IRF_CB[[2]])
 #'
 #' @export
 irf_mrvar_cb <- function (res_e, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1", "irfX"), Xshks=NA, runs = 200, conf = c(0.05, 0.95))
@@ -1962,7 +1962,7 @@ irf_mrvar_cb <- function (res_e, nstep, comb, irf = c("gen", "chol", "chol1", "g
 
 #'
 #' This function generates impulse response functions of an estimated VAR(p)
-#' @param res an object of the output of VARest
+#' @param res an object of the output of var_estimate
 #' @param nstep length of the impulse response functions
 #' @param comb a vector containing the weights of a combined policy actions
 #' @param irf types of impulse response functions
@@ -1973,10 +1973,10 @@ irf_mrvar_cb <- function (res_e, nstep, comb, irf = c("gen", "chol", "chol1", "g
 #'
 #' @return an (n, n, nstep, 3) array containing the impulse response functions
 #' @examples
-#' res_d = VARData(n=2,p=2,T=100,type="const")
-#' res_e = VARest(res=res_d);
-#' IRF_CB = irf_VAR_CB(res=res_e,nstep=20, comb=NA, irf = "gen1", runs = 100, conf = c(0.05, 0.95))
-#' IRF_list <-IRF_graph(IRF_CB)
+#' res_d = var_data(n=2,p=2,T=100,type="const")
+#' res_e = var_estimate(res=res_d);
+#' IRF_CB = irf_var_cb(res=res_e,nstep=20, comb=NA, irf = "gen1", runs = 100, conf = c(0.05, 0.95))
+#' IRF_list <-plot_irf(IRF_CB)
 #' res_e$Summary
 #'
 #' @export
@@ -2029,7 +2029,7 @@ irf_var_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1"
 #' @param sigma The covariance matrix of the VAR(p) model
 #' @param nstep Number of steps of the impulse response function
 #' @param comb An n-vector of weights of the coordinated policy actions
-#' @param irf Type of impulse response function
+#' @param irf infer_deterministic_type of impulse response function
 #' @param G The matrix used in the permanent and transitory decomposition
 #' @param A0 The matrix for A/B identification in VAR
 #' @param B0 The matrix for A/B identification in VAR
@@ -2160,3 +2160,4 @@ plot_irf <- function(IRF_CB=IRF_CB,Names = NA,INames=NA,response=c(1:n),impulse=
   do.call(gridExtra::grid.arrange,c(IRF_list,ncol=ncol))
   return(IRF_list)
 }
+
