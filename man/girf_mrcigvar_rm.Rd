@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{girf_mrcigvar_rm}
 \alias{girf_mrcigvar_rm}
-\title{This function calculates the generalized impulse response functions of an estimated MRCIGVAR(m,n,p,S) for given a shock vector and initial values.}
+\title{Generate Generalized Impulse Response Functions for MRCIGVAR Models}
 \usage{
 girf_mrcigvar_rm(res, shock, R, nstep, Omega_hist = NA, resid_method)
 }
@@ -11,33 +11,50 @@ girf_mrcigvar_rm(res, shock, R, nstep, Omega_hist = NA, resid_method)
 
 \item{shock}{: an mn-vector containing the shocks as impulse.}
 
-\item{R}{: the number of runs to integrate out the random effects in order to obtain the means (see equation above).}
+\item{R}{: the number of runs to integrate out the random effects in order to obtain the means.}
 
 \item{nstep}{: the length of the responses}
 
-\item{Omega_hist}{: the initial values from which the simulation runs start.For Omega_hist=NA the most recent values are taken as the initial values. For Omega_hist=0, the initial values are zeros.}
+\item{Omega_hist}{: the initial values from which the simulation runs start. For Omega_hist=NA
+the most recent values are taken as the initial values. For Omega_hist=0,
+the initial values are zeros.}
 
-\item{resid_method}{: resid_method = c("resid", "parametric"), It generates the random residuals from residuals bootstrap or parametric bootstrap.}
+\item{resid_method}{: resid_method = c("resid", "parametric"). It generates the random residuals
+from residuals bootstrap or parametric bootstrap.}
 }
 \value{
-an (mn x mn x nstep+1) matrix of impulse response functions. The rows represent response the columns represent impulses.
+an (mn x mn x nstep+1) array of impulse response functions. The rows represent response
+and the columns represent impulses.
 }
 \description{
-\if{html}{\out{<div class="sourceCode">}}\preformatted{              GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
-}\if{html}{\out{</div>}}
+This function calculates the generalized impulse response functions (GIRF) of an estimated
+MRCIGVAR model for a given shock vector and initial values. The GIRF is computed as the
+difference between mean responses with and without the shock, integrating out random effects
+across multiple simulation runs.
+}
+\details{
+For a given shock vector SHCK:
+GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+
+See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate
+models, Economics Letters, 58(1) p. 17-29.
 }
 \examples{
 m = 2
 n = 3
-p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0); dim(p) = c(5,3,2)
-p = p[1:n,,]; p[,1,] = 3; p[,2,] = 2
+p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0)
+dim(p) = c(5,3,2)
+p = p[1:n,,]
+p[,1,] = 3
+p[,2,] = 2
 
-TH = c(1:n)*0; dim(TH) = c(1,n)
-SESVI=rep(1,3,5)
-r  = rep(1,n)
+TH = c(1:n)*0
+dim(TH) = c(1,n)
+SESVI = rep(1,3,5)
+r = rep(1,n)
 
 ## case of n = 3, m = 2, S = 2    m: number of variables, n: number of countries
-res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=200,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
+res_d <- mrcigvar_data(m=2, n=3, p=p, TH=TH, T=200, S=2, SESVI=c(1,3,5), r=rep(1,3), Ncommtrend=1)
 max(abs(res_d$Y))
 spectral_radius(res_d$Go[,,,2])
 spectral_radius(res_d$Go[,,,1])
@@ -47,13 +64,12 @@ spectral_radius(res_e$Go[,,,2])
 spectral_radius(res_e$Go[,,,1])
 
 plot(ts(res_d$Y))
-#res_e$Summary
 
 if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1.0001)|(max(Mod(spectral_radius(res_e$Go[,,,2])))>1.0001)) ) {
-  GIRF <- girf_mrcigvar_rm(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+  GIRF <- girf_mrcigvar_rm(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
   resid_method="parametric")
-  GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-  resid_method="parametric",conf=c(0.05,0.95),N=100)
+  GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
+  resid_method="parametric", conf=c(0.05,0.95), N=100)
   IRF_g = plot_irf(GIRF_CB)
 }
 

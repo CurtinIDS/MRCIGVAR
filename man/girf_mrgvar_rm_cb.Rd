@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{girf_mrgvar_rm_cb}
 \alias{girf_mrgvar_rm_cb}
-\title{This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S) for given a shock vector.}
+\title{Generate Generalized Impulse Response Functions with Confidence Bands for MRGVAR Models}
 \usage{
 girf_mrgvar_rm_cb(
   res,
@@ -16,52 +16,63 @@ girf_mrgvar_rm_cb(
 )
 }
 \arguments{
-\item{res}{: a MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.}
+\item{res}{: an MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.}
 
 \item{shock}{: an mn-vector containing the shocks as impulse.}
 
-\item{R}{: the number of runs to integrate out the random effects in order to obtain the means (see equation above).}
+\item{R}{: the number of runs to integrate out the random effects in order to obtain the means.}
 
-\item{nstep}{: the length of the responses}
+\item{nstep}{: the length of the responses.}
 
-\item{Omega_hist}{: the initial values from which the simulation runs of impulse and response functions start}
+\item{Omega_hist}{: the initial values from which the simulation runs of impulse and response functions start.
+For Omega_hist=NA the most recent values are taken as the initial values.}
 
-\item{resid_method}{: resid_method = c("resid", "parametric"), It generate random residuals either from residuals bootstrap or parametric bootstrap.}
+\item{resid_method}{: resid_method = c("resid", "parametric"). It generates random residuals
+either from residuals bootstrap or parametric bootstrap.}
 
 \item{conf}{: a two component vector containing the tail probabilities of the bootstrap confidence interval.}
 
-\item{N}{: number of bootstrapping runs}
+\item{N}{: number of bootstrapping runs.}
 }
 \value{
-an (n x n x nstep+1 x 3) array containing of impulse response functions with lower and upper confidence bonds. The rows represent response the columns represent impulses.
+an (mn x mn x nstep+1 x 3) array containing impulse response functions with lower and upper
+confidence bands. The rows represent response and the columns represent impulses.
 }
 \description{
-\if{html}{\out{<div class="sourceCode">}}\preformatted{              GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
-}\if{html}{\out{</div>}}
+This function calculates the generalized impulse response functions (GIRF) of an estimated
+MRGVAR model for a given shock vector and initial values. The GIRF is computed as the
+difference between mean responses with and without the shock, integrating out random effects
+across multiple simulation runs. It also generates bootstrapped confidence intervals.
 }
 \details{
-It also generates the bootstrapped confidence intervals.
+For a given shock vector SHCK:
+GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+
+See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate
+models, Economics Letters, 58(1) p. 17-29.
 }
 \examples{
 ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
-p = rep(1,12); dim(p) = c(2,3,2)
-p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
-TH = c(1:2)*0; dim(TH) = c(1,2)
-res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
+p = rep(1, 12); dim(p) = c(2, 3, 2)
+p[1, 1, 2] = 2; p[2, 2, 2] = 2; p[, 3, ] = 0
+TH = c(1:2) * 0; dim(TH) = c(1, 2)
+res_d <- mrgvar_data(m = 2, n = 2, p = p, TH = TH, T = 100, S = 2, 
+                      SESVI = c(1, 3), type = "const")
 max(res_d$Y)
 
 ### estimation of the MRGVAR model
-colnames(res_d$Y) = c("P","Q","Pa","Qa")
-res_e = mrgvar_estimate(res=res_d)
+colnames(res_d$Y) = c("P", "Q", "Pa", "Qa")
+res_e = mrgvar_estimate(res = res_d)
 res_e$Summary
 
-Mod(spectral_radius(res_e$Go[,,,1]))
-Mod(spectral_radius(res_e$Go[,,,2]))
+Mod(spectral_radius(res_e$Go[, , , 1]))
+Mod(spectral_radius(res_e$Go[, , , 2]))
 
-GIRF    = girf_mrgvar_rm(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-resid_method='parametric')
-GIRF_CB = girf_mrgvar_rm_cb(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-resid_method='parametric',conf=c(0.05,0.95),N=10)
-GIRF_g  = plot_irf(GIRF_CB,Names=c("P","Q","Pa","Qa"))
+GIRF = girf_mrgvar_rm(res = res_e, shock = c(1, 1, 1, 1), R = 100, 
+                       nstep = 10, Omega_hist = NA, resid_method = 'parametric')
+GIRF_CB = girf_mrgvar_rm_cb(res = res_e, shock = c(1, 1, 1, 1), R = 100, 
+                             nstep = 10, Omega_hist = NA, 
+                             resid_method = 'parametric', conf = c(0.05, 0.95), N = 10)
+GIRF_g = plot_irf(GIRF_CB, Names = c("P", "Q", "Pa", "Qa"))
 
 }

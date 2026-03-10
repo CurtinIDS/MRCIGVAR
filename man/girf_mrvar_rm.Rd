@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{girf_mrvar_rm}
 \alias{girf_mrvar_rm}
-\title{This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S) for a given shock vector SHCK.}
+\title{Calculate Generalized Impulse Response Functions for MRVAR Models}
 \usage{
 girf_mrvar_rm(RES, shock, R, nstep, Omega_hist = NA, resid_method)
 }
@@ -11,26 +11,30 @@ girf_mrvar_rm(RES, shock, R, nstep, Omega_hist = NA, resid_method)
 
 \item{shock}{: an n vector containing the shocks as impulse.}
 
-\item{R}{: the number runs to integrate out the random effects in order to obtain the means (see equation above).}
+\item{R}{: the number of runs to integrate out the random effects in order to obtain the means.}
 
-\item{nstep}{: the length of the responses}
+\item{nstep}{: the length of the responses.}
 
-\item{Omega_hist}{: a (P x n) matrix of initial values, from which the impulse response functions start. Omega_hist determines from which regime the impulse response functions start. For Omega_hist=NA, the impulse response functions will start from the most resent observations.}
+\item{Omega_hist}{: a (P x n) matrix of initial values, from which the impulse response functions start.
+For Omega_hist=NA, the impulse response functions will start from the most recent observations.}
 
-\item{resid_method}{: resid_method = c("resid", "parametric"), It generate the random residuals from residuals bootstrap or parametric bootstrap.}
+\item{resid_method}{: resid_method = c("resid", "parametric"), it generates the random residuals from
+residuals bootstrap or parametric bootstrap.}
 }
 \value{
-an (n x n x nstep+1) matrix of impulse response functions. The rows represent response the columns represent impulses.
+an (n x n x nstep+1) matrix of impulse response functions. The rows represent responses and the columns represent impulses.
 }
 \description{
-This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S) for a given shock vector SHCK.
+This function calculates the generalized impulse response functions (GIRF) of an estimated
+MRVAR(n,p,S) model for a given shock vector. It computes the difference between mean responses
+with and without the shock, integrating out random effects across multiple simulation runs.
 }
 \details{
 \subsection{GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))}{
 
-See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate models, Economics Letters, 58(1) p. 17-29.
-and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
-###########################################################################################################################################
+See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate
+models, Economics Letters, 58(1) p. 17-29, and G. Koop, M. H. Pesaran, and S. M. Potter (1996),
+Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
 }
 }
 \examples{
@@ -42,7 +46,6 @@ res_e = mrvar_estimate(res=res_d)
 RF3 = girf_mrvar_rm(RES=res_e,shock=c(1,1),R = 100,nstep=20,Omega_hist=NA,resid_method="parametric")
 RF4 = girf_mrvar_rm_cb(RES=res_e, shock=c(1,1), R=100, nstep=20, Omega_hist=NA,
 resid_method = "parametric", conf_level=c(0.05,0.95), N=100)
-IRF_list <-plot_irf(RF4)
-
+IRF_list <- plot_irf(RF4)
 }
 \keyword{internal}

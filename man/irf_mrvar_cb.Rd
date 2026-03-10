@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrvar_cb}
 \alias{irf_mrvar_cb}
-\title{This function calculates the regime specific impulse response functions of an estimated MRVAR(n,p,S).}
+\title{Calculate Regime Specific Impulse Response Functions with Confidence Bands for MRVAR Models}
 \usage{
 irf_mrvar_cb(
   res_e,
@@ -19,9 +19,14 @@ irf_mrvar_cb(
 
 \item{nstep}{the length of impulse response function}
 
-\item{comb}{a vector specify the concerted action in policy-simulation impulse response function}
+\item{comb}{a vector specifying the concerted action in policy-simulation impulse response function}
 
-\item{irf}{types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse in GVAR.}
+\item{irf}{types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"),
+gen for generalized IRF with one standard deviation shocks,
+gen1 for generalized IRF with one unit impulse,
+chol for IRF with Cholezky decomposition of the covariance matrix,
+chol1 for Cholezky decomposition with one unit impulse,
+comb1 for concerted action with one unit impulse in GVAR.}
 
 \item{Xshks}{number of selected exogenous shocks}
 
@@ -33,7 +38,9 @@ irf_mrvar_cb(
 an (n,n,nstep,3,2) array containing the IRF of the two regimes. The IRF columns represent the impulse and the rows the responses.
 }
 \description{
-This function calculates the regime specific impulse response functions of an estimated MRVAR(n,p,S).
+This function calculates the regime specific impulse response functions of an estimated MRVAR(n,p,S),
+using the Bo[,,,s] and Sigma[,,s] matrices of the estimated MRVAR. It also provides bootstrapped
+confidence intervals for the impulse response functions.
 }
 \examples{
 p = matrix(c(2,1,0,0),2,2)
@@ -42,9 +49,8 @@ max(abs(res_d$Y))
 res_e  = mrvar_estimate(res_d)
 res_e$Summary
 
-
 IRF_CB = irf_mrvar_cb(res_e,nstep=20,comb=NA,irf="gen1",runs=100,conf=c(0.05,0.90))
-IRF_list1 <-plot_irf(IRF_CB[[1]])
-IRF_list2 <-plot_irf(IRF_CB[[2]])
+IRF_list1 <- plot_irf(IRF_CB[[1]])
+IRF_list2 <- plot_irf(IRF_CB[[2]])
 
 }

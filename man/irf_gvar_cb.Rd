@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_gvar_cb}
 \alias{irf_gvar_cb}
-\title{This function generates impulse response functions of an estimated GVAR with confidence bands}
+\title{Generate Impulse Response Functions with Confidence Bands for GVAR Models}
 \usage{
 irf_gvar_cb(
   res,
@@ -30,7 +30,9 @@ irf_gvar_cb(
 An (mn,mn,nstep,3) array of IRF with columns representing the impulse rows the responses.
 }
 \description{
-This function generates impulse response functions of an estimated GVAR with confidence bands
+This function computes the impulse response functions (IRFs) of an estimated GVAR model,
+providing confidence bands through bootstrap methods. It allows for various types of IRFs
+and can handle different configurations of shocks and responses.
 }
 \examples{
 n = 5

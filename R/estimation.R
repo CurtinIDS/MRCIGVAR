@@ -1075,17 +1075,26 @@ cciva_rest <- function (res)
 
 
 
-#' p = (1:12)*0; dim(p) = c(4,3);p[,1] = 2; p[,2]=1;   p[,3]=1; p[2,2]=2;
+#' Estimate a Global VAR(p) Model
+#'
+#' This function estimates the parameters of a GVAR(m,n,p) model based on provided data.
+#' It runs a VAR estimation country by country and pieces the results together to obtain a GVAR.
+#'
+#' @param res a GVAR object that is an output of gvar_data including at least values of m, n, p, type, Y, W, and optionally X.
+#'
+#' @return a GVAR object with estimated parameter values, AIC, BIC, LH, and the estimated VAR models for each country.
+#'
+#' @examples
+#' p = (1:12)*0; dim(p) = c(4,3); p[,1] = 2; p[,2] = 1; p[,3] = 1; p[2,2] = 2
 #' p
 #'
-#' res_d = gvar_data(m=2,n=4,p=p,T=200,type="exog0",X=X)
+#' res_d = gvar_data(m=2, n=4, p=p, T=200, type="exog0", X=X)
 #' res_e = gvar_estimate(res = res_d)
 #' res_e$Summary
 #'
-#' IRF_CB = irf_gvar_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
+#' IRF_CB = irf_gvar_cb(res_e, nstep=10, comb=NA, irf="gen", runs=200, conf=c(0.05,0.95))
 #' dim(IRF_CB)
-#' IRF_g = plot_irf(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
-#'
+#' IRF_g = plot_irf(IRF_CB, Names=NA, response=c(1,4), impulse=c(1,2,3,4), ncol=4)
 #'
 #' @export
 gvar_estimate <- function (res)  {

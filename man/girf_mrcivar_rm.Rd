@@ -2,58 +2,70 @@
 % Please edit documentation in R/irf.R
 \name{girf_mrcivar_rm}
 \alias{girf_mrcivar_rm}
-\title{This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S).}
+\title{Generate Generalized Impulse Response Functions for MRCIVAR Models}
 \usage{
 girf_mrcivar_rm(res, shock, R, nstep, Omega_hist = NA, resid_method)
 }
 \arguments{
-\item{res}{: an MRCIVAR object containing the components  of an output of MRCIVARestm1.}
+\item{res}{: an MRCIVAR object containing the components of an output of mrcivar_estimatem1.}
 
-\item{shock}{: an n vector containing the shocks as impulse.}
+\item{shock}{: an n-vector containing the shocks as impulse.}
 
-\item{R}{: the number runs to integrate out the random effects in order to obtain the means (see equation above).}
+\item{R}{: the number of runs to integrate out the random effects in order to obtain the means.}
 
-\item{nstep}{: the length of the responses}
+\item{nstep}{: the length of the responses.}
 
-\item{Omega_hist}{: a (P x n) matrix of initial values, from which the impulse response functions start. Omega_hist determines from which regime the impulse response functions start. For Omega_hist=NA, the impulse response functions will start from the most resent observations.}
+\item{Omega_hist}{: a (P x n) matrix of initial values from which the impulse response functions start.
+For Omega_hist=NA, the impulse response functions will start from the most recent observations.}
 
-\item{resid_method}{: resid_method = c("resid", "parametric"), It generate the random residuals from residuals bootstrap or parametric bootstrap.}
+\item{resid_method}{: resid_method = c("resid", "parametric"). It generates random residuals
+from residuals bootstrap or parametric bootstrap.}
 }
 \value{
-an (n x n x nstep+1) matrix of impulse response functions. The rows represent response the columns represent impulses.
+an (n x n x nstep+1) array of impulse response functions. The rows represent response
+and the columns represent impulses.
 }
 \description{
-For a given shock vector SHCK:
+This function calculates the generalized impulse response functions (GIRF) of an estimated
+MRCIVAR model for a given shock vector and initial values. The GIRF is computed as the
+difference between mean responses with and without the shock, integrating out random effects
+across multiple simulation runs.
 }
 \details{
+For a given shock vector SHCK:
 GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
 
-See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate models, Economics Letters, 58(1) p. 17-29.
-and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
+See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate
+models, Economics Letters, 58(1) p. 17-29.
+and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear
+multivariate models, Journal of Econometrics, 74 (1996) 119-74.
 }
 \examples{
+n <- 4
 
-n =4
-
-Sigma = 1:(n*n*2)
-dim(Sigma) = c(n,n,2)
-Sigma[,,1] = diag(n)
-Sigma[,,2] = diag(n)
-p=matrix(0,2,2)
-p[,1] = c(3,3)
-res_d = mrcivar_data_m(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
-#colnames(res_d$Y) = c("w","p","I","Q")
+Sigma <- 1:(n*n*2)
+dim(Sigma) <- c(n,n,2)
+Sigma[,,1] <- diag(n)
+Sigma[,,2] <- diag(n)
+p <- matrix(0,2,2)
+p[,1] <- c(3,3)
+res_d <- mrcivar_data_m(n=n, p=p, T=250, S=2, SESVI=1, TH=0, 
+                         Sigmao=Sigma, type="const", r=2)
 max(abs(res_d$Y))
-res_e = mrcivar_estimatem1(res=res_d)
+res_e <- mrcivar_estimatem1(res=res_d)
 res_e$Summary
 Mod(spectral_radius(res_e$B[,,,1]))
 Mod(spectral_radius(res_e$B[,,,2]))
 
-if (!((max(Mod(spectral_radius(res_e$B[,,,1])))>1)|(max(Mod(spectral_radius(res_e$B[,,,2])))>1)) ) {
-  girf_mrcivar_rm(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,resid_method="parametric")
-  GIRF <- girf_mrcivar_rm_cb(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-  resid_method="parametric",conf_level=c(0.05,0.95),N=100)
-  IRF_g<- plot_irf(GIRF)
+if (!((max(Mod(spectral_radius(res_e$B[,,,1])))>1) | 
+      (max(Mod(spectral_radius(res_e$B[,,,2])))>1))) {
+  GIRF <- girf_mrcivar_rm(res=res_e, shock=c(1,1,1,1), R=100, nstep=10, 
+                           Omega_hist=NA, resid_method="parametric")
+  GIRF_CB <- girf_mrcivar_rm_cb(res=res_e, shock=c(1,1,1,1), R=100, nstep=10, 
+                                 Omega_hist=NA, resid_method="parametric", 
+                                 conf_level=c(0.05,0.95), N=100)
+  IRF_g <- plot_irf(GIRF_CB)
 }
+
 }
 \keyword{internal}

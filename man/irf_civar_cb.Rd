@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_civar_cb}
 \alias{irf_civar_cb}
-\title{This function generates the impulse response functions of an estimated CIVAR model}
+\title{Generate Impulse Response Functions with Confidence Bands for CIVAR Models}
 \usage{
 irf_civar_cb(
   res,
@@ -18,34 +18,38 @@ irf_civar_cb(
 )
 }
 \arguments{
-\item{res}{: a CIVAR object such as an output of CIVARest.}
+\item{res}{a CIVAR object such as an output of civar_estimate}
 
-\item{nstep}{: the length of the impulse response functions.}
+\item{nstep}{the length of the impulse response functions}
 
-\item{comb}{: a weighting matrix specifying the weights used in the impulse response functions of a global VAR. Its default value is NA for CIVAR(p).}
+\item{comb}{a weighting matrix specifying the weights used in the impulse response functions of a global VAR. Its default value is NA for CIVAR(p)}
 
-\item{irf}{: types of the generated impulse response functions.}
+\item{irf}{types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1","PTdecomp","ABSVAR","irfX")}
 
-\item{G}{: the transformation matrix for PTdecomp}
+\item{G}{the transformation matrix for PTdecomp}
 
-\item{A0}{: the transformation matrix for AB identification}
+\item{A0}{the transformation matrix for AB identification}
 
-\item{B0}{: the transformation matrix for AB identification}
+\item{B0}{the transformation matrix for AB identification}
 
-\item{Xshks}{: the number of selected exogenous shocks}
+\item{Xshks}{the number of selected exogenous shocks}
 
-\item{runs}{: number of runs used in the the calculation of the bootstrap confidence interval.}
+\item{runs}{number of runs used in the calculation of the bootstrap confidence interval}
 
-\item{conf}{: a two component vector containing the tail probabilities of the bootstrap confidence interval.}
+\item{conf}{a two component vector containing the tail probabilities of the bootstrap confidence interval}
 }
 \value{
-an array of dimension (n, n, nstep, 3).
+an (n, n, nstep, 3) array containing the impulse response functions with confidence bands.
+The first dimension represents responses, second represents impulses, third represents time steps,
+and fourth represents point estimate and confidence bounds.
 }
 \description{
-This function generates the impulse response functions of an estimated CIVAR model
+This function computes the impulse response functions (IRFs) of an estimated CIVAR model,
+providing confidence bands through bootstrap methods. It allows for various types of IRFs
+and can handle different configurations of shocks and responses, including permanent-transitory
+decompositions and exogenous shocks.
 }
 \examples{
-
 res_d = civar_data(n=4,p=2,T=84,Co=matrix(c(1,1,1,1),4,1)*0,type="none",crk=1)
 res_e = civar_estimate(res=res_d)
 res_e$Summary
@@ -53,23 +57,21 @@ res_e$Summary
 IRF_CB = irf_civar_cb(res=res_e, nstep=20, comb=NA, irf = "gen1", runs = 20, conf = c(0.05, 0.95))
 IRF_g = plot_irf(IRF_CB)
 
-IRF_CB     = irf_civar_cb(res=res_e, nstep=30, comb=NA, irf = "PTdecomp", G = NA, A0=NA,B0=NA,
- runs = 20, conf = c(0.05, 0.95))
+IRF_CB = irf_civar_cb(res=res_e, nstep=30, comb=NA, irf = "PTdecomp", G = NA, A0=NA, B0=NA,
+                       runs = 20, conf = c(0.05, 0.95))
 IRF_g = plot_irf(IRF_CB)
 # The first three shocks have permanent effects,
 # while the fourth shock does not have a permanent effect.
 
-
-
 T=100
 X=matrix(rnorm(2*T),T,2)
-res_d = var_data(n=3,p=2,T=T,Co=matrix(c(0,0,0,1,2,3,3,2,1),3,3), type="exog0",X=X) ;
-res_e = var_estimate(res=res_d);
+res_d = var_data(n=3,p=2,T=T,Co=matrix(c(0,0,0,1,2,3,3,2,1),3,3), type="exog0",X=X)
+res_e = var_estimate(res=res_d)
 res_d$Co
 res_e$Summary
 IRF_CB = irf_var_cb(res=res_e,nstep=20, comb=NA, irf = "irfX", Xshks=c(1:2),
-runs = 100, conf = c(0.05, 0.95))
-IRF_list <-plot_irf(IRF_CB,Names =c("Y1","Y2","Y3"),INames=c("X1","X2"),
-response = c(1:3), impulse = c(1:3), n = 3)
+                     runs = 100, conf = c(0.05, 0.95))
+IRF_list <- plot_irf(IRF_CB, Names=c("Y1","Y2","Y3"), INames=c("X1","X2"),
+                      response = c(1:3), impulse = c(1:3), n = 3)
 
 }

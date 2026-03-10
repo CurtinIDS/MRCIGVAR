@@ -4,7 +4,12 @@
 
 
 #'
-#' This function creates independent common stochastic trends and idiosyncratic trends.
+#' Generate Independent Common Stochastic Trends and Idiosyncratic Trends for VAR Models
+#'
+#' This function creates independent common stochastic trends and idiosyncratic trends 
+#' for a given number of variables, lags, and observations. It also computes the 
+#' parameter matrix of domestic variables, cointegration vectors, and adjustment vectors 
+#' based on the specified roots of the characteristic polynomial.
 #'
 #' @param m number of variables
 #' @param p lags
@@ -13,18 +18,29 @@
 #' @param Ncommtrend number of common trends
 #' @param n number of countries
 #'
-#' @return A list containing the parameter matrix of the domestic variables, the cointegration vectors and the adjustment vectors
+#' @return A list containing the parameter matrix of the domestic variables, 
+#'         the cointegration vectors, and the adjustment vectors
 #' @export
 #' @keywords internal
 #'
-varb_commtrend <- function (m, p, T, r_npo, Ncommtrend, n)
-{
+#' @examples
+#' # Example usage of varb_commtrend function
+#' m <- 3
+#' p <- matrix(c(1, 2, 2, 1), ncol = 2)
+#' T <- 100
+#' r_npo <- matrix(runif(m * max(p)), nrow = m)
+#' Ncommtrend <- 1
+#' n <- 2
+#' result <- varb_commtrend(m, p, T, r_npo, Ncommtrend, n)
+#' print(result)
+#'
+varb_commtrend <- function (m, p, T, r_npo, Ncommtrend, n) {
   alpha = list()
   beta = list()
   if (missing(Ncommtrend)) {
     Ncommtrend = NA
   }
-  if (Ncommtrend==0) Ncommtrend <- NA
+  if (Ncommtrend == 0) Ncommtrend <- NA
   Pmax = max(p[, 1:2])
   Pmin = min(p[, 1:2][p[, 1:2] > 0])
   Bo = (1:(m * m * Pmax * n)) * 0
@@ -45,12 +61,10 @@ varb_commtrend <- function (m, p, T, r_npo, Ncommtrend, n)
     Nnocommtrend = m - Ncommtrend
     B[(Nnocommtrend + 1):m, ] = 0
     B = B + diag(m)
-    r_np = c(1:(Ncommtrend * Pmin))/c(1:(Ncommtrend * Pmin)) *
-      1.5
+    r_np = c(1:(Ncommtrend * Pmin)) / c(1:(Ncommtrend * Pmin)) * 1.5
     dim(r_np) = c(Ncommtrend, Pmin)
     r_np[1:Ncommtrend, 1] = 1
-    VAR_IONE = var_data(n = Ncommtrend, p = Pmin, T = 100,
-                       r_np = r_np)
+    VAR_IONE = var_data(n = Ncommtrend, p = Pmin, T = 100, r_np = r_np)
     for (i in 1:n) {
       B = matrix(stats::rnorm(m * m), m, m)
       B[(Nnocommtrend + 1):m, ] = 0
@@ -60,15 +74,12 @@ varb_commtrend <- function (m, p, T, r_npo, Ncommtrend, n)
       dim(r_np) = c(Nnocommtrend, p[i, 1])
       r_np <- r_npo[(Ncommtrend + 1):m, 1:p[i, 1], i]
       dim(r_np) = c(Nnocommtrend, p[i, 1])
-      VAR_IZero = var_data(Nnocommtrend, p[i, 1], T = 100,
-                          r_np = r_np)
+      VAR_IZero = var_data(Nnocommtrend, p[i, 1], T = 100, r_np = r_np)
       for (j in 1:p[i, 1]) {
         Dblock = matrix(0, m, m)
-        Dblock[1:Nnocommtrend, 1:Nnocommtrend] = VAR_IZero$B[,
-                                                             , j]
+        Dblock[1:Nnocommtrend, 1:Nnocommtrend] = VAR_IZero$B[, , j]
         if (dim(VAR_IONE$B)[3] >= j)
-          Dblock[(Nnocommtrend + 1):m, (Nnocommtrend +
-                                          1):m] = VAR_IONE$B[, , j]
+          Dblock[(Nnocommtrend + 1):m, (Nnocommtrend + 1):m] = VAR_IONE$B[, , j]
         Bo[, , j, i] = B %*% Dblock %*% solve(B)
       }
       alpha[[i]] = b2_cib(Bo[, , 1:p[i, 1], i])[[2]]
@@ -80,23 +91,32 @@ varb_commtrend <- function (m, p, T, r_npo, Ncommtrend, n)
 
 
 
-#' @param sname The elements in column names to be replaced
+#' Summary of Conditional VAR Model
+#'
+#' This function provides a summary of a conditional VAR model, allowing for the replacement of specific elements in the column names of the output.
+#'
+#' @param lm1 A fitted conditional VAR model object.
+#' @param sname The elements in column names to be replaced.
 #' @export
 #' @keywords internal
 #'
-summary_civar <- function(lm1=lm1,sname ="Z2\\[,4:9\\]") {
+#' @examples
+#' # Example usage of summary_civar function
+#' model <- lm(y ~ x1 + x2)  # Replace with actual model fitting
+#' summary_result <- summary_civar(model, sname = "Z2\\[,4:9\\]")
+#' print(summary_result)
+summary_civar <- function(lm1=lm1, sname ="Z2\\[,4:9\\]") {
   #### this function replace the Matrix name and leave the colnames in the output
-  summ =summary(lm1)
+  summ = summary(lm1)
   n = length(summ)
-  if (n>1) {
+  if (n > 1) {
     for (i in 1:n) {
       LL <- dimnames(summ[[i]]$coefficients)[[1]]
       dimnames(summ[[i]]$coefficients)[[1]] <- sub(sname, "", LL)
     }
-  }  else {
+  } else {
     LL <- dimnames(summ$coefficients)[[1]]
     dimnames(summ$coefficients)[[1]] <- sub(sname, "", LL)
-
   }
   return(summ)
 }
@@ -104,23 +124,35 @@ summary_civar <- function(lm1=lm1,sname ="Z2\\[,4:9\\]") {
 
 
 #'
+#' Convert VECM Parameters to VAR Parameters for CIGVAR
+#'
+#' This function transforms the estimated parameters of a Vector Error Correction Model (VECM) 
+#' into the corresponding parameters for a Conditional VAR (CIGVAR) model. It handles different 
+#' types of VECMs and allows for the inclusion of foreign variables and common factors.
+#'
 #' @param param The parameter of an estimated VECM
 #' @param beta The cointegration vectors
-#' @param q A vector specifying different type of VECMs
+#' @param q A vector specifying different types of VECMs
 #' @param s The indicator of multi regime VECMs
 #' @param kz The number of exogenous common factors
 #' @param Dxflag Indicator whether the foreign variables enter the cointegration space
 #'
-#' @return A list of (A, B, C) with B the auto regression parameter matrix, C the parameter of the deterministic components, and A the parameter matrix of foreign variables for CIGVAR.
+#' @return A list of (A, B, C) with B the auto regression parameter matrix, 
+#'         C the parameter of the deterministic components, and A the parameter 
+#'         matrix of foreign variables for CIGVAR.
 #' @export
 #' @keywords internal
 #'
-#'
-vecm2_var <- function(param, beta, q = c(1, 2, 2, 2, 2),s=NA,kz=0,Dxflag=0)
-{
+#' @examples
+#' # Example usage of vecm2_var function
+#' param <- matrix(rnorm(100), nrow = 10)
+#' beta <- matrix(rnorm(20), nrow = 10)
+#' result <- vecm2_var(param, beta, q = c(1, 2, 2, 2, 2), s = NA, kz = 0, Dxflag = 0)
+#' print(result)
+vecm2_var <- function(param, beta, q = c(1, 2, 2, 2, 2), s = NA, kz = 0, Dxflag = 0) {
   m = dim(param)[2]
   VECB = t(param)
-  if (missing(s))  s = NA
+  if (missing(s)) s = NA
   if (anyNA(s)) {
     if (!q[3] == 0) {   # for GVAR with foreign variables
       B = (1:(m * m * (q[2] + 1))) * 0
@@ -129,29 +161,28 @@ vecm2_var <- function(param, beta, q = c(1, 2, 2, 2, 2),s=NA,kz=0,Dxflag=0)
       D = NA
       dim(A) = c(m, m, (q[3] + 1))
       AB = VECB[, 1:q[1]] %*% t(beta)
-      B[, , 1] = AB[, kz+(1:m)]
-      if (Dxflag == 1 ) A[, , 1] = AB[,kz+(m + 1):(2 * m)]
-      if (Dxflag == 0 ) A[, , 1] = A[, , 1]*0
+      B[, , 1] = AB[, kz + (1:m)]
+      if (Dxflag == 1) A[, , 1] = AB[, kz + (m + 1):(2 * m)]
+      if (Dxflag == 0) A[, , 1] = A[, , 1] * 0
       for (i in 2:(q[2] + 1)) B[, , i] = VECB[, q[1] + ((i - 2) * m + 1):((i - 2) * m + m)]
       for (i in 2:(q[3] + 1)) A[, , i] = VECB[, (q[1] + q[2] * m) + ((i - 2) * m + 1):((i - 2) * m + m)]
-
+      
       B = cib3_b(B)
       A = cia2_a(A)
-      if ( kz > 0 ) {
-        D = (1:(m*kz*(q[2]+1)))*0; dim(D) =c(m,kz,q[2]+1)
-        D[,,1] = AB[,1:kz]
-        for (i in 2:(q[2] + 1)) D[, , i] = VECB[, dim(VECB)[2]-q[2]*kz + (((i - 2) * kz + 1):((i - 2) * kz + kz))]
+      if (kz > 0) {
+        D = (1:(m * kz * (q[2] + 1))) * 0
+        dim(D) = c(m, kz, q[2] + 1)
+        D[, , 1] = AB[, 1:kz]
+        for (i in 2:(q[2] + 1)) D[, , i] = VECB[, dim(VECB)[2] - q[2] * kz + (((i - 2) * kz + 1):((i - 2) * kz + kz))]
         D = cia2_a(D)
       }
-    }
-    else {
+    } else {
       B = (1:(m * m * (q[2] + 1))) * 0
       dim(B) = c(m, m, (q[2] + 1))
       AB = VECB[, 1:q[1]] %*% t(beta)
       B[, , 1] = AB[, 1:m]
       if (q[2] > 0) {
-        for (i in 2:(q[2] + 1)) B[, , i] = VECB[, q[1] +
-                                                  ((i - 2) * m + 1):((i - 2) * m + m)]
+        for (i in 2:(q[2] + 1)) B[, , i] = VECB[, q[1] + ((i - 2) * m + 1):((i - 2) * m + m)]
         B <- cib3_b(CIB = B)
       }
       if (q[2] == 0) {
@@ -159,12 +190,10 @@ vecm2_var <- function(param, beta, q = c(1, 2, 2, 2, 2),s=NA,kz=0,Dxflag=0)
       }
       A = NA
     }
-    if (dim(param)[1] > q[1] + (q[2] + q[3]) * m + q[2]*kz) {
-      C = as.matrix(t(param)[, (q[1] + (q[2] + q[3]) * m + 1):(dim(param)[1]-q[2]*kz) ])
-    }
-    else C = NA
-  }
-  else {
+    if (dim(param)[1] > q[1] + (q[2] + q[3]) * m + q[2] * kz) {
+      C = as.matrix(t(param)[, (q[1] + (q[2] + q[3]) * m + 1):(dim(param)[1] - q[2] * kz)])
+    } else C = NA
+  } else {
     if (length(q) == 5) {
       P = max(q[-1])
       B = (1:(m * m * (P + 1) * 2)) * 0
@@ -175,34 +204,20 @@ vecm2_var <- function(param, beta, q = c(1, 2, 2, 2, 2),s=NA,kz=0,Dxflag=0)
       A[, , 1, 1] = AB[, (m + 1):(2 * m)]
       B[, , 1, 2] = AB[, 1:m]
       A[, , 1, 2] = AB[, (m + 1):(2 * m)]
-      for (i in 2:(q[2] + 1)) B[, , i, 1] = VECB[, q[1] +
-                                                   ((i - 2) * m + 1):((i - 2) * m + m)]
-      for (i in 2:(q[3] + 1)) A[, , i, 1] = VECB[, (q[1] +
-                                                      q[2] * m) + ((i - 2) * m + 1):((i - 2) * m +
-                                                                                       m)]
-      for (i in 2:(q[4] + 1)) B[, , i, 2] = VECB[, (q[1] +
-                                                      (q[2] + q[3]) * m) + ((i - 2) * m + 1):((i -
-                                                                                                 2) * m + m)]
-      for (i in 2:(q[5] + 1)) A[, , i, 2] = VECB[, (q[1] +
-                                                      (q[2] + q[3] + q[4]) * m) + ((i - 2) * m + 1):((i -
-                                                                                                        2) * m + m)]
-      B[, , 1:(q[2] + 1), 1] = cib3_b(B[, , 1:(q[2] + 1),
-                                       1])
-      B[, , 1:(q[4] + 1), 2] = cib3_b(B[, , 1:(q[4] + 1),
-                                       2])
-      A[, , 1:(q[3] + 1), 1] = cia2_a(A[, , 1:(q[3] + 1),
-                                       1])
-      A[, , 1:(q[5] + 1), 2] = cia2_a(A[, , 1:(q[5] + 1),
-                                       2])
+      for (i in 2:(q[2] + 1)) B[, , i, 1] = VECB[, q[1] + ((i - 2) * m + 1):((i - 2) * m + m)]
+      for (i in 2:(q[3] + 1)) A[, , i, 1] = VECB[, (q[1] + q[2] * m) + ((i - 2) * m + 1):((i - 2) * m + m)]
+      for (i in 2:(q[4] + 1)) B[, , i, 2] = VECB[, (q[1] + (q[2] + q[3]) * m) + ((i - 2) * m + 1):((i - 2) * m + m)]
+      for (i in 2:(q[5] + 1)) A[, , i, 2] = VECB[, (q[1] + (q[2] + q[3] + q[4]) * m) + ((i - 2) * m + 1):((i - 2) * m + m)]
+      B[, , 1:(q[2] + 1), 1] = cib3_b(B[, , 1:(q[2] + 1), 1])
+      B[, , 1:(q[4] + 1), 2] = cib3_b(B[, , 1:(q[4] + 1), 2])
+      A[, , 1:(q[3] + 1), 1] = cia2_a(A[, , 1:(q[3] + 1), 1])
+      A[, , 1:(q[5] + 1), 2] = cia2_a(A[, , 1:(q[5] + 1), 2])
       if (dim(param)[1] > q[1] + (sum(q[-1])) * m) {
         C = (1:(m * 2)) * 0
         dim(C) = c(m, 1, 2)
-        C[, 1, 1] = as.matrix(t(param)[, q[1] + sum(q[-1]) *
-                                         m + 1])
-        C[, 1, 2] = as.matrix(t(param)[, q[1] + sum(q[-1]) *
-                                         m + 2])
-      }
-      else {
+        C[, 1, 1] = as.matrix(t(param)[, q[1] + sum(q[-1]) * m + 1])
+        C[, 1, 2] = as.matrix(t(param)[, q[1] + sum(q[-1]) * m + 2])
+      } else {
         C = NA
       }
     }
@@ -213,25 +228,17 @@ vecm2_var <- function(param, beta, q = c(1, 2, 2, 2, 2),s=NA,kz=0,Dxflag=0)
       AB = VECB[, 1:q[1]] %*% t(beta)
       B[, , 1, 1] = AB[, 1:m]
       B[, , 1, 2] = AB[, 1:m]
-      for (i in 2:(q[2] + 1)) B[, , i, 1] = VECB[, q[1] +
-                                                   ((i - 2) * m + 1):((i - 2) * m + m)]
-      for (i in 2:(q[3] + 1)) B[, , i, 2] = VECB[, (q[1] +
-                                                      q[2] * m) + ((i - 2) * m + 1):((i - 2) * m +
-                                                                                       m)]
-      B[, , 1:(q[2] + 1), 1] = cib3_b(B[, , 1:(q[2] + 1),
-                                       1])
-      B[, , 1:(q[3] + 1), 2] = cib3_b(B[, , 1:(q[3] + 1),
-                                       2])
+      for (i in 2:(q[2] + 1)) B[, , i, 1] = VECB[, q[1] + ((i - 2) * m + 1):((i - 2) * m + m)]
+      for (i in 2:(q[3] + 1)) B[, , i, 2] = VECB[, (q[1] + q[2] * m) + ((i - 2) * m + 1):((i - 2) * m + m)]
+      B[, , 1:(q[2] + 1), 1] = cib3_b(B[, , 1:(q[2] + 1), 1])
+      B[, , 1:(q[3] + 1), 2] = cib3_b(B[, , 1:(q[3] + 1), 2])
       A = NA
       if (dim(param)[1] > q[1] + (sum(q[-1])) * m) {
         C = (1:(m * 2)) * 0
         dim(C) = c(m, 1, 2)
-        C[, 1, 1] = as.matrix(t(param)[, q[1] + sum(q[-1]) *
-                                         m + 1])
-        C[, 1, 2] = as.matrix(t(param)[, q[1] + sum(q[-1]) *
-                                         m + 2])
-      }
-      else {
+        C[, 1, 1] = as.matrix(t(param)[, q[1] + sum(q[-1]) * m + 1])
+        C[, 1, 2] = as.matrix(t(param)[, q[1] + sum(q[-1]) * m + 2])
+      } else {
         C = NA
       }
     }
@@ -242,7 +249,13 @@ vecm2_var <- function(param, beta, q = c(1, 2, 2, 2, 2),s=NA,kz=0,Dxflag=0)
 
 
 #'
-#' @param  B  an (m,m,L) array containing the coefficients of the level VAR.
+#' Convert VAR Coefficients to Error Correction Form
+#'
+#' This function transforms the coefficients of a level VAR model into the corresponding 
+#' error correction form. It computes the adjustment coefficients, cointegration vectors, 
+#' and the discrepancy between the selected alpha, beta, and CIB.
+#'
+#' @param B an (m,m,L) array containing the coefficients of the level VAR.
 #' @return A list containing three components.
 #' \itemize{
 #'    \item CIB        : the coefficients matrix of the error correction form
@@ -253,8 +266,12 @@ vecm2_var <- function(param, beta, q = c(1, 2, 2, 2, 2),s=NA,kz=0,Dxflag=0)
 #' @export
 #' @keywords internal
 #'
-b2_cib <- function (B)
-{
+#' @examples
+#' # Example usage of b2_cib function
+#' B <- array(rnorm(27), dim = c(3, 3, 3))  # Example VAR coefficients
+#' result <- b2_cib(B)
+#' print(result)
+b2_cib <- function (B) {
   CIB = B * 0
   L = dim(B)[3]
   n = dim(B)[1]
@@ -262,8 +279,8 @@ b2_cib <- function (B)
   CIB[, , 1] = -diag(n) - CIB[, , 1]
   P = eigen(CIB[, , 1])$vectors
   lambda = eigen(CIB[, , 1])$values
-  P=P[,sort(Mod(lambda),decreasing = FALSE,index.return=TRUE)$ix]
-  lambda <- lambda[sort(Mod(lambda),decreasing = FALSE,index.return=TRUE)$ix]
+  P = P[, sort(Mod(lambda), decreasing = FALSE, index.return = TRUE)$ix]
+  lambda <- lambda[sort(Mod(lambda), decreasing = FALSE, index.return = TRUE)$ix]
 
   k = 0
   for (i in 1:(n - 1)) {
@@ -289,18 +306,44 @@ b2_cib <- function (B)
 
 
 
+#' Convert CIGVAR estimation output into coefficient matrices (B, A, C)
 #'
-#' @param  tst  : an output of cigvar_estimate
-#' @return A list containing three components.
+#' Constructs the domestic (B), foreign (A), and deterministic (C) coefficient
+#' matrices from a `cigvar_estimate` output object. The matrices are returned in
+#' lag-stacked array form, where the third dimension indexes lags.
+#'
+#' @param tst An output object returned by `cigvar_estimate`.
+#'
+#' @return A list containing three components:
 #' \itemize{
-#'     \item B          : the coefficient matrices of the domestic variables
-#'     \item A	        : the coefficient matrices of the foreign variables
-#'     \item C          : the coefficient matrices of the deterministic components
+#'   \item B: the coefficient matrices of the domestic variables (m x m x P[1])
+#'   \item A: the coefficient matrices of the foreign variables (m x mx x P[2])
+#'   \item C: the coefficient matrices of the deterministic components (m x 1)
 #' }
+#'
+#' @examples
+#' # NOTE: This is a minimal, illustrative example. It fabricates a `tst` object
+#' # with the fields this function expects, so it can run without the full package
+#' # estimation pipeline.
+#' set.seed(1)
+#' tst <- list()
+#' tst$P <- c(2, 2)         # domestic and foreign lag orders
+#' tst$NN1 <- 2             # mx (number of foreign variables)
+#' tst$model <- "II"        # one of: "II", "III", "IV"
+#' tst$beta <- matrix(rnorm(2), ncol = 1)  # r = 1
+#'
+#' # stub for tst[[2]]$coefficients and tst[[2]] dimensionalities
+#' m <- 3
+#' tst[[2]] <- list()
+#' tst[[2]]$coefficients <- matrix(rnorm(100), nrow = 10)  # oversized on purpose
+#' tst[[2]][[1]] <- matrix(rnorm(20), nrow = 10, ncol = m) # so ncol(tst[[2]]$coefficients) is valid
+#'
+#' res <- cib2_b(tst)
+#' str(res)
+#'
 #' @export
 #' @keywords internal
-#'
-cib2_b = function(tst) {
+cib2_b <- function(tst) {
   P  = tst$P
   r  = ncol(as.matrix(tst$beta))
   m  = ncol(tst[[2]]$coefficients)
@@ -349,13 +392,29 @@ cib2_b = function(tst) {
 
 
 
+#' Convert VECM coefficient arrays to VAR coefficient arrays
 #'
-#' @param CIB an (m,m,L) array of the coefficients matrices of a VECM with lag L-1.
-#' @return B (m,m,L) array the coefficients of a VAR with lag L
+#' Transforms an array of VECM coefficient matrices (with lag order L-1) into the
+#' corresponding VAR coefficient matrices (with lag order L). The input and output
+#' are both 3D arrays, where the third dimension indexes lags.
+#'
+#' @param CIB An (m, m, L) array of coefficient matrices of a VECM with lag L-1.
+#'
+#' @return B An (m, m, L) array of coefficient matrices of a VAR with lag L.
+#'
+#' @examples
+#' # Example with m = 3 variables and L = 2 (so VECM lag is L-1 = 1)
+#' set.seed(1)
+#' m <- 3
+#' L <- 2
+#' CIB <- array(rnorm(m * m * L), dim = c(m, m, L))
+#' B <- cib3_b(CIB)
+#' dim(B)
+#' B[,,1]
+#'
 #' @export
 #' @keywords internal
-#'
-cib3_b = function(CIB) {
+cib3_b <- function(CIB) {
   BB = CIB*0
   L = dim(CIB)[3]
   n = dim(BB)[1]
@@ -371,59 +430,128 @@ cib3_b = function(CIB) {
 
 
 
+#' Convert VECM coefficient arrays to VAR coefficient arrays in levels (foreign block)
 #'
-#' @param CIA a coefficient matrix of VECM
+#' Transforms an array of VECM coefficient matrices into the corresponding VAR
+#' coefficient matrices in levels. Both input and output are 3D arrays, where the
+#' third dimension indexes lags.
 #'
-#' @return the coefficient matrix of the corresponding VAR in level
+#' @param CIA A coefficient array of a VECM (m x m x L).
+#'
+#' @return An (m, m, L) array containing the coefficient matrices of the corresponding
+#' VAR in levels.
+#'
+#' @examples
+#' # Example with m = 2 variables and L = 3 lags in the array
+#' set.seed(1)
+#' m <- 2
+#' L <- 3
+#' CIA <- array(rnorm(m * m * L), dim = c(m, m, L))
+#' A <- cia2_a(CIA)
+#' dim(A)
+#' A[,,1]
+#'
 #' @export
 #' @keywords internal
-#'
-cia2_a = function(CIA) {
-	AA = CIA*0
-	L = dim(CIA)[3]
-      n = dim(AA)[1]
-	if (L==1) AA = CIA
-	if (L==2) {AA[,,1] = CIA[,,1]+CIA[,,2]; AA[,,2] = - CIA[,,2]}
-	if (L>2)  {
-     		AA[,,1] = CIA[,,1]+CIA[,,2]
-     		for (i in 2:(L-1))  AA[,,i] = CIA[,,i+1]-CIA[,,i]
-     		AA[,,L] = - CIA[,,L]
-	}
-return(AA)
+cia2_a <- function(CIA) {
+  AA = CIA*0
+  L = dim(CIA)[3]
+  n = dim(AA)[1]
+  if (L==1) AA = CIA
+  if (L==2) {AA[,,1] = CIA[,,1]+CIA[,,2]; AA[,,2] = - CIA[,,2]}
+  if (L>2)  {
+    AA[,,1] = CIA[,,1]+CIA[,,2]
+    for (i in 2:(L-1))  AA[,,i] = CIA[,,i+1]-CIA[,,i]
+    AA[,,L] = - CIA[,,L]
+  }
+  return(AA)
 }
 
 
 
+#' Compute characteristic roots (eigenvalues) of a VAR(p) companion matrix
 #'
-#' @param G a coefficient matrix of dimension (n x n x p) of an VAR(p) object.
+#' Builds the companion matrix for a VAR(p) coefficient array and returns the roots
+#' (eigenvalues) of the associated characteristic polynomial. These roots are often
+#' used to assess VAR stability (all moduli strictly less than 1 implies stability).
 #'
-#' @return Roots of the characteristic polynomial of VAR(p)
+#' @param G A coefficient array of dimension (m, m, p) for a VAR(p) object, where the
+#' third dimension indexes lags.
+#'
+#' @return A complex vector of eigenvalues (roots of the characteristic polynomial).
+#'
+#' @examples
+#' # Example: VAR(2) with m = 2 variables
+#' set.seed(1)
+#' m <- 2
+#' p <- 2
+#' G <- array(rnorm(m * m * p), dim = c(m, m, p))
+#' roots <- spectral_radius(G)
+#' roots
+#' Mod(roots)  # magnitudes of roots
+#'
 #' @export
-spectral_radius = function(G) {
-   L = dim(G)[3]
-   m = dim(G)[1]
-   PP=matrix(0,m*L,m*L)
-   PP[1:m,] = G[,,]
-   if (L>1 ) {
-     for ( i in 1:(L-1) ) PP[(i*m+1):(i*m+m),((i-1)*m+1):((i-1)*m+m)] = diag(m)
-     eigen(PP)$values
-   }  else {
-     eigen(G[,,1])$values
-   }
+spectral_radius <- function(G) {
+  L = dim(G)[3]
+  m = dim(G)[1]
+  PP = matrix(0, m*L, m*L)
+  PP[1:m,] = G[,,]
+  if (L>1 ) {
+    for ( i in 1:(L-1) ) PP[(i*m+1):(i*m+m),((i-1)*m+1):((i-1)*m+m)] = diag(m)
+    eigen(PP)$values
+  }  else {
+    eigen(G[,,1])$values
+  }
 }
 
 
 
+#' Convert conditional VECM parameters to conditional VAR coefficient arrays
 #'
-#' @param param estimated parameters of a conditional VECM
-#' @param beta the estimated cointegration vecters
-#' @param p a vector specifying different types of conditional VECM
-#' @param s indicator variable of different regimes
-#' @param N2 dimension of the conditioning variables
+#' Converts estimated parameters from a conditional VECM into coefficient arrays for
+#' the corresponding conditional VAR in levels. It returns domestic coefficients (B),
+#' foreign/conditioning coefficients (A, when present), and deterministic components (C).
 #'
-#' @return A list of (A, B, C) with B the conditional VAR parameter matrix, C the parameter of the deterministic components, and A the parameter matrix of foreign variables for CIGVAR.
+#' This helper supports both:
+#' - a single-regime conditional VECM (when `s` is `NA`), and
+#' - multi-regime specifications used in MRCIGVAR / MRCIVAR (when `s` is provided).
+#'
+#' @param param Estimated parameters of a conditional VECM.
+#' @param beta The estimated cointegration vectors.
+#' @param p A vector specifying different types of conditional VECM. Its interpretation
+#' depends on the model regime setting.
+#' @param s Indicator variable of different regimes. If `NA`, a single-regime model is assumed.
+#' @param N2 Dimension of the conditioning (foreign) variables.
+#'
+#' @return A list with components `A`, `B`, and `C`, where:
+#' \itemize{
+#'   \item B: conditional VAR coefficient array (domestic block)
+#'   \item A: coefficient array of conditioning/foreign variables for CIGVAR (or `NA` if absent)
+#'   \item C: parameters of deterministic components (or `NA` if absent)
+#' }
+#'
+#' @examples
+#' # Minimal illustrative example (fabricated inputs)
+#' # The shapes below are chosen so the function can run without the full estimation pipeline.
+#' set.seed(1)
+#'
+#' # Example: single-regime with domestic lags and foreign lags
+#' m  <- 2
+#' N2 <- 1
+#' p  <- c(1, 1, 1, 2, 2)  # only p[1:3] are used in single-regime branch
+#'
+#' # param is used transposed as VECB; ensure it has enough columns for indexing
+#' # Here we build param as (k x m) so t(param) is (m x k)
+#' k <- p[1] + p[2]*m + p[3]*N2 + 1
+#' param <- matrix(rnorm(k * m), nrow = k, ncol = m)
+#'
+#' # beta must have ncol(beta) = p[1], and nrow(beta) = m + N2 for AB split
+#' beta <- matrix(rnorm((m + N2) * p[1]), nrow = (m + N2), ncol = p[1])
+#'
+#' out <- cvecm2_cvar(param = param, beta = beta, p = p, s = NA, N2 = N2)
+#' str(out)
+#'
 #' @export
-#'
 cvecm2_cvar <- function (param, beta, p = c(1, 2, 2, 2, 2), s = NA, N2)
 {
   m = dim(param)[2]
@@ -534,16 +662,28 @@ cvecm2_cvar <- function (param, beta, p = c(1, 2, 2, 2, 2), s = NA, N2)
 
 
 
+#' Reorder indices for endogenous and exogenous lag blocks
 #'
-#' @param N1 dimension of the endogenous variables
-#' @param N2 dimension of the exogenous variables
-#' @param p lag length
+#' Creates a re-indexing vector that rearranges lagged terms so that all endogenous
+#' lag blocks (size `N1`) are placed first across lags, followed by all exogenous
+#' lag blocks (size `N2`) across lags. This is useful when reshaping or reordering
+#' coefficient vectors/matrices built from stacked lag terms.
 #'
-#' @return a new index
+#' @param N1 Dimension of the endogenous variables.
+#' @param N2 Dimension of the exogenous variables.
+#' @param p Lag length.
+#'
+#' @return An integer vector giving the reordered index mapping.
+#'
+#' @examples
+#' # Example: N1 = 2 endogenous vars, N2 = 1 exogenous var, p = 3 lags
+#' # There are (p-1) = 2 lag blocks, each of size M = N1 + N2 = 3
+#' # The returned index maps from original stacking to reordered stacking.
+#' redex(N1 = 2, N2 = 1, p = 3)
+#'
 #' @export
 #' @keywords internal
-#'
-redex = function(N1,N2,p) {
+redex <- function(N1, N2, p) {
   M     = N1 + N2
   index = c(1:((p-1)*M))
   Rindex = index*0
@@ -556,22 +696,56 @@ redex = function(N1,N2,p) {
 
 
 
+#' Estimate a conditional VECM and Johansen cointegration test statistics
 #'
-#' This function estimates the unknown parameters of a multi regime conditional VECM based on provided data.
+#' Estimates the parameters of a conditional vector error correction model (VECM)
+#' using the Johansen procedure, allowing for different deterministic component
+#' specifications (models I–V). The function returns estimated objects and
+#' cointegration test statistics (either maximum-eigenvalue or trace).
 #'
+#' @param y Data matrix of the endogenous variables.
+#' @param x Data matrix of the exogenous (conditioning) variables. If `length(x) == 1`,
+#' the model is estimated without additional conditioning variables.
+#' @param model Deterministic component specification. One of `"I"`, `"II"`, `"III"`,
+#' `"IV"`, `"V"`.
+#' @param type Johansen test type. One of `"eigen"` (maximum eigenvalue) or `"trace"`.
+#' @param crk Cointegration rank.
+#' @param p Lag length in levels.
+#' @param q Significance level (must be one of `0.9`, `0.95`, `0.99`).
 #'
-#' @param y data matrix of the endogenous variables
-#' @param x data matrix of the exogenous variables
-#' @param model type of the specification of the deterministic components. "none" and "const" are two options.
-#' @param type =c("eigen", "trace")
-#' @param crk cointegration rank
-#' @param p lag length in level
-#' @param q significance level
+#' @return A list containing estimated parameters and test statistics, including:
+#' \itemize{
+#'   \item erg: matrix of test statistics and critical values
+#'   \item estimation: fitted VECM (lm object)
+#'   \item lambda: transformed eigenvalue-based statistics
+#'   \item z: combined data matrix of endogenous and exogenous variables
+#'   \item Z2: lagged differenced regressors (or `NULL`)
+#'   \item beta: estimated cointegration vectors
+#'   \item PI: short-run parameter matrix
+#'   \item GAMMA: additional short-run parameters (or `NULL`)
+#'   \item model: deterministic specification used
+#' }
 #'
-#' @return a list of estimated parameters and test statistics
+#' @examples
+#' # Minimal illustrative example (fabricated data)
+#' set.seed(1)
+#' T <- 120
+#' y <- cbind(
+#'   y1 = cumsum(rnorm(T)),
+#'   y2 = cumsum(rnorm(T))
+#' )
+#' x <- cbind(
+#'   x1 = cumsum(rnorm(T))
+#' )
+#'
+#' # Estimate with a constant in the cointegration relation (model II),
+#' # using the maximum-eigenvalue test statistic.
+#' fit <- cvecm(y = y, x = x, model = "II", type = "eigen", crk = 1, p = 2, q = 0.95)
+#' fit$erg
+#' fit$beta
+#'
 #' @export
 #' @keywords internal
-#'
 cvecm <- function (y,x,model = c("I","II","III","IV","V"),type = c("eigen", "trace"), crk=2, p = 1, q = 0.95)
 {
   y <- as.matrix(y)
@@ -809,14 +983,30 @@ cvecm <- function (y,x,model = c("I","II","III","IV","V"),type = c("eigen", "tra
 
 
 
+#' Compute an orthogonal complement of a full-column-rank matrix
 #'
-#' @param alpha : a matrix with independent columns
+#' Constructs a matrix whose columns span the orthogonal complement of the column
+#' space of `alpha` (that is, a basis for the subspace orthogonal to `alpha`).
+#' The input `alpha` is assumed to have linearly independent columns.
 #'
-#' @return  the orthogonal complementary matrix
+#' @param alpha A matrix with linearly independent (full-rank) columns.
+#'
+#' @return A matrix whose columns form an orthogonal complementary basis to the
+#' columns of `alpha`.
+#'
+#' @examples
+#' set.seed(1)
+#' n <- 5
+#' r <- 2
+#' alpha <- matrix(rnorm(n * r), nrow = n, ncol = r)
+#' alpha_perp <- alpha_perpf(alpha)
+#'
+#' # Check orthogonality (should be close to zero)
+#' t(alpha) %*% alpha_perp
+#'
 #' @export
 #' @keywords internal
-#'
-alpha_perpf = function(alpha=(alpha)) {
+alpha_perpf <- function(alpha = (alpha)) {
 
   alpha <- as.matrix(alpha)
   n = dim(alpha)[1]
@@ -831,18 +1021,49 @@ alpha_perpf = function(alpha=(alpha)) {
 
 
 
+#' Objective function for fitting an AB-SVAR from reduced-form covariance
 #'
+#' Computes the sum of squared deviations between the implied structural covariance
+#' in an AB-SVAR model and the reduced-form covariance matrix `Sigma`. The free
+#' (non-fixed) elements of `A0` and `B0` are supplied via the parameter vector `x`,
+#' while fixed elements are coded as `0` or `1` in `A0`/`B0`. The function is intended
+#' for use inside numerical optimisation routines.
 #'
-#' @param x 	  : difference between the reduced form and the AB form
-#' @param A0	  : A matrix in an AB_SVAR model
-#' @param B0    : B matrix in an AB_SVAR model
-#' @param Sigma : Covariance matrix of the reduced form
+#' @param x Difference between the reduced form and the AB form, supplied as a vector
+#' of the free parameters.
+#' @param A0 A matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.
+#' @param B0 B matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.
+#' @param Sigma Covariance matrix of the reduced form.
 #'
-#' @return  difference
+#' @return A single numeric value: the sum of squared residuals
+#' \eqn{\sum (A \Sigma A' - B B')^2}. Returns a character message if the system is
+#' not exactly identified or if `x` has incorrect length.
+#'
+#' @examples
+#' # Minimal illustrative example (fabricated matrices)
+#' set.seed(1)
+#' n <- 3
+#' Sigma <- crossprod(matrix(rnorm(n * 50), nrow = 50)) / 50
+#'
+#' # A0 and B0 use 0/1 as fixed entries; any other value marks a free parameter slot
+#' A0 <- diag(1, n)
+#' B0 <- diag(1, n)
+#'
+#' # Make a few entries "free" by setting them to 2 (any value not 0/1 works)
+#' A0[2, 1] <- 2
+#' A0[3, 1] <- 2
+#' B0[2, 2] <- 2
+#'
+#' # Number of free parameters must match n*(n+1)/2 for this function
+#' n_free <- sum(!((as.vector(A0) == 0) | (as.vector(A0) == 1))) +
+#'           sum(!((as.vector(B0) == 0) | (as.vector(B0) == 1)))
+#' x <- rnorm(n_free)
+#'
+#' x_abf(x = x, A0 = A0, B0 = B0, Sigma = Sigma)
+#'
 #' @export
 #' @keywords internal
-#'
-x_abf <-  function(x,A0,B0,Sigma) {
+x_abf <-  function(x, A0, B0, Sigma) {
   ### this function solves A and B from the reduced form Sigma for a AB-SVAR
   n = dim(A0)[1]
   if (sum((A0==0)|(A0==1))+sum((B0==0)|(B0==1))!= 2*n*n-n*(n+1)/2) return("not exactly identified")
@@ -863,17 +1084,50 @@ x_abf <-  function(x,A0,B0,Sigma) {
 
 
 
+#' Estimate an AB-SVAR from the reduced-form covariance matrix
 #'
+#' Solves an exactly identified AB-SVAR by fitting structural matrices `A` and `B`
+#' to a reduced-form covariance matrix `Sigma`. Free parameters are provided via
+#' an initial vector `x0`, while fixed entries in `A0` and `B0` are coded as `0` or `1`.
+#' Estimation is performed by minimising the sum of squared deviations between
+#' \eqn{A \Sigma A'} and \eqn{B B'} using `stats::nlm()`.
 #'
-#' @param x0	  : difference between the reduced form and the AB form
-#' @param A0	  : A matrix in an AB_SVAR model
-#' @param B0    : B matrix in an AB_SVAR model
-#' @param Sigma : Covariance matrix of the reduced form
+#' @param x0 Initial values for the free parameters (vector).
+#' @param A0 A matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.
+#' @param B0 B matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.
+#' @param Sigma Covariance matrix of the reduced form.
 #'
-#' @return  a list contains A B and the difference
+#' @return A list with three components:
+#' \itemize{
+#'   \item A: estimated structural matrix A
+#'   \item B: estimated structural matrix B (element-wise absolute value applied)
+#'   \item diff: minimised sum of squared errors
+#' }
+#'
+#' @examples
+#' set.seed(1)
+#' n <- 3
+#' Sigma <- crossprod(matrix(rnorm(n * 80), nrow = 80)) / 80
+#'
+#' # Fixed entries coded as 0/1, free entries marked by any other value (e.g., 2)
+#' A0 <- diag(1, n)
+#' B0 <- diag(1, n)
+#' A0[2, 1] <- 2
+#' A0[3, 1] <- 2
+#' B0[2, 2] <- 2
+#'
+#' # Initial values for free parameters
+#' n_free <- sum(!((as.vector(A0) == 0) | (as.vector(A0) == 1))) +
+#'           sum(!((as.vector(B0) == 0) | (as.vector(B0) == 1)))
+#' x0 <- rnorm(n_free)
+#'
+#' res <- absvar(x0 = x0, A0 = A0, B0 = B0, Sigma = Sigma)
+#' res[[1]]  # A
+#' res[[2]]  # B
+#' res[[3]]  # diff
+#'
 #' @export
-#'
-absvar = function(x0,A0,B0,Sigma) {
+absvar <- function(x0, A0, B0, Sigma) {
   ## This function solve AB_SVAR from the reduced form and return the A, B matrices and the sum of squared errors
   n =dim(A0)[1]
   ABdiff <- stats::nlm(x_abf,x0,A0,B0,Sigma,gradtol=0.000000000000001 )
@@ -894,46 +1148,107 @@ absvar = function(x0,A0,B0,Sigma) {
 
 
 
+#' Assemble GVAR coefficient array from domestic and foreign blocks and weights
 #'
-#' @param Bo parameter matrix of domestic variables
-#' @param Ao parameter matrix of foreign variables
-#' @param W the weighting vector of the GVAR model
-#' @param m the number of variables
-#' @param n the number of countries
-#' @param p lags
+#' Builds the stacked GVAR coefficient array `G` of dimension (mn, mn, p) by combining
+#' country-specific domestic VAR coefficient matrices (`Bo`) with weighted foreign
+#' coefficient matrices (`Ao`) using the GVAR weighting matrix `W`.
 #'
-#' @return An (mn, mn, p ) array of the GVAR(m,n,p) coefficients.
+#' The output `G[ , , L ]` contains the lag-`L` coefficient matrix of the global VAR,
+#' where each (m x m) block corresponds to the effect of country `j` variables on
+#' country `i` variables at lag `L`. Off-diagonal blocks are formed as
+#' `Ao[,,L,i] * W[i,j]`, and diagonal blocks are overwritten by the domestic block
+#' `Bo[,,L,i]`.
+#'
+#' @param Bo Parameter array (or vectorised form) of domestic variables. Will be
+#' reshaped internally to (m, m, p, n).
+#' @param Ao Parameter array (or vectorised form) of foreign variables. Will be
+#' reshaped internally to (m, m, p, n).
+#' @param W Weighting matrix of the GVAR model (n x n).
+#' @param m Number of variables per country.
+#' @param n Number of countries.
+#' @param p Lag order.
+#'
+#' @return An (mn, mn, p) array of GVAR(m, n, p) coefficients.
+#'
+#' @examples
+#' # Example with n = 2 countries, m = 2 variables, p = 2 lags
+#' set.seed(1)
+#' n <- 2
+#' m <- 2
+#' p <- 2
+#'
+#' # Domestic and foreign blocks as arrays already
+#' Bo <- array(rnorm(m * m * p * n), dim = c(m, m, p, n))
+#' Ao <- array(rnorm(m * m * p * n), dim = c(m, m, p, n))
+#'
+#' # Simple weights (rows sum to 1)
+#' W <- matrix(c(0.7, 0.3,
+#'               0.4, 0.6), nrow = n, byrow = TRUE)
+#'
+#' G <- bo_ao_w2_g(Bo = Bo, Ao = Ao, W = W, m = m, n = n, p = p)
+#' dim(G)
+#' G[,,1]  # lag 1 global coefficient matrix
+#'
 #' @export
 #' @keywords internal
-#'
-bo_ao_w2_g = function(Bo,Ao,W,m,n,p) {
-  dim(Bo) = c(m,m,p,n)
-  dim(Ao) = c(m,m,p,n)
+bo_ao_w2_g <- function(Bo, Ao, W, m, n, p) {
+  dim(Bo) = c(m, m, p, n)
+  dim(Ao) = c(m, m, p, n)
   G = (1:(n*m*n*m*p))*0
-  dim(G) = c(n*m,n*m,p)
+  dim(G) = c(n*m, n*m, p)
   for (i in 1:n) {
-      for (j in 1:n) {
-         for (L in 1:p)    G[(1+(i-1)*m):(i*m),(1+(j-1)*m):(j*m),L] = Ao[,,L,i]*W[i,j]
-      }
+    for (j in 1:n) {
+      for (L in 1:p)    G[(1+(i-1)*m):(i*m),(1+(j-1)*m):(j*m),L] = Ao[,,L,i]*W[i,j]
+    }
   }
   for (i in 1:n) {
-	for (L in 1:p)       G[(1+(i-1)*m):(i*m),(1+(i-1)*m):(i*m),L]  = Bo[,,L,i]
+    for (L in 1:p)       G[(1+(i-1)*m):(i*m),(1+(i-1)*m):(i*m),L]  = Bo[,,L,i]
   }
-  dim(G) = c(n*m,n*m,p)
-return(G)
+  dim(G) = c(n*m, n*m, p)
+  return(G)
 }
 
 
 
+#' Extract domestic and foreign coefficient arrays from a GVAR coefficient array
 #'
-#' @param G The GVAR parameter matrix
-#' @param W The weighting matrix of the GVAR model
+#' Decomposes a stacked GVAR coefficient array `G` (dimension mn x mn x p) into:
+#' - `Bo`: country-specific domestic coefficient arrays (m x m x p x n), taken from
+#'   the diagonal blocks of `G`, and
+#' - `Ao`: country-specific foreign coefficient arrays (m x m x p x n), recovered from
+#'   the off-diagonal blocks of `G` by dividing by the corresponding weights `W[i, j]`.
 #'
-#' @return A list containing the parameter matrices of domestric variables and foreign variables
+#' If `G` is supplied without a third dimension, it is treated as a VAR(1) (p = 1).
+#'
+#' @param G The GVAR coefficient array of dimension (mn, mn, p) (or (mn, mn) for p = 1).
+#' @param W The weighting matrix of the GVAR model (n x n).
+#'
+#' @return A named list with two elements:
+#' \itemize{
+#'   \item Bo: domestic coefficient arrays (m x m x p x n)
+#'   \item Ao: foreign coefficient arrays (m x m x p x n)
+#' }
+#'
+#' @examples
+#' set.seed(1)
+#' n <- 2
+#' m <- 2
+#' p <- 2
+#'
+#' # Build a GVAR array from blocks, then recover them back
+#' Bo0 <- array(rnorm(m * m * p * n), dim = c(m, m, p, n))
+#' Ao0 <- array(rnorm(m * m * p * n), dim = c(m, m, p, n))
+#' W <- matrix(c(0.7, 0.3,
+#'               0.4, 0.6), nrow = n, byrow = TRUE)
+#'
+#' G <- bo_ao_w2_g(Bo = Bo0, Ao = Ao0, W = W, m = m, n = n, p = p)
+#' out <- gw2_bo_ao(G = G, W = W)
+#' str(out)
+#'
 #' @export
 #' @keywords internal
-#'
-gw2_bo_ao = function(G,W) {
+gw2_bo_ao <- function(G, W) {
   n = dim(W)[1]
   m = dim(G)[1]/n
 
@@ -943,28 +1258,42 @@ gw2_bo_ao = function(G,W) {
   dim(Bo) = c(m,m,p,n)
   Ao = Bo
   for (i in 1:n) {
-      for (j in 1:n) {
-         for (L in 1:p)   if (!j==i) Ao[,,L,i] = G[(1+(i-1)*m):(i*m),(1+(j-1)*m):(j*m),L]/W[i,j]
-      }
+    for (j in 1:n) {
+      for (L in 1:p)   if (!j==i) Ao[,,L,i] = G[(1+(i-1)*m):(i*m),(1+(j-1)*m):(j*m),L]/W[i,j]
+    }
   }
   for (i in 1:n) {
-	for (L in 1:p)       Bo[,,L,i] = G[(1+(i-1)*m):(i*m),(1+(i-1)*m):(i*m),L]
+    for (L in 1:p)       Bo[,,L,i] = G[(1+(i-1)*m):(i*m),(1+(i-1)*m):(i*m),L]
   }
   result = list(Bo,Ao)
   names(result) = c("Bo","Ao")
-return(result)
+  return(result)
 }
 
 
 
+#' Convert a weight vector into a GVAR-style weighting matrix
 #'
-#' @param W the weighting vector
+#' Constructs an (n x n) weighting matrix from a length-n weight vector `W`, where
+#' each row `i` contains the normalised weights of all *other* units (excluding `i`)
+#' and the diagonal is set to zero. In other words, for each `i`, the off-diagonal
+#' entries are `W[-i] / sum(W[-i])`.
 #'
-#' @return the corresponding weighting matrix
+#' @param W A numeric vector of weights of length `n`.
+#'
+#' @return An (n, n) weighting matrix with zero diagonal and row-wise normalised
+#' off-diagonal weights.
+#'
+#' @examples
+#' W <- c(1, 2, 3, 4)
+#' Wmat <- w2_wmat(W)
+#' Wmat
+#' rowSums(Wmat)   # should all be 1
+#' diag(Wmat)      # should all be 0
+#'
 #' @export
 #' @keywords internal
-#'
-w2_wmat = function(W) {
+w2_wmat <- function(W) {
  n = length(W)
  Wmat = matrix(0,n,n)
  for (i in 1:n ) {
@@ -975,44 +1304,96 @@ w2_wmat = function(W) {
 
 
 
+#' Build a single-row selection/weighting matrix for stacked GVAR variables
 #'
-#' @param SW The weighting vector
-#' @param n The number of variables
-#' @param N The number of countries
-#' @param K The number
+#' Creates an (nN x nN) matrix `comb` with exactly one non-zero column (the first),
+#' where `n` normalised weights from `SW` are inserted at positions corresponding to
+#' the K-th country within each variable block. This is typically used to construct a
+#' linear combination (selection) over a stacked (variable x country) ordering.
 #'
-#' @return The weighting matrix
+#' @param SW A weighting vector of length `n` (will be normalised to sum to 1).
+#' @param n Number of variables.
+#' @param N Number of countries.
+#' @param K Index of the selected country within each variable block (1..N).
+#'
+#' @return An (nN, nN) matrix with weights placed in the first column at the selected
+#' indices.
+#'
+#' @examples
+#' # Example with n = 3 variables, N = 4 countries, selecting K = 2
+#' SW <- c(2, 1, 3)
+#' comb <- sw2comb(SW = SW, n = 3, N = 4, K = 2)
+#' dim(comb)
+#' comb[, 1]  # only this column has non-zeros
+#'
 #' @export
 #' @keywords internal
-#'
-sw2comb = function(SW,n,N,K)
+sw2comb <- function(SW, n, N, K)
 {
-  comb = matrix(0,n*N,N*n)
+  comb = matrix(0, n*N, N*n)
   SW = SW/sum(SW)
   for (i in 1:n) {
-    comb[(i-1)*N+K,1] = SW[i]
+    comb[(i-1)*N+K, 1] = SW[i]
   }
   return(comb)
 }
 
 
 
+#' Generate regime-specific VAR parameters with (optional) common stochastic trends
 #'
-#' @param m Number of variables of a country
-#' @param p Lags
-#' @param T Number of observations
-#' @param r Number of stochastic trends
-#' @param Ncommtrend Number of common trends
-#' @param n Number of countries in the GVAR model
-#' @param S Number of regimes
-#' @param r_npo A matrix specifying the  roots of the characteristic polynomial in lags
+#' Simulates/constructs VAR coefficient arrays for a multi-country, multi-regime setup
+#' where each country can have a specified number of stochastic trends, and an optional
+#' subset of those trends can be imposed as *common* across countries. The function
+#' returns the regime-specific domestic VAR parameters (`Bo`) along with the implied
+#' error-correction representations (`alpha`, `beta`) obtained via `b2_cib()`.
 #'
-#' @return A list contain VAR parameters B, alpha, and beta
+#' Internally, the function:
+#' - builds a “unit-root/trend” VAR block for the stochastic-trend subspace per country,
+#' - optionally replaces the first `Ncommtrend` trend block with a shared (common) trend
+#'   process across all countries, and
+#' - builds a stable VAR block for the remaining subspace using provided characteristic
+#'   roots (`r_npo`), then combines blocks into full (m x m) coefficient matrices.
+#'
+#' @param m Number of variables per country.
+#' @param p Lags (country- and regime-specific). Used as indexed in the function.
+#' @param T Number of observations.
+#' @param r Number of stochastic trends per country.
+#' @param Ncommtrend Number of common trends (optional). If missing, treated as `NA`.
+#' @param n Number of countries in the GVAR model.
+#' @param S Number of regimes.
+#' @param r_npo A matrix/array specifying the roots of the characteristic polynomial in lags.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item Bo: VAR coefficient array of dimension (m, m, Pmax, n, S)
+#'   \item alpha: list of regime-specific adjustment matrices per country
+#'   \item beta: list of regime-specific cointegration matrices per country
+#' }
+#'
+#' @examples
+#' # Minimal illustrative example (fabricated shapes; relies on var_data() and b2_cib())
+#' # This example shows how to call the function, assuming the helper functions exist.
+#' set.seed(1)
+#' m <- 4
+#' n <- 2
+#' S <- 2
+#' T <- 100
+#' r <- c(1, 1)
+#'
+#' # p indexed as p[i, 1:2, s] inside the function, so we create an array with that shape
+#' p <- array(2, dim = c(n, 2, S))
+#'
+#' # r_npo is indexed as r_npo[(r[i]+1):m, 1:p[i,1,s], i, s]
+#' # so we fabricate a compatible 4D object
+#' r_npo <- array(0.5, dim = c(m, max(p[,1,]), n, S))
+#'
+#' out <- varbs_commtrend(m = m, p = p, T = T, r = r, Ncommtrend = 1, n = n, S = S, r_npo = r_npo)
+#' str(out)
+#'
 #' @export
 #' @keywords internal
-#'
-#'
-varbs_commtrend = function(m,p,T,r, Ncommtrend,n,S,r_npo) {
+varbs_commtrend <- function(m, p, T, r, Ncommtrend, n, S, r_npo) {
   alpha   = list()
   beta    = list()
   VAR_Ione = list()
@@ -1084,26 +1465,53 @@ varbs_commtrend = function(m,p,T,r, Ncommtrend,n,S,r_npo) {
 
 
 
+#' Construct foreign-variable coefficient arrays (Ao) from domestic dynamics with common trends
 #'
-#' This function calculates Ao coefficients from Bo with common trends.
+#' Computes the regime- and country-specific foreign-variable coefficient arrays `Ao`
+#' for a GVAR-type country equation when domestic dynamics `Bo` are generated under
+#' (optional) common stochastic trends. Internally, `Bo` (and the implied error-correction
+#' components `alpha` and `beta`) are obtained from `varbs_commtrend()`. For each country
+#' and regime, a stable VAR block is generated via `var_data()` and then mapped into
+#' `Ao` in levels. If `DFYflag = 1`, the term `alpha %*% t(beta)` is added into the first
+#' lag to allow foreign variables to enter the cointegration space.
 #'
-#' @param m Number of variables
-#' @param p Lags
-#' @param T Number of observations
-#' @param r Number of stochastic trends
-#' @param Ncommtrend Number of the common trends
-#' @param n Number of countries
-#' @param S Number of regimes
-#' @param r_npo The matrix containing the roots of the characteristic polynomial
-#' @param DFYflag switching indicator whether the foreign variables enter the cointegration space
+#' @param m Number of variables.
+#' @param p Lags (country- and regime-specific). Used as indexed in the function.
+#' @param T Number of observations.
+#' @param r Number of stochastic trends per country.
+#' @param Ncommtrend Number of common trends.
+#' @param n Number of countries.
+#' @param S Number of regimes.
+#' @param r_npo The matrix/array containing the roots of the characteristic polynomial.
+#' @param DFYflag Switching indicator of whether foreign variables enter the cointegration space.
+#' Defaults to `0` when `NA`.
 #'
-#' @return Parameter matrix of the foreign variables in the country equation of the GVAR model
+#' @return An array `Ao` of dimension (m, m, Pmax, n, S) containing the parameter matrices
+#' of the foreign variables in each country equation of the GVAR model.
+#'
+#' @examples
+#' # Minimal illustrative example (fabricated shapes; relies on varbs_commtrend() and var_data())
+#' set.seed(1)
+#' m <- 4
+#' n <- 2
+#' S <- 2
+#' T <- 100
+#' r <- c(1, 1)
+#'
+#' # p indexed as p[i, 1:2, s] inside the function, so we create an array with that shape
+#' p <- array(3, dim = c(n, 2, S))
+#'
+#' # r_npo is passed through to varbs_commtrend()
+#' r_npo <- array(0.5, dim = c(m, max(p[,1,]), n, S))
+#'
+#' Ao <- bo2_ao(m = m, p = p, T = T, r = r, Ncommtrend = 1, n = n, S = S, r_npo = r_npo, DFYflag = 1)
+#' dim(Ao)
+#'
 #' @export
 #' @keywords internal
-#'
-bo2_ao <- function(m,p,T,r, Ncommtrend,n,S,r_npo,DFYflag=NA) {
+bo2_ao <- function(m, p, T, r, Ncommtrend, n, S, r_npo, DFYflag = NA) {
   if ( anyNA(DFYflag) ) DFYflag = 0
-  Boab  = varbs_commtrend(m,p,T,r,Ncommtrend,n,S,r_npo)
+  Boab  = varbs_commtrend(m, p, T, r, Ncommtrend, n, S, r_npo)
   Pmax = max(p[,1:2,])
   beta  = Boab[[3]]
   alpha = Boab[[2]]
@@ -1113,7 +1521,7 @@ bo2_ao <- function(m,p,T,r, Ncommtrend,n,S,r_npo,DFYflag=NA) {
     for (s in 1:S) {
       if (p[i,2,s] < 2) Ao = Ao
       if (p[i,2,s] >= 2) {
-        VARD = var_data(m, p=(p[i, 2,s]-1),T)
+        VARD = var_data(m, p=(p[i, 2,s]-1), T)
         BB = VARD$B
         Ao[,,1,i,s] = BB[,,1]+alpha[[i]][[s]]%*%t(beta[[i]][[s]])*DFYflag
         Ao[,,p[i,2,s],i,s] = -BB[,,p[i,2,s]-1]
@@ -1127,64 +1535,121 @@ bo2_ao <- function(m,p,T,r, Ncommtrend,n,S,r_npo,DFYflag=NA) {
 
 
 
+#' Apply a full-rank linear transformation to Bo and Ao in a multi-regime GVAR
 #'
-#' This function calculates a full rank linear transformation of initial Bo and Ao matrices with independent common trends and idiosyncratic trends.
+#' Applies a block-diagonal, full-rank linear transformation to the initial domestic
+#' (`Bo`) and foreign (`Ao`) coefficient arrays in a (multi-country) GVAR setting.
+#' The transformation is identical across countries (same m x m block repeated along
+#' the diagonal), and is applied for each lag and regime. For `Ao`, the transformation
+#' additionally accounts for the GVAR weighting structure via `kronecker(W, diag(m))`.
 #'
-#' @param Bo The initial Bo matrix
-#' @param Ao The initial Ao matrix
-#' @param W  A weighting matrix of the GVAR model
-#' @param S Number of regimes
+#' This is useful for reparameterising a system with independent common trends and
+#' idiosyncratic trends while preserving the model structure under an invertible
+#' change of basis.
 #'
-#' @return Transformed Bo and Ao matrices
+#' @param Bo The initial domestic coefficient array.
+#' @param Ao The initial foreign coefficient array.
+#' @param W A weighting matrix of the GVAR model (n x n).
+#' @param S Number of regimes.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item TBo: transformed domestic coefficient array (same shape as `Bo`)
+#'   \item TAo: transformed foreign coefficient array (same shape as `Ao`)
+#' }
+#'
+#' @examples
+#' # Minimal illustrative example (fabricated arrays)
+#' set.seed(1)
+#' n <- 2
+#' m <- 3
+#' L <- 2
+#' S <- 2
+#'
+#' Bo <- array(rnorm(m * m * L * n * S), dim = c(m, m, L, n, S))
+#' Ao <- array(rnorm(m * m * L * n * S), dim = c(m, m, L, n, S))
+#' W  <- matrix(c(0.7, 0.3,
+#'                0.4, 0.6), nrow = n, byrow = TRUE)
+#'
+#' out <- bo_ao2_t_bo_ao(Bo = Bo, Ao = Ao, W = W, S = S)
+#' str(out)
+#'
 #' @export
 #' @keywords internal
-#'
-bo_ao2_t_bo_ao = function(Bo,Ao,W,S) {
+bo_ao2_t_bo_ao <- function(Bo, Ao, W, S) {
   TBo = Bo*0
   TAo = Ao*0
   n = dim(W)[1]
   m = dim(Bo)[1]
   L = dim(Bo)[3]
-  BD = matrix(0,m*n,m*n)
-  B =  matrix(stats::rnorm(m*m),m,m)
+  BD = matrix(0, m*n, m*n)
+  B =  matrix(stats::rnorm(m*m), m, m)
   for (i in 1:n) {
-    BD[((i-1)*m+1):((i-1)*m+m),((i-1)*m+1):((i-1)*m+m)] = B
+    BD[((i-1)*m+1):((i-1)*m+m), ((i-1)*m+1):((i-1)*m+m)] = B
   }
   for (j in 1:L) {
     for ( s in 1: S ) {
 
-      BoDj =  matrix(0,m*n,m*n)
-      AoDj =  matrix(0,m*n,m*n)
+      BoDj =  matrix(0, m*n, m*n)
+      AoDj =  matrix(0, m*n, m*n)
 
       for (i in 1:n)  {
-        BoDj[((i-1)*m+1):((i-1)*m+m),((i-1)*m+1):((i-1)*m+m)]=Bo[,,j,i,s]
-        AoDj[((i-1)*m+1):((i-1)*m+m),((i-1)*m+1):((i-1)*m+m)]=Ao[,,j,i,s]
+        BoDj[((i-1)*m+1):((i-1)*m+m), ((i-1)*m+1):((i-1)*m+m)] = Bo[,,j,i,s]
+        AoDj[((i-1)*m+1):((i-1)*m+m), ((i-1)*m+1):((i-1)*m+m)] = Ao[,,j,i,s]
       }
       B_h = BD%*%BoDj%*%solve(BD)
-      A_h = BD%*%AoDj%*%kronecker(W,diag(m))%*%solve(BD)%*%solve(kronecker(W,diag(m)))
+      A_h = BD%*%AoDj%*%kronecker(W, diag(m))%*%solve(BD)%*%solve(kronecker(W, diag(m)))
       for (i in 1:n)  {
-        TBo[,,j,i,s] = B_h[((i-1)*m+1):((i-1)*m+m),((i-1)*m+1):((i-1)*m+m)]
-        TAo[,,j,i,s] = A_h[((i-1)*m+1):((i-1)*m+m),((i-1)*m+1):((i-1)*m+m)]
+        TBo[,,j,i,s] = B_h[((i-1)*m+1):((i-1)*m+m), ((i-1)*m+1):((i-1)*m+m)]
+        TAo[,,j,i,s] = A_h[((i-1)*m+1):((i-1)*m+m), ((i-1)*m+1):((i-1)*m+m)]
       }
     }
   }
-  return(list(TBo,TAo))
+  return(list(TBo, TAo))
 }
 
 
 
+#' Convert (multi-regime) VECM parameters to (multi-regime) cointegrated VAR parameters
 #'
-#' @param param The coefficient matrix of the estimated multi regime vector error correction model
-#' @param beta The estimated cointegration vectors
-#' @param p The lags of the MRCIVAR model
-#' @param s Types of MRCIVAR models
+#' Converts an estimated vector error correction model (VECM) parameter matrix into
+#' the corresponding cointegrated VAR parameter arrays in levels. The function supports
+#' both single-regime and multi-regime specifications, including CIVAR/CIGVAR and their
+#' multi-regime counterparts (MRCIVAR/MRCIGVAR), depending on the lag specification `p`
+#' and the regime indicator `s`.
 #'
-#' @return The parameter of the multi regime cointegrated VAR
+#' The output contains:
+#' - `B`: domestic VAR coefficient array (in levels),
+#' - `A`: foreign/conditioning VAR coefficient array (in levels) when applicable, and
+#' - `C`: deterministic-component parameters when present.
+#'
+#' @param param The coefficient matrix of the estimated multi-regime vector error correction model.
+#' @param beta The estimated cointegration vectors.
+#' @param p The lag specification. Its interpretation depends on the model class (single vs multi-regime).
+#' @param s Types/indicator of MRCIVAR models. If `NA`, a single-regime model is assumed.
+#'
+#' @return A list with components `B`, `A`, and `C` corresponding to the parameters of the
+#' (multi-regime) cointegrated VAR.
+#'
+#' @examples
+#' # Minimal illustrative example (fabricated shapes; relies on cib3_b() and cia2_a())
+#' set.seed(1)
+#' m <- 3
+#' p <- c(1, 2, 0, 2, 2)   # single-regime CIVAR example uses p[1], p[2], p[3]
+#'
+#' # param is used transposed as VECB; build as (k x m)
+#' k <- p[1] + (p[2] + p[3]) * m + 1
+#' param <- matrix(rnorm(k * m), nrow = k, ncol = m)
+#'
+#' # beta must conform for AB = VECB[, 1:p[1]] %*% t(beta)
+#' beta <- matrix(rnorm(m * p[1]), nrow = m, ncol = p[1])
+#'
+#' out <- vecm2_va_rm(param = param, beta = beta, p = p, s = NA)
+#' str(out)
+#'
 #' @export
 #' @keywords internal
-#'
-#'
-vecm2_va_rm = function (param, beta, p = c(1, 2, 2, 2, 2), s = NA)
+vecm2_va_rm <- function (param, beta, p = c(1, 2, 2, 2, 2), s = NA)
 {
     m = dim(param)[2]
     VECB = t(param)
@@ -1297,22 +1762,46 @@ vecm2_va_rm = function (param, beta, p = c(1, 2, 2, 2, 2), s = NA)
 
 
 
+#' Assemble regime-specific GVAR coefficient array given a state vector
 #'
-#' @param Bo Parmeter matrices of the domestic variables
-#' @param Ao Parameter matrices of the foreign variables
-#' @param W The weighting matrix of the GVAR model
-#' @param m Number of variables of a country
-#' @param n Number of countries in the GVAR model
-#' @param p Lag specifications
-#' @param state A vector specifying state of the GVAR parameters
+#' Selects, for each country, the regime-specific domestic (`Bo`) and foreign (`Ao`)
+#' coefficient matrices according to `state`, then assembles the corresponding stacked
+#' GVAR coefficient array using the weighting matrix `W`. This is a convenience wrapper
+#' around `bo_ao_w2_g()` for multi-regime GVAR parameters.
 #'
-#' @return The auto regression paramters of the GVAR model
+#' @param Bo Parameter arrays of the domestic variables (m x m x p x n x S).
+#' @param Ao Parameter arrays of the foreign variables (m x m x p x n x S).
+#' @param W The weighting matrix of the GVAR model (n x n).
+#' @param m Number of variables per country.
+#' @param n Number of countries in the GVAR model.
+#' @param p Lag order.
+#' @param state Integer vector of length `n`, where `state[i]` indicates the regime
+#' to use for country `i` (values in 1..S).
+#'
+#' @return An (mn, mn, p) array of autoregressive parameters for the regime-specific GVAR.
+#'
+#' @examples
+#' set.seed(1)
+#' n <- 3
+#' m <- 2
+#' p <- 2
+#' S <- 2
+#'
+#' Bo <- array(rnorm(m * m * p * n * S), dim = c(m, m, p, n, S))
+#' Ao <- array(rnorm(m * m * p * n * S), dim = c(m, m, p, n, S))
+#' W  <- matrix(1, n, n)
+#' diag(W) <- 0
+#' W <- W / rowSums(W)
+#'
+#' state <- c(1, 2, 1)  # choose regime per country
+#' Gs <- bo_ao_ws2_gs(Bo = Bo, Ao = Ao, W = W, m = m, n = n, p = p, state = state)
+#' dim(Gs)
+#'
 #' @export
 #' @keywords internal
-#'
-bo_ao_ws2_gs = function(Bo,Ao,W,m,n,p,state) {
-  Bo_s=Bo[,,,,1]*0;dim(Bo_s) = c(m,m,p,n)
-  Ao_s=Ao[,,,,1]*0;dim(Ao_s) = c(m,m,p,n)
+bo_ao_ws2_gs <- function(Bo, Ao, W, m, n, p, state) {
+  Bo_s = Bo[,,,,1]*0;dim(Bo_s) = c(m,m,p,n)
+  Ao_s = Ao[,,,,1]*0;dim(Ao_s) = c(m,m,p,n)
   for (i in 1:n ) {
     Bo_s[,,,i] = Bo[,,,i,state[i]]
     Ao_s[,,,i] = Ao[,,,i,state[i]]
@@ -1411,29 +1900,45 @@ u1=function(B,sigma,irf = c("gen", "chol", "chol1","gen1","genN1","comb", "comb1
 
 
 
+#' Split a single string into a character vector
+#'
+#' A small helper that wraps `base::strsplit()` but returns the first (and only)
+#' element directly, which is handy when `x` is a length-1 character vector.
 #'
 #' @param x A character vector with one element.
-#' @param split What to split on.
+#' @param split A character string (or regular expression) to split on.
 #'
-#' @return A character vector.
-#' @export
+#' @return A character vector of the split pieces.
 #'
 #' @examples
 #' x <- "alfa,bravo,charlie,delta"
 #' strsplit1(x, split = ",")
+#'
+#' @export
 strsplit1 <- function(x, split) {
   strsplit(x, split = split)[[1]]
 }
 
 
+#' Infer deterministic specification type from Co and exogenous regressors
 #'
-#' This function will output type according to specification of Co and EXOG and type.
-#' @param Co The coefficients of the deterministic components
-#' @param EXOG The exogenous variables
-#' @param type The type of the deterministic specification for comparison
+#' Infers the deterministic specification label (`type`) based on whether the
+#' deterministic coefficient matrix `Co` and/or the exogenous regressor matrix
+#' `EXOG` are provided, and on simple structural checks (for example, whether `Co`
+#' contains only zeros, or whether `Co` has one more column than `EXOG`).
 #'
-#' @return type
-#' @export
+#' The returned value is one of:
+#' - `"none"`  : no deterministic component (all elements of `Co` are zero, and no `EXOG`)
+#' - `"const"` : constant-only deterministic component
+#' - `"exog0"` : exogenous regressors present and the first column of `Co` is all zeros
+#' - `"exog1"` : exogenous regressors present and the first column of `Co` is not all zeros
+#' - `" Co column<> EXOG column "` : shape mismatch between `Co` and `EXOG`
+#'
+#' @param Co The coefficients of the deterministic components (or `NA`).
+#' @param EXOG The exogenous variables (or `NA`).
+#' @param type The type of the deterministic specification for comparison (or `NA`).
+#'
+#' @return A character string giving the inferred deterministic specification type.
 #'
 #' @examples
 #' infer_deterministic_type(Co=matrix(c(0,0,1,1),2,2),EXOG= c(1:10),type="exog0")
@@ -1443,6 +1948,8 @@ strsplit1 <- function(x, split) {
 #' infer_deterministic_type(Co=c(0,0),EXOG= NA,type=NA)
 #' var_data(n=2,p=2,T=100,Co=matrix(c(2,2,1,1),2,2),type="exog0",X=c(1:100))
 #' var_data(n=2,p=2,T=100,Co=matrix(c(1,1,1,1),2,2),type="exog1",X=c(1:100))
+#'
+#' @export
 infer_deterministic_type <- function (Co, EXOG, type)
 {
   if (anyNA(Co) & anyNA(EXOG) & anyNA(type))
@@ -1469,18 +1976,25 @@ infer_deterministic_type <- function (Co, EXOG, type)
 
 
 
+#' Convert characteristic roots to AR coefficients
 #'
-#' Given the roots of a characteristic polynom in lags, output the coefficients of the corresponding AR process.
-#' @param p The lag length
-#' @param r_p A p-vector of roots outside the unit circle
+#' Given the roots of a characteristic polynomial in lags (all outside the unit circle),
+#' this function computes the coefficients of the corresponding autoregressive (AR)
+#' process of order `p`. If `r_p` is not provided, random roots outside the unit circle
+#' are generated.
 #'
-#' @return A vector of AR coefficients
-#' @export
+#' @param p The lag length (AR order).
+#' @param r_p A length-`p` vector of characteristic roots outside the unit circle.
+#'
+#' @return A numeric vector of length `p` containing the AR coefficients. Returns a
+#' character message if any root lies within the unit circle.
 #'
 #' @examples
+#' roots_to_coef(3, c(1.1, 1.2, 1.3))
+#'
+#' @export
 #' @keywords internal
-#' roots_to_coef(3,c(1.1,1.2,1.3))
-roots_to_coef = function(p,r_p) {
+roots_to_coef <- function(p, r_p) {
    if (missing(r_p)) r_p <- 0.5/(stats::runif(p)-0.5)  #random number outside unit circle
    if (min(abs(r_p)) < 1) {
    	return("r_p is within the unit circle")
@@ -1510,15 +2024,28 @@ roots_to_coef = function(p,r_p) {
 
 
 
+#' Generate iid multivariate normal time series with a given covariance
 #'
-#' This function will generate iid multivariate normal random time series.
+#' Simulates an iid multivariate normal series of length `T` with zero mean and
+#' covariance matrix `sigma`. The output is a `T x n` matrix, where `n` is the
+#' dimension of `sigma`.
 #'
-#' @param T Length of the generated time series
-#' @param sigma An (n x n) covariance matrix of the normal series
-#' @return T x n matrix of iid normal time series
+#' @param T Length of the generated time series.
+#' @param sigma An (n x n) covariance matrix of the normal series.
+#'
+#' @return A `T x n` matrix of iid normal time series.
+#'
+#' @examples
+#' set.seed(1)
+#' sigma <- matrix(c(1, 0.3,
+#'                   0.3, 2), nrow = 2, byrow = TRUE)
+#' x <- rnorm_sigma(T = 100, sigma = sigma)
+#' dim(x)
+#' cov(x)
+#'
 #' @export
 #' @keywords internal
-rnorm_sigma = function(T,sigma) {
+rnorm_sigma <- function(T, sigma) {
     # generate random numbers from iid multivariate normal distribution with covariance matrix Sigma
     n = dim(sigma)[1]
     U = stats::rnorm(T*n)
@@ -1529,19 +2056,41 @@ rnorm_sigma = function(T,sigma) {
 
 
 
+#' Generate iid conditional multivariate normal time series
 #'
-#' This function generates random numbers from iid multivariate conditional normal distribution with covariance matrix Sigma, given i-th component has the value of v, this will be an (n-1) dimensional random number
+#' Simulates an iid conditional multivariate normal series given that the `I`-th
+#' component is fixed at value `v`. The function returns an (n-1)-dimensional series
+#' with conditional covariance and conditional mean implied by `sigma`.
 #'
-#' @param T Length of generated time series
-#' @param sigma The (n x n) covariance matrix of the normal series
-#' @param I Index of conditioning component
-#' @param v The value of the conditioning component
-#' @param switch A switch variable: switch = 1 gives the conditional random series and switch = 0 gives the expected values.
+#' If `switch = 1`, the output is a random series drawn from the conditional normal.
+#' If `switch = 0`, the output is the conditional expected value repeated over time.
 #'
-#' @return A (T x (n-1)) matrix of iid conditional normal time series or the conditional expected values
+#' @param T Length of generated time series.
+#' @param sigma The (n x n) covariance matrix of the normal series.
+#' @param I Index of conditioning component (integer in 1..n).
+#' @param v The value of the conditioning component.
+#' @param switch A switch variable: `switch = 1` gives the conditional random series and
+#' `switch = 0` gives the expected values.
+#'
+#' @return A (T x (n-1)) matrix of iid conditional normal time series (or conditional expected values).
+#'
+#' @examples
+#' set.seed(1)
+#' sigma <- matrix(c(1, 0.4, 0.2,
+#'                   0.4, 2, 0.5,
+#'                   0.2, 0.5, 1.5), nrow = 3, byrow = TRUE)
+#'
+#' # Condition on component I = 2 being v = 1
+#' x_rand <- rnorm_sigma_cond(T = 100, sigma = sigma, I = 2, v = 1, switch = 1)
+#' dim(x_rand)  # 100 x (3-1)
+#'
+#' # Conditional mean only (repeated over time)
+#' x_mean <- rnorm_sigma_cond(T = 5, sigma = sigma, I = 2, v = 1, switch = 0)
+#' x_mean
+#'
 #' @export
 #' @keywords internal
-rnorm_sigma_cond = function(T,sigma,I,v,switch) {
+rnorm_sigma_cond <- function(T, sigma, I, v, switch) {
     # generate random numbers from iid multivariate conditional normal distribution with covariance matrix Sigma, given
     # i-th component has the value of v, this will be an (n-1) dimensional random number
       sigma_cond = as.matrix(sigma[-I,-I])-sigma[-I,I]%*%solve(sigma[I,I])%*%sigma[I,-I]
@@ -1552,28 +2101,56 @@ rnorm_sigma_cond = function(T,sigma,I,v,switch) {
 
 
 
+#' Sample N unique indices from 1..T
 #'
-#' @param N The number of elements to be selected
-#' @param T The total number of elements
+#' Draws `N` (approximately) uniformly distributed integer indices from `1` to `T`
+#' using random uniforms, rounding, and de-duplication. The function returns the
+#' first `N` unique values after shifting into the `1..T` range.
+#'
+#' @param N The number of elements to be selected.
+#' @param T The total number of elements.
+#'
+#' @return An integer vector of length `N` with values in `1..T`.
+#'
+#' @examples
+#' set.seed(1)
+#' sample_n_out_of_t(N = 5, T = 100)
+#'
 #' @export
 #' @keywords internal
-sample_n_out_of_t = function(N,T) {
-  unique(round(stats::runif(3*N)*(T-1)))[1:N]+1
+sample_n_out_of_t <- function(N, T) {
+  unique(round(stats::runif(3*N)*(T-1)))[1:N] + 1
 }
 
 
 
+#' Embed a time series with lagged columns and informative names
 #'
-#' Embeds the time series y into a low-dimensional Euclidean space with column names.
+#' Wraps `stats::embed()` to create a lag-embedded matrix from a univariate or
+#' multivariate time series `y`. If `y` has column names, the embedded matrix
+#' columns are named using those series names plus lag suffixes (".1", ".2", ...),
+#' optionally preceded by `prefix`.
 #'
-#' @param y The time series to be embedded
-#' @param p Number of lags for embedding
-#' @param prefix Prefix of the column names
+#' @param y The time series (vector, matrix, or `ts`) to be embedded.
+#' @param p Number of lags for embedding.
+#' @param prefix Prefix to prepend to the original column names (default `""`).
 #'
-#' @return A matrix containing the embedded time series y.
+#' @return A matrix containing the lag-embedded time series.
+#'
+#' @examples
+#' # Univariate example
+#' y <- tseries::ts(1:20)
+#' YY <- embed_ts(y, p = 3)
+#' dim(YY)
+#'
+#' # Multivariate example with column names
+#' y2 <- cbind(a = 1:20, b = 21:40)
+#' YY2 <- embed_ts(y2, p = 2, prefix = "X_")
+#' colnames(YY2)
+#'
 #' @export
 #' @keywords internal
-embed_ts <- function(y=tseries::ts(c(1:20)),p=3,prefix="") {
+embed_ts <- function(y=tseries::ts(c(1:20)), p=3, prefix="") {
   YY = stats::embed(y,p)
   if (!is.null(colnames(y))) {
     strc = colnames(y)
@@ -1593,15 +2170,34 @@ embed_ts <- function(y=tseries::ts(c(1:20)),p=3,prefix="") {
 
 
 
+#' Compute a masked inverse covariance matrix for selected variables
 #'
-#' @param sigma The input covariance matrix
-#' @param c The weighting vector of a concerted policy action
-#' @param i The index of responding variables
+#' Forms an inverse covariance matrix for a selected subset of variables defined by
+#' the weighting vector `c`, while zeroing out the covariance contributions of a
+#' designated responding variable index `i` (except for its own variance term).
+#' The inverse is computed only on the selected submatrix and then placed back into
+#' a zero-filled (n x n) matrix.
 #'
-#' @return A response matrix
+#' @param sigma The input covariance matrix (n x n).
+#' @param c The weighting vector of a concerted policy action. Positive entries indicate
+#' selected variables.
+#' @param i The index of responding variables (integer in 1..n).
+#'
+#' @return An (n x n) matrix containing the inverse of the selected, masked covariance
+#' submatrix in the corresponding positions, and zeros elsewhere.
+#'
+#' @examples
+#' set.seed(1)
+#' n <- 4
+#' sigma <- crossprod(matrix(rnorm(80), nrow = 20)) / 20
+#' c <- c(1, 0, 1, 1)   # select variables 1, 3, 4
+#' i <- 2               # responding variable
+#' out <- invi(sigma = sigma, c = c, i = i)
+#' out
+#'
 #' @export
 #' @keywords internal
-invi = function(sigma,c,i) {
+invi <- function(sigma, c, i) {
   n = dim(sigma)[1]
   sigmaout = matrix(0,n,n)
   cc = as.numeric(c>0)*(1:n)
@@ -1619,18 +2215,47 @@ invi = function(sigma,c,i) {
 
 
 
+#' Sum of squared residuals for regime-specific cointegration vectors
 #'
-#' @param x A vector containing the parameters in the cointegration vectors.
-#' @param beta The initial value of the cointegration vectors
-#' @param Z1 The lagged I(1) series of the model
-#' @param St The indicator series of regime 1
-#' @param NSt The indicator series of regime 2
-#' @param Y0 The first difference series
-#' @param Z2 The lagged difference series
+#' Computes the sum of squared residuals (SSR) from a VECM-style regression where the
+#' cointegration term is allowed to differ across two regimes. The parameter vector
+#' `x` is reshaped to match `beta`, used to construct the cointegration index
+#' `CI = Z1 %*% x`, and then split into regime-specific components via the indicator
+#' series `St` and `NSt`. The SSR is computed from the regression
+#' `Y0 ~ 0 + CI1 + CI2 + Z2`.
+#'
+#' @param x A vector containing the parameters in the cointegration vectors (will be
+#' reshaped to `dim(beta)`).
+#' @param beta The initial value (shape template) of the cointegration vectors.
+#' @param Z1 The lagged I(1) series of the model.
+#' @param St The indicator series of regime 1.
+#' @param NSt The indicator series of regime 2.
+#' @param Y0 The first difference series.
+#' @param Z2 The lagged difference series.
+#'
+#' @return A numeric scalar: the sum of squared residuals.
+#'
+#' @examples
+#' set.seed(1)
+#' T <- 50
+#' k <- 3
+#' r <- 1
+#'
+#' Z1 <- matrix(rnorm(T * k), nrow = T, ncol = k)
+#' beta <- matrix(rnorm(k * r), nrow = k, ncol = r)
+#' x <- as.vector(beta)
+#'
+#' St <- matrix(rbinom(T, 1, 0.5), nrow = T, ncol = 1)
+#' NSt <- 1 - St
+#'
+#' Y0 <- matrix(rnorm(T * r), nrow = T, ncol = r)
+#' Z2 <- matrix(rnorm(T * 2), nrow = T, ncol = 2)
+#'
+#' f(x = x, beta = beta, Z1 = Z1, St = St, NSt = NSt, Y0 = Y0, Z2 = Z2)
 #'
 #' @export
 #' @keywords internal
-f <- function(x,beta,Z1,St,NSt,Y0,Z2) {
+f <- function(x, beta, Z1, St, NSt, Y0, Z2) {
   dim(x) = dim(beta)
   CI = Z1%*%x
   CI1 = CI*St
@@ -1642,19 +2267,38 @@ f <- function(x,beta,Z1,St,NSt,Y0,Z2) {
 
 
 
+#' Shift common-factor regressors to the end of Z2
 #'
-#' This function generates impulse response functions of an estimated CIGVAR(m,n,p) with confidence bands.
+#' Reorders the auxiliary-regression regressor matrix `Z2` by moving the lagged
+#' exogenous common-factor blocks (if present) to the end of the matrix. If there are
+#' no common factors (`kz = 0`) or no lags (`p = 0`), `Z2` is returned unchanged.
 #'
-#' @param  Z2 : Regressor's matrix to be shifted
-#' @param  kz : number of common exogenous factors
-#' @param  n1 : number of domestic variables
-#' @param  p  : the lag length of domestic variables in Z2 which is also the lag length of exogenous common factors
-#' @return a shifted Z2 if there are exogenous common factors. It returns Z2 without shift if there are no common factors.
+#' This is used when the regressor matrix is stacked by lag as
+#' (domestic variables, common factors) for each lag, and a downstream routine expects
+#' domestic regressors first, followed by all common-factor regressors.
+#'
+#' @param Z2 Regressor matrix to be shifted.
+#' @param kz Number of common exogenous factors.
+#' @param n1 Number of domestic variables.
+#' @param p Lag length of domestic regressors in `Z2` (also the lag length of common factors).
+#'
+#' @return A regressor matrix with common-factor columns shifted to the end (when applicable).
+#'
+#' @examples
+#' set.seed(1)
+#' T <- 10
+#' n1 <- 2
+#' kz <- 1
+#' p <- 3
+#'
+#' # Z2 columns are arranged by lag blocks: (n1 domestic + kz factors) per lag
+#' Z2 <- matrix(rnorm(T * (n1 + kz) * p), nrow = T)
+#' Z2s <- shift_z2(Z2 = Z2, kz = kz, n1 = n1, p = p)
+#' dim(Z2s)
 #'
 #' @export
-#'
 #' @keywords internal
-shift_z2 <- function(Z2,kz,n1,p) {
+shift_z2 <- function(Z2, kz, n1, p) {
   # kz : number of Commfakts
   # Z2 : Regressiors on the auxiliery regression
   # n1 : number of domestic variables in a country
@@ -1673,20 +2317,44 @@ shift_z2 <- function(Z2,kz,n1,p) {
 
 
 
+#' Shift common-factor regressors to the end of Z2 (domestic + foreign lag structure)
 #'
-#' This function generates impulse response functions of an estimated CIGVAR(m,n,p) with confidence bands.
+#' Reorders the regressor matrix `Z2` by moving the lagged exogenous common-factor
+#' columns (if present) to the end, when `Z2` contains both domestic and foreign lag
+#' blocks. If there are no common factors (`kz = 0`) or no domestic lags (`p = 0`),
+#' `Z2` is returned unchanged.
 #'
-#' @param  Z2 : Regressor's matrix to be shifted
-#' @param  kz : number of common exogenous factors
-#' @param  n1 : number of domestic variables
-#' @param  p  : the lag length of domestic variables in Z2 which is also the lag length of exogenous common factors
-#' @param  p2 : the lag length of foreign  variables in Z2
-#' @return a shifted Z2 if there are exogenous common factors. It returns Z2 without shift if there are no common factors.
+#' Compared with `shift_z2()`, this variant also accounts for an additional block
+#' structure that includes foreign-variable lags (`p2`) and shifts the corresponding
+#' common-factor positions in both relevant parts of the regressor layout.
+#'
+#' @param Z2 Regressor matrix to be shifted.
+#' @param kz Number of common exogenous factors.
+#' @param n1 Number of domestic variables.
+#' @param p Lag length of domestic variables in `Z2` (also the lag length of common factors).
+#' @param p2 Lag length of foreign variables in `Z2`.
+#'
+#' @return A regressor matrix with common-factor columns shifted to the end (when applicable).
+#'
+#' @examples
+#' set.seed(1)
+#' T <- 10
+#' n1 <- 2
+#' kz <- 1
+#' p <- 2
+#' p2 <- 2
+#'
+#' # Fabricate a Z2 with enough columns for the intended indexing pattern
+#' # (Exact layout depends on how Z2 is constructed upstream.)
+#' ncol_Z2 <- 2 * (p * (n1 + kz) + p2 * n1)
+#' Z2 <- matrix(rnorm(T * ncol_Z2), nrow = T, ncol = ncol_Z2)
+#'
+#' Z2s <- shift_z2m(Z2 = Z2, kz = kz, n1 = n1, p = p, p2 = p2)
+#' dim(Z2s)
 #'
 #' @export
-#'
 #' @keywords internal
-shift_z2m <- function(Z2,kz,n1,p,p2) {
+shift_z2m <- function(Z2, kz, n1, p, p2) {
   if ((kz>0)&(p>0)) {
     cc = (1:(kz*p))*0
     for (j in 1:p) {

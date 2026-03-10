@@ -2,8 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrgvar}
 \alias{irf_mrgvar}
-\title{This function calculates the regime specific impulse response functions of an estimated MRGVAR(n,p,S).
-Using the estimated G[,,,s] and Sigma[,,s] matrices of the MRGVAR, this function calculated the regime specific impulse response functions.}
+\title{Generate Impulse Response Functions for MRGVAR Models}
 \usage{
 irf_mrgvar(
   res = res,
@@ -19,14 +18,13 @@ irf_mrgvar(
 \arguments{
 \item{res}{a list of estimated MRGVAR as output of mrgvar_estimate}
 
-\item{state}{an n vector specifying the specific state for each country.}
+\item{state}{an n vector specifying the specific state for each country}
 
 \item{nstep}{the length of impulse response function}
 
 \item{comb}{a vector specify the concerted action in policy-simulation impulse response function}
 
-\item{irf}{: types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
-"gen" for generalized impulse response with one standard deviation impulses, "gen1" for GIRF with one unit impulses, "chol" Cholezky decomposition, "chol1" Cholezky decomposition with unit impulses, "comb1" concerted action with unit impulse.}
+\item{irf}{types of the impulse response irf=c("gen","chol","chol1","gen1","genN1","comb1","smat")}
 
 \item{G}{For permanent and transitory decomposition}
 
@@ -35,14 +33,14 @@ irf_mrgvar(
 \item{sigmaNPDS}{the state-dependent covariance matrix}
 }
 \value{
-a list containing the impulse response functions and the accumulated impulse response function, and the boostrap parameters as well.
+an (mn,mn,nstep) array containing the IRF with columns representing the impulses and rows the responses
 }
 \description{
-This function calculates the regime specific impulse response functions of an estimated MRGVAR(n,p,S).
-Using the estimated G[,,,s] and Sigma[,,s] matrices of the MRGVAR, this function calculated the regime specific impulse response functions.
+This function computes the impulse response functions (IRFs) of an estimated MRGVAR model,
+allowing for various types of IRFs and handling different configurations of shocks and responses
+across multiple regimes and countries.
 }
 \examples{
-
 ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
 p = rep(1,12); dim(p) = c(2,3,2)
 p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0

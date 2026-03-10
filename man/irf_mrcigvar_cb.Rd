@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrcigvar_cb}
 \alias{irf_mrcigvar_cb}
-\title{This function calculates the regime specific impulse response functions of an estimated MRCIGVAR(n,p,S,r). Using G[,,,s] and Sigma[,,s] matrices of the estimated MRCIGVAR, this function can produce impulse response functions for any possible combinations of states.}
+\title{Generate Impulse Response Functions with Confidence Bands for MRCIGVAR Models}
 \usage{
 irf_mrcigvar_cb(
   res,
@@ -33,10 +33,12 @@ irf_mrcigvar_cb(
 \item{NT}{The number of impulse response scenarios}
 }
 \value{
-an list of an (mn,mn,nstep,3,S) array of the impulse response functions and test statistics. In the impulse response array, columns representing the impulse and rows the responses.
+a list of an (mn,mn,nstep,3,S) array of the impulse response functions and test statistics. In the impulse response array, columns representing the impulse and rows the responses.
 }
 \description{
-This function calculates the regime specific impulse response functions of an estimated MRCIGVAR(n,p,S,r). Using G[,,,s] and Sigma[,,s] matrices of the estimated MRCIGVAR, this function can produce impulse response functions for any possible combinations of states.
+This function computes the impulse response functions (IRFs) of an estimated MRCIGVAR model,
+providing confidence bands through bootstrap methods. It allows for various types of IRFs
+and can handle different configurations of shocks and responses across multiple regimes.
 }
 \examples{
 m = 2

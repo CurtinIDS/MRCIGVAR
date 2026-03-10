@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_var_cb}
 \alias{irf_var_cb}
-\title{This function generates impulse response functions of an estimated VAR(p)}
+\title{Calculate Bootstrapped Confidence Intervals for Impulse Response Functions of VAR Models}
 \usage{
 irf_var_cb(
   res,
@@ -28,7 +28,7 @@ irf_var_cb(
 
 \item{conf}{confidence levels}
 
-\item{smat}{chock to response transformation matrix for the option irf="smat"}
+\item{smat}{shock to response transformation matrix for the option irf="smat"}
 
 \item{Xshks}{the number of exogenous variables}
 }
@@ -36,13 +36,14 @@ irf_var_cb(
 an (n, n, nstep, 3) array containing the impulse response functions
 }
 \description{
-This function generates impulse response functions of an estimated VAR(p)
+This function generates impulse response functions of an estimated VAR(p) model,
+providing bootstrapped confidence intervals for the impulse response functions.
 }
 \examples{
 res_d = var_data(n=2,p=2,T=100,type="const")
-res_e = var_estimate(res=res_d);
+res_e = var_estimate(res=res_d)
 IRF_CB = irf_var_cb(res=res_e,nstep=20, comb=NA, irf = "gen1", runs = 100, conf = c(0.05, 0.95))
-IRF_list <-plot_irf(IRF_CB)
+IRF_list <- plot_irf(IRF_CB)
 res_e$Summary
 
 }

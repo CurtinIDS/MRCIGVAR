@@ -2,9 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_from_params}
 \alias{irf_from_params}
-\title{This function generates impulse response functions for VAR,CIVAR,MRVAR MRCIVAR, also for GVAR, CIGVAR, MRGVAR and MRCIGVAR.
-For the later four classes of models it also provides the functionalities to calculate the global, regional and country-specific shocks.
-It also calculates global and regional responses and coordinated policy actions.}
+\title{Generate Impulse Response Functions from Model Parameters}
 \usage{
 irf_from_params(
   B,
@@ -29,7 +27,7 @@ irf_from_params(
 
 \item{comb}{An n-vector of weights of the coordinated policy actions}
 
-\item{irf}{infer_deterministic_type of impulse response function}
+\item{irf}{Type of impulse response function}
 
 \item{G}{The matrix used in the permanent and transitory decomposition}
 
@@ -42,7 +40,6 @@ irf_from_params(
 \item{Xshk}{The shock matrix of a one unit exogenous shock}
 }
 \description{
-This function generates impulse response functions for VAR,CIVAR,MRVAR MRCIVAR, also for GVAR, CIGVAR, MRGVAR and MRCIGVAR.
-For the later four classes of models it also provides the functionalities to calculate the global, regional and country-specific shocks.
-It also calculates global and regional responses and coordinated policy actions.
+This function generates impulse response functions for various types of models including VAR, CIVAR, MRVAR, MRCIVAR, GVAR, CIGVAR, MRGVAR, and MRCIGVAR.
+It also provides functionalities to calculate global, regional, and country-specific shocks, as well as global and regional responses and coordinated policy actions.
 }

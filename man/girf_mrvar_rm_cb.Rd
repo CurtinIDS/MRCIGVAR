@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{girf_mrvar_rm_cb}
 \alias{girf_mrvar_rm_cb}
-\title{This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S) for given a shock vector. It provides also a bootstrapped confidence interval.}
+\title{Calculate Generalized Impulse Response Functions with Bootstrapped Confidence Intervals for MRVAR Models}
 \usage{
 girf_mrvar_rm_cb(
   RES,
@@ -22,27 +22,32 @@ girf_mrvar_rm_cb(
 
 \item{R}{: number of runs to integrate out the random effects in order to obtain the means (see equation above).}
 
-\item{nstep}{: length of the impuse response function}
+\item{nstep}{: length of the impulse response function.}
 
-\item{Omega_hist}{: a (P x n) matrix of initial values, from which the impulse response functions start. Omega_hist determines from which regime the impulse response functions start.}
+\item{Omega_hist}{: a (P x n) matrix of initial values, from which the impulse response functions start.
+Omega_hist determines from which regime the impulse response functions start.}
 
-\item{resid_method}{: resid_method = c("resid", "parametric"), It generate the random residuals from residuals bootstrap or parametric bootstrap.}
+\item{resid_method}{: resid_method = c("resid", "parametric"), it generates the random residuals from
+residuals bootstrap or parametric bootstrap.}
 
-\item{conf_level}{: a vector contain the level of confidences}
+\item{conf_level}{: a vector containing the levels of confidence.}
 
 \item{N}{: the number of bootstrap runs in containing the bootstrapped confidence intervals.}
 }
 \value{
-an (n, n, nstep+1,3) array containing the impulse response functions with lower and upper confidence bonds. The rows represent response, and the columns represent impulses.
+an (n, n, nstep+1, 3) array containing the impulse response functions with lower and upper confidence bands.
+The rows represent responses, and the columns represent impulses.
 }
 \description{
-This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S) for given a shock vector. It provides also a bootstrapped confidence interval.
+This function calculates the generalized impulse response functions (GIRF) of an estimated MRVAR(n,p,S)
+for a given shock vector. It also provides bootstrapped confidence intervals for the impulse response functions.
 }
 \details{
 \subsection{GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))}{
 
-See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate models, Economics Letters, 58(1) p. 17-29.
-and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
+See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate models,
+Economics Letters, 58(1) p. 17-29, and G. Koop, M. H. Pesaran, and S. M. Potter (1996),
+Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
 }
 }
 \examples{
@@ -53,6 +58,6 @@ colnames(res_d$Y) = c("R","P")
 res_e = mrvar_estimate(res=res_d)
 RF3 = girf_mrvar_rm(RES=res_e,shock=c(1,1),R = 200,nstep=20,Omega_hist=NA,resid_method="parametric")
 RF4 = girf_mrvar_rm_cb(RES=res_e, shock=c(1,1), R=200, nstep=20, Omega_hist=NA,
-resid_method = "parametric", conf_level=c(0.05,0.95), N=100)
-IRF_list <-plot_irf(RF4)
+                        resid_method="parametric", conf_level=c(0.05,0.95), N=100)
+IRF_list <- plot_irf(RF4)
 }

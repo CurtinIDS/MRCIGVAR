@@ -582,8 +582,8 @@ civar_data <- function (n, p, T, r_np, A, B, Co, C1,U, Sigma, type, X, mu, Yo, c
 #' res_e <- cciva_rest(res=res_d)
 #' res_e$Summary
 #'
-#'
-ccivar_data<- function(n1,n2,crk,p,T,type,Bc=NA) {
+#' @export
+ccivar_data <- function(n1,n2,crk,p,T,type,Bc=NA) {
   n = n1+n2
   if (anyNA(Bc)) {
     res_d = civar_data(n=n,p=p,T=T,type=type,crk=crk)
@@ -877,8 +877,11 @@ m_ix_civar_data = function(n,p,T,r,k,type,Bo=NA,Y=NA,X=NA,D=NA,Go=NA,B=NA,Sigma 
   return(RR)
 }
 
-
-
+#' Generate GVAR synthetic data
+#'
+#' Creates a GVAR dataset under the package’s model specification.
+#'
+#' @examples
 #' p = (1:12)*0; dim(p) = c(4,3);p[,1] = 2; p[,2]=1;   p[,3]=1; p[2,2]=2;
 #' p    ## country-wise lag specification
 #'

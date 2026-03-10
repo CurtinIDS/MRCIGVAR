@@ -2,8 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrcigvar}
 \alias{irf_mrcigvar}
-\title{This function calculates the regime specific impulse response functions of an estimated MRCIGVAR(n,p,S).
-Using the estimated G[,,,s] and Sigma[,,s] matrices of the MRGVAR, this function calculated the regime speicfic impulse response functions.}
+\title{Generate Impulse Response Functions for MRCIGVAR Models}
 \usage{
 irf_mrcigvar(
   res,
@@ -15,24 +14,25 @@ irf_mrcigvar(
 )
 }
 \arguments{
-\item{res}{a list of estimated MRCIGVAR as output of mrcigvar_estimate or mrcigvar_estimate}
+\item{res}{a list of estimated MRCIGVAR as output of mrcigvar_estimate}
 
 \item{nstep}{the length of impulse response function}
 
 \item{comb}{a vector specify the concerted action in policy-simulation impulse response function}
 
-\item{state}{an n vector specifying the speciic state for each country.}
+\item{state}{an n vector specifying the specific state for each country}
 
-\item{irf}{: types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")}
+\item{irf}{types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")}
 
 \item{sigmaNPDS}{the state-dependent covariance matrix}
 }
 \value{
-a list containing the impulse response functions and the accumulated impulse response function, and the boostrap parameters as well.
+an (mn,mn,nstep) array containing the IRF with columns representing the impulses and rows the responses
 }
 \description{
-This function calculates the regime specific impulse response functions of an estimated MRCIGVAR(n,p,S).
-Using the estimated G[,,,s] and Sigma[,,s] matrices of the MRGVAR, this function calculated the regime speicfic impulse response functions.
+This function computes the impulse response functions (IRFs) of an estimated MRCIGVAR model,
+allowing for various types of IRFs and handling different configurations of shocks and responses
+across multiple regimes and countries.
 }
 \examples{
 m = 2
@@ -46,7 +46,6 @@ r  = rep(1,n)
 
 ## case of n = 3, m = 2, S = 2    m: number of variables, n: number of countries
 
-
 res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=300,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
 max(abs(res_d$Y))
 spectral_radius(res_d$Go[,,,2])
@@ -55,15 +54,8 @@ res_e  = mrcigvar_estimate(res=res_d)
 
 res_e$Summary
 
-IRF_CB = irf_mrcigvar_cb(res=res_e, nstep=10, comb=NA, state = c(2,1,1), irf = "gen1",
-runs = 20, conf = c(0.05, 0.95), NT = 1)
-
-str(IRF_CB)
-
-IRF_g = plot_irf(IRF_CB[[1]])
 IRFF2 = irf_mrcigvar(res=res_e,nstep=10,comb=NA,state=c(2,2,2),irf='gen')
 plot(IRFF2[1,1,],type="l")
-
 
 }
 \keyword{internal}

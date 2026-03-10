@@ -34,5 +34,4 @@ res_d <- ccivar_data(n1=4,n2=3,crk=3,p=3,T=T,type="const")
 res_e <- cciva_rest(res=res_d)
 res_e$Summary
 
-
 }

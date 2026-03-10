@@ -699,6 +699,11 @@ ab_l_rtest2 =function (y,x,model = c("I","II","III","IV","V"), bnorm = c("1","2"
 
 
 
+#' Estimate Separate Regime-Specific VECM Models
+#'
+#' This function estimates separate Vector Error Correction Models (VECM) for two regimes
+#' based on a regime indicator series. It performs eigenvalue decomposition and extracts
+#' cointegration vectors and adjustment coefficients for each regime separately.
 #'
 #' @param R0 I(0) residuals of the auxiliary regression
 #' @param R1 I(0) residuals of the auxiliary regression
@@ -709,141 +714,209 @@ ab_l_rtest2 =function (y,x,model = c("I","II","III","IV","V"), bnorm = c("1","2"
 #' @param crk The cointegration rank
 #'
 #' @return A list containing estimated constrained parameters as initial values for further iterations
+#'
+#' @examples
+#' # Example usage with simulated data
+#' set.seed(123)
+#' T <- 200
+#' n <- 3
+#' crk <- 1
+#' 
+#' # Generate regime indicator
+#' St <- c(rep(1, T/2), rep(0, T/2))
+#' 
+#' # Generate sample data
+#' Z1 <- matrix(rnorm(T * n), T, n)
+#' Y0 <- matrix(rnorm(T * n), T, n)
+#' Z2 <- matrix(rnorm(T * n), T, n)
+#' R0 <- matrix(rnorm(T * n), T, n)
+#' R1 <- matrix(rnorm(T * n), T, n)
+#' 
+#' # Estimate separate regime-specific VECM
+#' result <- rz_st2_vecm(R0, R1, Y0, Z2, Z1, St, crk)
+#' 
 #' @export
 #' @keywords internal
 #'
 rz_st2_vecm <- function(R0,R1,Y0,Z2,Z1,St,crk) {
-    #This function estimate separate MRCIVAR
-    NSt  <- 1-St
-    R0_1 <- R0*St
-    R1_1 <- R1*St
-    Z2_1 <- (Z2*St)[,which(colSums(Z2*St)!=0)]
-    Z1_1 <- Z1*St
-    Y0_1 <- Y0*St
-    M1 <- ncol(as.matrix(Y0))
+   #This function estimate separate MRCIVAR
+   NSt  <- 1-St
+   R0_1 <- R0*St
+   R1_1 <- R1*St
+   Z2_1 <- (Z2*St)[,which(colSums(Z2*St)!=0)]
+   Z1_1 <- Z1*St
+   Y0_1 <- Y0*St
+   M1 <- ncol(as.matrix(Y0))
 
 
-	 R0_2 <- R0*NSt
-	 R1_2 <- R1*NSt
-	 Z2_2 <- (Z2*NSt)[,which(colSums(Z2*NSt)!=0)]
-	 Z1_2 <- Z1*NSt
-    	 Y0_2 <- Y0*NSt
+    R0_2 <- R0*NSt
+    R1_2 <- R1*NSt
+    Z2_2 <- (Z2*NSt)[,which(colSums(Z2*NSt)!=0)]
+    Z1_2 <- Z1*NSt
+      Y0_2 <- Y0*NSt
 
 
-    S00 <- crossprod(R0_1)/sum(St)
-    S01 <- crossprod(R0_1, R1_1)/sum(St)
-    S10 <- crossprod(R1_1, R0_1)/sum(St)
-    S11 <- crossprod(R1_1)/sum(St)
+   S00 <- crossprod(R0_1)/sum(St)
+   S01 <- crossprod(R0_1, R1_1)/sum(St)
+   S10 <- crossprod(R1_1, R0_1)/sum(St)
+   S11 <- crossprod(R1_1)/sum(St)
 
-    Ctemp <- chol(S11, pivot = TRUE)
-    pivot <- attr(Ctemp, "pivot")
-    oo <- order(pivot)
-    C <- t(Ctemp[, oo])
-    Cinv <- solve(C)
-    S00inv <- solve(S00)
-    valeigen <- eigen(Cinv %*% S10 %*% S00inv %*% S01 %*% t(Cinv))
-    lambda <- valeigen$values
-    e <- valeigen$vector
-    V <- t(Cinv) %*% e
-    Vorg <- V
-    V <- sapply(1:M1, function(j) V[, j]/V[1, j])
-    W <- S01 %*% V %*% solve(t(V) %*% S11 %*% V)
-    PI <- S01 %*% solve(S11)
-    DELTA  <- S00 - S01 %*% V %*% solve(t(V) %*% S11 %*% V) %*% t(V) %*% S10
-    #GAMMA <- M02 %*% M22inv - PI %*% M12 %*% M22inv
-    beta1  <- as.matrix(V[, 1:crk])
-    CI_1   <- Z1_1%*%beta1
-    VECM_1 <- stats::lm(Y0_1[which(St!=0),]~0+CI_1[which(St!=0),]+Z2_1[which(St!=0),])
-    alpha1 = t(VECM_1$coefficients[1:crk,])
-    if (dim(alpha1)[1]==1) alpha1 <-t(alpha1)
-    Omega1 =  t(VECM_1$residuals)%*%(VECM_1$residuals)/sum(St)
+   Ctemp <- chol(S11, pivot = TRUE)
+   pivot <- attr(Ctemp, "pivot")
+   oo <- order(pivot)
+   C <- t(Ctemp[, oo])
+   Cinv <- solve(C)
+   S00inv <- solve(S00)
+   valeigen <- eigen(Cinv %*% S10 %*% S00inv %*% S01 %*% t(Cinv))
+   lambda <- valeigen$values
+   e <- valeigen$vector
+   V <- t(Cinv) %*% e
+   Vorg <- V
+   V <- sapply(1:M1, function(j) V[, j]/V[1, j])
+   W <- S01 %*% V %*% solve(t(V) %*% S11 %*% V)
+   PI <- S01 %*% solve(S11)
+   DELTA  <- S00 - S01 %*% V %*% solve(t(V) %*% S11 %*% V) %*% t(V) %*% S10
+   #GAMMA <- M02 %*% M22inv - PI %*% M12 %*% M22inv
+   beta1  <- as.matrix(V[, 1:crk])
+   CI_1   <- Z1_1%*%beta1
+   VECM_1 <- stats::lm(Y0_1[which(St!=0),]~0+CI_1[which(St!=0),]+Z2_1[which(St!=0),])
+   alpha1 = t(VECM_1$coefficients[1:crk,])
+   if (dim(alpha1)[1]==1) alpha1 <-t(alpha1)
+   Omega1 =  t(VECM_1$residuals)%*%(VECM_1$residuals)/sum(St)
 
-    VECM_1S <- summary_civar(lm1=VECM_1,sname ="Z2_1")
+   VECM_1S <- summary_civar(lm1=VECM_1,sname ="Z2_1")
 
 
-    S00 <- crossprod(R0_2)/sum(NSt)
-    S01 <- crossprod(R0_2, R1_2)/sum(NSt)
-    S10 <- crossprod(R1_2, R0_2)/sum(NSt)
-    S11 <- crossprod(R1_2)/sum(NSt)
+   S00 <- crossprod(R0_2)/sum(NSt)
+   S01 <- crossprod(R0_2, R1_2)/sum(NSt)
+   S10 <- crossprod(R1_2, R0_2)/sum(NSt)
+   S11 <- crossprod(R1_2)/sum(NSt)
 
-    Ctemp <- chol(S11, pivot = TRUE)
-    pivot <- attr(Ctemp, "pivot")
-    oo <- order(pivot)
-    C <- t(Ctemp[, oo])
-    Cinv <- solve(C)
-    S00inv <- solve(S00)
-    valeigen <- eigen(Cinv %*% S10 %*% S00inv %*% S01 %*% t(Cinv))
-    lambda <- valeigen$values
-    e <- valeigen$vector
-    V <- t(Cinv) %*% e
-    Vorg <- V
-    V <- sapply(1:M1, function(j) V[, j]/V[1, j])
-    W <- S01 %*% V %*% solve(t(V) %*% S11 %*% V)
-    PI <- S01 %*% solve(S11)
-    DELTA <- S00 - S01 %*% V %*% solve(t(V) %*% S11 %*% V) %*% t(V) %*% S10
-    #GAMMA <- M02 %*% M22inv - PI %*% M12 %*% M22inv
-    beta2 <- as.matrix(V[, 1:crk])
-    CI_2 = Z1_2%*%beta2
-    VECM_2 <- stats::lm(Y0_2[which(NSt!=0),]~0+CI_2[which(NSt!=0),]+Z2_2[which(NSt!=0),])
-    alpha2 = t(VECM_2$coefficients[1:crk,])
-    if (dim(alpha2)[1]==1) alpha2 <-t(alpha2)
+   Ctemp <- chol(S11, pivot = TRUE)
+   pivot <- attr(Ctemp, "pivot")
+   oo <- order(pivot)
+   C <- t(Ctemp[, oo])
+   Cinv <- solve(C)
+   S00inv <- solve(S00)
+   valeigen <- eigen(Cinv %*% S10 %*% S00inv %*% S01 %*% t(Cinv))
+   lambda <- valeigen$values
+   e <- valeigen$vector
+   V <- t(Cinv) %*% e
+   Vorg <- V
+   V <- sapply(1:M1, function(j) V[, j]/V[1, j])
+   W <- S01 %*% V %*% solve(t(V) %*% S11 %*% V)
+   PI <- S01 %*% solve(S11)
+   DELTA <- S00 - S01 %*% V %*% solve(t(V) %*% S11 %*% V) %*% t(V) %*% S10
+   #GAMMA <- M02 %*% M22inv - PI %*% M12 %*% M22inv
+   beta2 <- as.matrix(V[, 1:crk])
+   CI_2 = Z1_2%*%beta2
+   VECM_2 <- stats::lm(Y0_2[which(NSt!=0),]~0+CI_2[which(NSt!=0),]+Z2_2[which(NSt!=0),])
+   alpha2 = t(VECM_2$coefficients[1:crk,])
+   if (dim(alpha2)[1]==1) alpha2 <-t(alpha2)
 
-    Omega2 =  t(VECM_2$residuals)%*%(VECM_2$residuals)/sum(NSt)
+   Omega2 =  t(VECM_2$residuals)%*%(VECM_2$residuals)/sum(NSt)
 
-    VECM_2S <- summary_civar(lm1=VECM_2,sname ="Z2_2")
+   VECM_2S <- summary_civar(lm1=VECM_2,sname ="Z2_2")
 
-    ret = list(beta1,alpha1,VECM_1,VECM_1S,Omega1,beta2,alpha2,VECM_2,VECM_2S,Omega2)
-    names(ret) = c("beta1","alpha1","VECM_1","VECM_1S","Omega1","beta2","alpha2","VECM_2","VECM_2S","Omega2")
-    return(ret)
+   ret = list(beta1,alpha1,VECM_1,VECM_1S,Omega1,beta2,alpha2,VECM_2,VECM_2S,Omega2)
+   names(ret) = c("beta1","alpha1","VECM_1","VECM_1S","Omega1","beta2","alpha2","VECM_2","VECM_2S","Omega2")
+   return(ret)
 }
 
 
 
+#' Objective Function for Constrained Regime-Specific VECM Estimation
 #'
-#' @param x Optimization variables
-#' @param beta Cointegration vectors
-#' @param alpha Adjustment vectors
-#' @param G A matrix specifying restrictions on alpha
-#' @param H A matrix specifying restrictions on beta
+#' This function computes the objective function (determinant of residual sum of squares)
+#' for constrained maximum likelihood estimation of regime-specific VECM models with
+#' linear restrictions on cointegration vectors (beta) and adjustment coefficients (alpha).
+#'
+#' The function incorporates restrictions in the form:
+#' \deqn{vec(\alpha'_1) = G_1 \psi_1, \quad vec(\alpha'_2) = G_2 \psi_2, \quad vec(\beta) = H\phi + h}
+#'
+#' @param x Optimization variables (stacked vector of phi, psi_1, and psi_2)
+#' @param beta Cointegration vectors (n x crk matrix)
+#' @param alpha Adjustment vectors (n x crk matrix)
+#' @param G List of two restriction matrices on alpha for each regime
+#' @param H Restriction matrix on beta
+#' @param h Restriction vector on beta
 #' @param phi Freely varying parameters in beta
-#' @param psi Freely varying parameters in alpha
-#' @param h A vector specifying restrictions in beta
-#' @param Z1 I(1) data matrix
-#' @param St Regime 1 indicator series
-#' @param NSt Regime 2 indicator series
-#' @param Y0 I(0) data matrix
-#' @param Z2 I(0) data matrix
+#' @param psi List of two freely varying parameter vectors for alpha in each regime
+#' @param Z1 I(1) data matrix (T x n)
+#' @param St Regime 1 indicator series (T x 1)
+#' @param NSt Regime 2 indicator series (T x 1)
+#' @param Y0 I(0) data matrix (T x n)
+#' @param Z2 I(0) data matrix (T x k)
 #'
-#' @return Sum of squared residuals
+#' @return Determinant of the residual sum of squares matrix
+#'
+#' @examples
+#' # Example with simulated data
+#' set.seed(42)
+#' T <- 150
+#' n <- 3
+#' crk <- 1
+#' 
+#' # Generate regime indicator
+#' St <- c(rep(1, T/2), rep(0, T/2))
+#' NSt <- 1 - St
+#' 
+#' # Initialize parameters
+#' Z1 <- matrix(rnorm(T * n), T, n)
+#' Y0 <- matrix(rnorm(T * n), T, n)
+#' Z2 <- matrix(rnorm(T * n), T, n)
+#' beta <- matrix(rnorm(n * crk), n, crk)
+#' alpha <- matrix(rnorm(n * crk), n, crk)
+#' 
+#' # Restriction matrices
+#' H <- diag(n * crk)
+#' G1 <- diag(n * crk)
+#' G2 <- diag(n * crk)
+#' h <- matrix(0, n * crk, 1)
+#' 
+#' # Initial values for optimization variables
+#' phi <- matrix(rnorm(n * crk), n * crk, 1)
+#' psi1 <- matrix(rnorm(n * crk), n * crk, 1)
+#' psi2 <- matrix(rnorm(n * crk), n * crk, 1)
+#' x <- c(phi, psi1, psi2)
+#' 
+#' # Evaluate objective function
+#' ssr <- f_constrained(x, beta = beta, alpha = alpha, G = list(G1, G2),
+#'                      H = H, phi = phi, psi = list(psi1, psi2),
+#'                      h = h, Z1 = Z1, St = St, NSt = NSt, Y0 = Y0, Z2 = Z2)
+#'
 #' @export
 #' @keywords internal
-f_constrained <- function(x, beta=beta,alpha=alpha,G=G,H=H,phi=phi,psi=psi,h=h, Z1, St, NSt, Y0, Z2) {
-  ## this is a help function to incoporate restrictions on beta and regime specific alpha
-  ## vec(alpha'_1) = G_1 psi_1,  vec(alpha'_2) = G_2 psi_2   , vec(beta) = H phi + h
-  ##
-  x1 = x[1:length(phi)]
-  x2 = x[(1+length(phi)):(length(phi)+length(psi[[1]]))]
-  x3 = x[(1+(length(phi)+length(psi[[1]]))):(length(phi)+length(psi[[1]])+length(psi[[2]]))]
+#'
+f_constrained <- function(x, beta = beta, alpha = alpha, G = G, H = H, phi = phi,
+                    psi = psi, h = h, Z1, St, NSt, Y0, Z2) {
+  ## Extract optimization variables
+  x1 <- x[1:length(phi)]
+  x2 <- x[(1 + length(phi)):(length(phi) + length(psi[[1]]))]
+  x3 <- x[(1 + (length(phi) + length(psi[[1]]))):(length(phi) + length(psi[[1]]) + 
+                                       length(psi[[2]]))]
 
-  ### restriction on beta
-  phi  = x1
-  beta_v = H%*% phi + h
-  dim(beta_v) = dim(beta)
-  #?dim(x) = dim(beta)
+  ## Restriction on beta
+  phi <- x1
+  beta_v <- H %*% phi + h
+  dim(beta_v) <- dim(beta)
 
-  CI = Z1 %*% beta_v
-  ### restrictions on alpha_1,alpha_2
-  psi_1 = x2
-  psi_2 = x3
-  alpha_1 = G[[1]]%*%psi_1
-  alpha_2 = G[[2]]%*%psi_2
-  dim(alpha_1) = dim(alpha)
-  dim(alpha_2) = dim(alpha)
-  CI1 = (CI * St)%*%t(alpha_1)
-  CI2 = (CI * NSt)%*%t(alpha_2)
-  residuals <- stats::lm(Y0-CI1-CI2 ~ 0 + Z2)$residuals
-  #SSR = sum(diag(t(residuals) %*% residuals))
+  CI <- Z1 %*% beta_v
+
+  ## Restrictions on alpha_1 and alpha_2
+  psi_1 <- x2
+  psi_2 <- x3
+  alpha_1 <- G[[1]] %*% psi_1
+  alpha_2 <- G[[2]] %*% psi_2
+  dim(alpha_1) <- dim(alpha)
+  dim(alpha_2) <- dim(alpha)
+
+  CI1 <- (CI * St) %*% t(alpha_1)
+  CI2 <- (CI * NSt) %*% t(alpha_2)
+
+  residuals <- stats::lm(Y0 - CI1 - CI2 ~ 0 + Z2)$residuals
   SSR <- det(t(residuals) %*% residuals)
+
   return(SSR)
 }
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrcivar_cb}
 \alias{irf_mrcivar_cb}
-\title{This function calculates the regime specific impulse response functions with confidence bands, using Bo[,,,s] and Sigma[,,s] matrices of the estimated MRCIVAR.}
+\title{Generate Impulse Response Functions with Confidence Bands for MRCIVAR Models}
 \usage{
 irf_mrcivar_cb(
   res_e,
@@ -16,49 +16,47 @@ irf_mrcivar_cb(
 )
 }
 \arguments{
-\item{res_e}{an object of MRCIVAR as output of MRVARestm}
+\item{res_e}{an object of MRCIVAR as output of mrcivar_estimatem1}
 
 \item{nstep}{the length of impulse response function}
 
 \item{irf}{types of the impulse response function c("gen","chol","chol1","gen1","comb1"), gen for GIRF, gen1 for GIRF with unit impulse, chol Cholezky decomposition, chol1 Cholezky decomposition with unit impulse, comb1 concerted action with a one unit impulse.}
 
-\item{runs}{Number of simulation runs}
+\item{runs}{number of bootstrap runs to generate the confidence bands}
 
 \item{comb}{a vector specify the concerted action in policy-simulation impulse response function}
 
-\item{G}{The matrix used in the permanent and transitory decomposition}
+\item{G}{the matrix used in the permanent and transitory decomposition}
 
-\item{smat}{An explicit decomposition matrix that defines a structural shock.}
+\item{smat}{an explicit decomposition matrix that defines a structural shock}
 
-\item{conf}{a vector of the tail probabilities of the confidence interval.}
+\item{conf}{a vector of the tail probabilities of the confidence interval}
 }
 \value{
-A list of impulse response function in two regimes and the bootstrap parameters.
+a list containing impulse response functions with confidence bands for both regimes and the bootstrap parameters
 }
 \description{
-This function calculates the regime specific impulse response functions with confidence bands, using Bo[,,,s] and Sigma[,,s] matrices of the estimated MRCIVAR.
+This function computes the impulse response functions (IRFs) of an estimated MRCIVAR model,
+providing confidence bands through bootstrap methods. It allows for various types of IRFs
+and can handle different configurations of shocks and responses across multiple regimes.
 }
 \examples{
-
-n =10
+n = 10
 
 Sigma = 1:(n*n*2)
 dim(Sigma) = c(n,n,2)
 Sigma[,,1] = diag(n)
 Sigma[,,2] = diag(n)
-p=matrix(0,2,2)
+p = matrix(0,2,2)
 p[,1] = c(3,3)
-res_d = mrcivar_data_m(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
-#colnames(res_d$Y) = c("w","p","I","Q")
+res_d = mrcivar_data_m(n=n, p=p, T=250, S=2, SESVI=1, TH=0, Sigmao=Sigma, type="const", r=2)
 max(abs(res_d$Y))
 res_e = mrcivar_estimatem1(res=res_d)
-#res_e$Summary
-if (! max(Mod(spectral_radius(res_e$Bo[,,,1])),Mod(spectral_radius(res_e$Bo[,,,2])) ) > 1.0001 ) {
 
-  IRF  = irf_mrcivar_cb(res_e,nstep=20,irf="gen1",runs=100,comb=NA,G=NA,conf=c(0.05,0.95))
+if (! max(Mod(spectral_radius(res_e$Bo[,,,1])), Mod(spectral_radius(res_e$Bo[,,,2])) ) > 1.0001 ) {
+  IRF = irf_mrcivar_cb(res_e, nstep=20, irf="gen1", runs=100, comb=NA, G=NA, conf=c(0.05,0.95))
   IRF_g1 <- plot_irf(IRF[[1]])        # irf of regime 1
-  IRF_g2<- plot_irf(IRF[[2]])         # irf of regime 2
-
+  IRF_g2 <- plot_irf(IRF[[2]])         # irf of regime 2
 }
 
 }

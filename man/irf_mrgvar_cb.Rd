@@ -2,8 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrgvar_cb}
 \alias{irf_mrgvar_cb}
-\title{This function calculates the regime specific impulse response functions of an estimated MRGVAR(n,p,S).
-Using the estimated G[,,,s] and Sigma[,,s] matrices of the MRGVAR, this function calculated the regime specific impulse response functions.}
+\title{Calculate Regime Specific Impulse Response Functions for MRGVAR Models}
 \usage{
 irf_mrgvar_cb(
   res,
@@ -28,7 +27,7 @@ irf_mrgvar_cb(
 
 \item{comb}{a vector specify the concerted action in policy-simulation impulse response function}
 
-\item{irf}{: types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
+\item{irf}{types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
 "gen" for generalized impulse response with one standard deviation impulses, "gen1" for GIRF with one unit impulses, "chol" Cholezky decomposition, "chol1" Cholezky decomposition with unit impulses, "comb1" concerted action with unit impulse.}
 
 \item{G}{For permanent and transitory decomposition}
@@ -48,7 +47,7 @@ a list of bootstrap result. The first component contains the impulse response fu
 }
 \description{
 This function calculates the regime specific impulse response functions of an estimated MRGVAR(n,p,S).
-Using the estimated G[,,,s] and Sigma[,,s] matrices of the MRGVAR, this function calculated the regime specific impulse response functions.
+Using the estimated G[,,,s] and Sigma[,,s] matrices of the MRGVAR, this function calculates the regime specific impulse response functions.
 }
 \examples{
 ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries

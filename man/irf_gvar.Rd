@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_gvar}
 \alias{irf_gvar}
-\title{This function generates impulse response functions of an estimated GVAR}
+\title{Generate Impulse Response Functions for GVAR Models}
 \usage{
 irf_gvar(res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"))
 }
@@ -19,10 +19,10 @@ irf_gvar(res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"))
 an (mn,mn,nstep) array containing the IRF with columns representing the impulses rows representing the responses.
 }
 \description{
-This function generates impulse response functions of an estimated GVAR
+This function computes the impulse response functions (IRFs) of an estimated GVAR model,
+allowing for various types of IRFs and handling different configurations of shocks and responses.
 }
 \examples{
-
 
 X1 = matrix(1,200,1)
 X2 = matrix(rnorm(200),200,1)

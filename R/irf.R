@@ -4,7 +4,11 @@
 
 
 #'
-#' This function generates impulse response functions of an estimated CIGVAR(m,n,p) with confidence bands.
+#' Generate Impulse Response Functions with Confidence Bands for CIGVAR Models
+#'
+#' This function computes the impulse response functions (IRFs) of an estimated CIGVAR model, 
+#' providing confidence bands through bootstrap methods. It allows for various types of IRFs 
+#' and can handle different configurations of shocks and responses.
 #'
 #' @param  res  : a CIGVAR object of an output of CIGVARest.
 #' @param  nstep : length of the impulse response functions
@@ -87,21 +91,28 @@ irf_cigvar_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "ge
 
 
 #'
-#' This function generates the impulse response functions of an estimated CIVAR model
+#' Generate Impulse Response Functions with Confidence Bands for CIVAR Models
 #'
-#' @param res	: a CIVAR object such as an output of CIVARest.
-#' @param nstep	: the length of the impulse response functions.
-#' @param comb  : a weighting matrix specifying the weights used in the impulse response functions of a global VAR. Its default value is NA for CIVAR(p).
-#' @param irf   : types of the generated impulse response functions.
-#' @param G     : the transformation matrix for PTdecomp
-#' @param A0    : the transformation matrix for AB identification
-#' @param B0    : the transformation matrix for AB identification
-#' @param Xshks : the number of selected exogenous shocks
-#' @param runs  : number of runs used in the the calculation of the bootstrap confidence interval.
-#' @param conf  : a two component vector containing the tail probabilities of the bootstrap confidence interval.
-#' @return an array of dimension (n, n, nstep, 3).
+#' This function computes the impulse response functions (IRFs) of an estimated CIVAR model,
+#' providing confidence bands through bootstrap methods. It allows for various types of IRFs
+#' and can handle different configurations of shocks and responses, including permanent-transitory
+#' decompositions and exogenous shocks.
+#'
+#' @param res a CIVAR object such as an output of civar_estimate
+#' @param nstep the length of the impulse response functions
+#' @param comb a weighting matrix specifying the weights used in the impulse response functions of a global VAR. Its default value is NA for CIVAR(p)
+#' @param irf types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1","PTdecomp","ABSVAR","irfX")
+#' @param G the transformation matrix for PTdecomp
+#' @param A0 the transformation matrix for AB identification
+#' @param B0 the transformation matrix for AB identification
+#' @param Xshks the number of selected exogenous shocks
+#' @param runs number of runs used in the calculation of the bootstrap confidence interval
+#' @param conf a two component vector containing the tail probabilities of the bootstrap confidence interval
+#' @return an (n, n, nstep, 3) array containing the impulse response functions with confidence bands. 
+#'         The first dimension represents responses, second represents impulses, third represents time steps,
+#'         and fourth represents point estimate and confidence bounds.
+#'
 #' @examples
-#'
 #' res_d = civar_data(n=4,p=2,T=84,Co=matrix(c(1,1,1,1),4,1)*0,type="none",crk=1)
 #' res_e = civar_estimate(res=res_d)
 #' res_e$Summary
@@ -109,27 +120,25 @@ irf_cigvar_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "ge
 #' IRF_CB = irf_civar_cb(res=res_e, nstep=20, comb=NA, irf = "gen1", runs = 20, conf = c(0.05, 0.95))
 #' IRF_g = plot_irf(IRF_CB)
 #'
-#' IRF_CB     = irf_civar_cb(res=res_e, nstep=30, comb=NA, irf = "PTdecomp", G = NA, A0=NA,B0=NA,
-#'  runs = 20, conf = c(0.05, 0.95))
+#' IRF_CB = irf_civar_cb(res=res_e, nstep=30, comb=NA, irf = "PTdecomp", G = NA, A0=NA, B0=NA,
+#'                        runs = 20, conf = c(0.05, 0.95))
 #' IRF_g = plot_irf(IRF_CB)
 #' # The first three shocks have permanent effects,
 #' # while the fourth shock does not have a permanent effect.
 #'
-#'
-#'
 #' T=100
 #' X=matrix(rnorm(2*T),T,2)
-#' res_d = var_data(n=3,p=2,T=T,Co=matrix(c(0,0,0,1,2,3,3,2,1),3,3), type="exog0",X=X) ;
-#' res_e = var_estimate(res=res_d);
+#' res_d = var_data(n=3,p=2,T=T,Co=matrix(c(0,0,0,1,2,3,3,2,1),3,3), type="exog0",X=X)
+#' res_e = var_estimate(res=res_d)
 #' res_d$Co
 #' res_e$Summary
 #' IRF_CB = irf_var_cb(res=res_e,nstep=20, comb=NA, irf = "irfX", Xshks=c(1:2),
-#' runs = 100, conf = c(0.05, 0.95))
-#' IRF_list <-plot_irf(IRF_CB,Names =c("Y1","Y2","Y3"),INames=c("X1","X2"),
-#' response = c(1:3), impulse = c(1:3), n = 3)
+#'                      runs = 100, conf = c(0.05, 0.95))
+#' IRF_list <- plot_irf(IRF_CB, Names=c("Y1","Y2","Y3"), INames=c("X1","X2"),
+#'                       response = c(1:3), impulse = c(1:3), n = 3)
 #'
 #' @export
-irf_civar_cb   <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1","PTdecomp","ABSVAR","irfX"), G=NA, A0=NA, B0=NA,Xshks=NA,runs = 200, conf = c(0.05, 0.95))
+irf_civar_cb <- function(res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1", "PTdecomp", "ABSVAR", "irfX"), G = NA, A0 = NA, B0 = NA, Xshks = NA, runs = 200, conf = c(0.05, 0.95))
 {
   n     = res$n
   p     = res$p
@@ -159,9 +168,6 @@ irf_civar_cb   <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "g
   response <- array(0, dim = c(neq, nvar, nstep, length(conf) + 1))
   response[, , , 1] <- irf_from_params(B = B, sigma = sigma, nstep, comb, irf, G=G,A0=A0,B0=B0,smat=NA,Xshk=Xshk)
   responseR         <- array(0, dim = c(neq, nvar, nstep, runs))
-
-
-
 
   for (i in 1:runs) {
     Uo_run = rnorm_sigma(T, sigma)
@@ -212,7 +218,10 @@ irf_civar_cb   <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "g
 
 
 #'
-#' This function generates impulse response functions of an estimated GVAR
+#' Generate Impulse Response Functions for GVAR Models
+#'
+#' This function computes the impulse response functions (IRFs) of an estimated GVAR model, 
+#' allowing for various types of IRFs and handling different configurations of shocks and responses.
 #'
 #' @param  res  : an output of gvar_estimate
 #' @param  nstep : length of the impulse response functions
@@ -220,7 +229,6 @@ irf_civar_cb   <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "g
 #' @param  irf  : types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse.
 #' @return an (mn,mn,nstep) array containing the IRF with columns representing the impulses rows representing the responses.
 #' @examples
-#'
 #'
 #' X1 = matrix(1,200,1)
 #' X2 = matrix(rnorm(200),200,1)
@@ -242,19 +250,23 @@ irf_civar_cb   <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "g
 #' @keywords internal
 #'
 irf_gvar = function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1")) {
-	B 	= res$G
-      neq 	= dim(B)[1]
-	nvar	= dim(B)[2]
-	sigma = res$Sigma
-      response <- array(0,dim=c(neq,nvar,nstep));
-      response <- irf_from_params(B,sigma,nstep,comb,irf=irf)
-	return(response)
+  B 	= res$G
+    neq 	= dim(B)[1]
+  nvar	= dim(B)[2]
+  sigma = res$Sigma
+    response <- array(0,dim=c(neq,nvar,nstep));
+    response <- irf_from_params(B,sigma,nstep,comb,irf=irf)
+  return(response)
 }
 
 
 
 #'
-#' This function generates impulse response functions of an estimated GVAR with confidence bands
+#' Generate Impulse Response Functions with Confidence Bands for GVAR Models
+#'
+#' This function computes the impulse response functions (IRFs) of an estimated GVAR model, 
+#' providing confidence bands through bootstrap methods. It allows for various types of IRFs 
+#' and can handle different configurations of shocks and responses.
 #'
 #' @param  res  : an object of GVAR that is a list of the output of gvar_estimate
 #' @param  nstep : length of the impulse response functions
@@ -278,53 +290,59 @@ irf_gvar = function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1")) {
 #' IRF_g = plot_irf(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
 #'
 #' @export
-irf_gvar_cb =function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1"),runs=200,conf=c(0.05,0.95)) {
-        m = res$m
-        n = res$n
-      p = res$p
-      T = dim(res$Y)[1]
-      W = res$W
-      Ao= res$Ao
-      Bo= res$Bo
-      Go= res$G
-      Co= res$Co
-      type=res$type
-      X   = res$X
-      mu  = res$mu
-
-        B       = res$G
-      neq       = dim(B)[1]
-        nvar    = dim(B)[2]
-        sigma = res$Sigmao
-      response <- array(0,dim=c(neq,nvar,nstep,length(conf)+1))
-     #response[,,,1] <- impulsdtrf_g(B,sigma,nstep,comb,irf=irf)
-      response[,,,1] <- irf_gvar(res,nstep,comb,irf)
-      responseR <- array(0,dim=c(neq,nvar,nstep,runs))
-      for (i in 1:runs) {
-        Uo_run = rnorm_sigma(T,sigma)
-            res_run = gvar_data(m,n,p,T,W,r_npo=NA,Ao,Bo,Co,Uo=Uo_run,Sigmao=NA,type,X,mu)
-            res_e   = gvar_estimate(res_run)
-            B_run   = res_e$G
-            sigma_run = res_e$Sigmao
-                #responseR[,,,i] <- irf_from_params(B_run,sigma_run,nstep,comb,irf=irf)
-            responseR[,,,i]  <- irf_gvar(res_e,nstep,comb,irf)
-        }
-        responseR[,,,1] = response[,,,1]
-      for (tt in 1:(nstep) ) {
-        for (i in 1:neq)           {
-                for (j in 1:nvar)     {Ao
-                        response[i,j,tt,-1] = stats::quantile(responseR[i,j,tt,], conf)
-
-        }
-        }
-        }
-        return(response)
+irf_gvar_cb = function(res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"), runs = 200, conf = c(0.05, 0.95)) {
+  m = res$m
+  n = res$n
+  p = res$p
+  T = dim(res$Y)[1]
+  W = res$W
+  Ao = res$Ao
+  Bo = res$Bo
+  Go = res$G
+  Co = res$Co
+  type = res$type
+  X = res$X
+  mu = res$mu
+  
+  B = res$G
+  neq = dim(B)[1]
+  nvar = dim(B)[2]
+  sigma = res$Sigmao
+  response <- array(0, dim = c(neq, nvar, nstep, length(conf) + 1))
+  response[,,,1] <- irf_gvar(res, nstep, comb, irf)
+  responseR <- array(0, dim = c(neq, nvar, nstep, runs))
+  
+  for (i in 1:runs) {
+    Uo_run = rnorm_sigma(T, sigma)
+    res_run = gvar_data(m, n, p, T, W, r_npo = NA, Ao, Bo, Co, Uo = Uo_run, Sigmao = NA, type, X, mu)
+    res_e = gvar_estimate(res_run)
+    B_run = res_e$G
+    sigma_run = res_e$Sigmao
+    responseR[,,,i] = irf_gvar(res_e, nstep, comb, irf)
+  }
+  
+  responseR[,,,1] = response[,,,1]
+  
+  for (tt in 1:(nstep)) {
+    for (i in 1:neq) {
+      for (j in 1:nvar) {
+        response[i, j, tt, -1] = stats::quantile(responseR[i, j, tt, ], conf)
+      }
+    }
+  }
+  
+  return(response)
 }
 
 
 
 #'
-#' This function calculates the regime specific impulse response functions of an estimated MRCIGVAR(n,p,S,r). Using G\[,,,s\] and Sigma\[,,s\] matrices of the estimated MRCIGVAR, this function can produce impulse response functions for any possible combinations of states.
+#' Generate Impulse Response Functions with Confidence Bands for MRCIGVAR Models
+#'
+#' This function computes the impulse response functions (IRFs) of an estimated MRCIGVAR model,
+#' providing confidence bands through bootstrap methods. It allows for various types of IRFs
+#' and can handle different configurations of shocks and responses across multiple regimes.
+#'
 #' @param res a MRCIGVAR object that can be an output of mrcigvar_data, mrcigvar_estimate, or MRCIGVARest.
 #' @param nstep the length of impulse response function
 #' @param comb a vector specify the concerted action in policy-simulation impulse response function
@@ -333,7 +351,8 @@ irf_gvar_cb =function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1"),
 #' @param runs the number of bootstrapping runs
 #' @param conf A vector specifying the confidence intervals
 #' @param NT The number of impulse response scenarios
-#' @return an list of an (mn,mn,nstep,3,S) array of the impulse response functions and test statistics. In the impulse response array, columns representing the impulse and rows the responses.
+#' @return a list of an (mn,mn,nstep,3,S) array of the impulse response functions and test statistics. In the impulse response array, columns representing the impulse and rows the responses.
+#'
 #' @examples
 #' m = 2
 #' n = 3
@@ -436,15 +455,21 @@ irf_mrcigvar_cb <- function (res, nstep, comb, state = c(2, 1), irf = c("gen", "
 
 
 #'
-#' This function calculates the regime specific impulse response functions of an estimated MRCIGVAR(n,p,S).
-#' Using the estimated G\[,,,s\] and Sigma\[,,s\] matrices of the MRGVAR, this function calculated the regime speicfic impulse response functions.
-#' @param res a list of estimated MRCIGVAR as output of mrcigvar_estimate or mrcigvar_estimate
+#' Generate Impulse Response Functions for MRCIGVAR Models
+#'
+#' This function computes the impulse response functions (IRFs) of an estimated MRCIGVAR model,
+#' allowing for various types of IRFs and handling different configurations of shocks and responses
+#' across multiple regimes and countries.
+#'
+#' @param res a list of estimated MRCIGVAR as output of mrcigvar_estimate
 #' @param nstep the length of impulse response function
 #' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param state an n vector specifying the speciic state for each country.
-#' @param  irf  : types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
+#' @param state an n vector specifying the specific state for each country
+#' @param irf types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
 #' @param sigmaNPDS the state-dependent covariance matrix
-#' @return a list containing the impulse response functions and the accumulated impulse response function, and the boostrap parameters as well.
+#'
+#' @return an (mn,mn,nstep) array containing the IRF with columns representing the impulses and rows the responses
+#'
 #' @examples
 #' m = 2
 #' n = 3
@@ -457,7 +482,6 @@ irf_mrcigvar_cb <- function (res, nstep, comb, state = c(2, 1), irf = c("gen", "
 #'
 #' ## case of n = 3, m = 2, S = 2    m: number of variables, n: number of countries
 #'
-#'
 #' res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=300,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
 #' max(abs(res_d$Y))
 #' spectral_radius(res_d$Go[,,,2])
@@ -466,62 +490,72 @@ irf_mrcigvar_cb <- function (res, nstep, comb, state = c(2, 1), irf = c("gen", "
 #'
 #' res_e$Summary
 #'
-#' IRF_CB = irf_mrcigvar_cb(res=res_e, nstep=10, comb=NA, state = c(2,1,1), irf = "gen1",
-#' runs = 20, conf = c(0.05, 0.95), NT = 1)
-#'
-#' str(IRF_CB)
-#'
-#' IRF_g = plot_irf(IRF_CB[[1]])
 #' IRFF2 = irf_mrcigvar(res=res_e,nstep=10,comb=NA,state=c(2,2,2),irf='gen')
 #' plot(IRFF2[1,1,],type="l")
 #'
-#'
 #' @export
-#'
 #' @keywords internal
-irf_mrcigvar = function(res,nstep,comb,state=state,irf=c("gen","chol","chol1","gen1","comb1"),sigmaNPDS=NA) {
-      neq 	= dim(res$Go)[1]
-	    nvar	= dim(res$Go)[2]
-      m 	= res$m
-	    n 	= res$n
-      p 	= res$p
-      if (length(p)>1) pp = max(p[,1:2,]) else pp = p
-	    Bo    = res$Bo
-	    Ao 	= res$Ao
-      W	= res$W
-      B     = bo_ao_ws2_gs(Bo,Ao,W,m,n,pp,state)
-      if (anyNA(sigmaNPDS))	sigma = sigma_npd(res,state)  else  sigma = sigmaNPDS
-      response <- array(0,dim=c(neq,nvar,nstep));
-      response <- irf_from_params(B,sigma,nstep,comb,irf=irf)
-	return(response)
+irf_mrcigvar <- function(res, nstep, comb, state = state, irf = c("gen", "chol", "chol1", "gen1", "comb1"), sigmaNPDS = NA) {
+  neq <- dim(res$Go)[1]
+  nvar <- dim(res$Go)[2]
+  m <- res$m
+  n <- res$n
+  p <- res$p
+  if (length(p) > 1) pp = max(p[, 1:2, ]) else pp = p
+  Bo <- res$Bo
+  Ao <- res$Ao
+  W <- res$W
+  B <- bo_ao_ws2_gs(Bo, Ao, W, m, n, pp, state)
+  if (anyNA(sigmaNPDS)) sigma = sigma_npd(res, state) else sigma = sigmaNPDS
+  response <- array(0, dim = c(neq, nvar, nstep))
+  response <- irf_from_params(B, sigma, nstep, comb, irf = irf)
+  return(response)
 }
 
 
 
 #'
-#' This function calculates the generalized impulse response functions of an estimated MRCIGVAR(m,n,p,S) for given a shock vector and initial values.
+#' Generate Generalized Impulse Response Functions for MRCIGVAR Models
 #'
-#'                   GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
+#' MRCIGVAR model for a given shock vector and initial values. The GIRF is computed as the 
+#' difference between mean responses with and without the shock, integrating out random effects 
+#' across multiple simulation runs.
+#'
+#' For a given shock vector SHCK:
+#' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#'
+#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
+#' models, Economics Letters, 58(1) p. 17-29.
 #'
 #' @param  res   : an MRCIGVAR object containing the components of an output of MRCIGVARest.
 #' @param  shock : an mn-vector containing the shocks as impulse.
-#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means (see equation above).
+#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
 #' @param  nstep : the length of the responses
-#' @param  Omega_hist : the initial values from which the simulation runs start.For Omega_hist=NA the most recent values are taken as the initial values. For Omega_hist=0, the initial values are zeros.
-#' @param  resid_method : resid_method = c("resid", "parametric"), It generates the random residuals from residuals bootstrap or parametric bootstrap.
-#' @return an (mn x mn x nstep+1) matrix of impulse response functions. The rows represent response the columns represent impulses.
+#' @param  Omega_hist : the initial values from which the simulation runs start. For Omega_hist=NA 
+#'                      the most recent values are taken as the initial values. For Omega_hist=0, 
+#'                      the initial values are zeros.
+#' @param  resid_method : resid_method = c("resid", "parametric"). It generates the random residuals 
+#'                        from residuals bootstrap or parametric bootstrap.
+#' @return an (mn x mn x nstep+1) array of impulse response functions. The rows represent response 
+#'         and the columns represent impulses.
+#'
 #' @examples
 #' m = 2
 #' n = 3
-#' p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0); dim(p) = c(5,3,2)
-#' p = p[1:n,,]; p[,1,] = 3; p[,2,] = 2
+#' p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0)
+#' dim(p) = c(5,3,2)
+#' p = p[1:n,,]
+#' p[,1,] = 3
+#' p[,2,] = 2
 #'
-#' TH = c(1:n)*0; dim(TH) = c(1,n)
-#' SESVI=rep(1,3,5)
-#'r  = rep(1,n)
+#' TH = c(1:n)*0
+#' dim(TH) = c(1,n)
+#' SESVI = rep(1,3,5)
+#' r = rep(1,n)
 #'
 #' ## case of n = 3, m = 2, S = 2    m: number of variables, n: number of countries
-#' res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=200,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
+#' res_d <- mrcigvar_data(m=2, n=3, p=p, TH=TH, T=200, S=2, SESVI=c(1,3,5), r=rep(1,3), Ncommtrend=1)
 #' max(abs(res_d$Y))
 #' spectral_radius(res_d$Go[,,,2])
 #' spectral_radius(res_d$Go[,,,1])
@@ -531,19 +565,18 @@ irf_mrcigvar = function(res,nstep,comb,state=state,irf=c("gen","chol","chol1","g
 #' spectral_radius(res_e$Go[,,,1])
 #'
 #' plot(ts(res_d$Y))
-#' #res_e$Summary
 #'
 #' if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1.0001)|(max(Mod(spectral_radius(res_e$Go[,,,2])))>1.0001)) ) {
-#'   GIRF <- girf_mrcigvar_rm(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#'   GIRF <- girf_mrcigvar_rm(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
 #'   resid_method="parametric")
-#'   GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-#'   resid_method="parametric",conf=c(0.05,0.95),N=100)
+#'   GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
+#'   resid_method="parametric", conf=c(0.05,0.95), N=100)
 #'   IRF_g = plot_irf(GIRF_CB)
 #' }
 #'
 #' @export
 #' @keywords internal
-girf_mrcigvar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
+girf_mrcigvar_rm <- function(res, shock, R, nstep, Omega_hist=NA, resid_method) {
   ####  this function generate the impulse response function of MRVAR with regime migration
   ####
   ####                  GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
@@ -602,8 +635,6 @@ girf_mrcigvar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
   MYR <- YS
   GIRF <- array(0,c(m*n,m*n,nstep+1))
 
-
-
   for (i in 1:R) {
     if ( resid_method=="resid" ) {
       if (length(DIMresid) == 3)  {
@@ -621,13 +652,12 @@ girf_mrcigvar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
     }
 
     residR[[i]] <- residI
-    for (s in 1:S) {residI[P+1,,,s] <-shock_mat}    # such that residI[P+1,,k,] corresponds to the k-th column shock in shock_mat for both regimes (budui dan ok)
+    for (s in 1:S) {residI[P+1,,,s] <-shock_mat}
     residS[[i]] = residI
 
     for (k in 1:DIMresid[2]) {
-      YR[,,k] = mrcigvar_data(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residR[[i]][,,k,],SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)$Y
-      YS[,,k] = mrcigvar_data(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residS[[i]][,,k,],SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)$Y
-      ## to delete YS[[i]] = mrgvar_data(m=m,n=n,p=p,T=(P+nstep+1),S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=residS[[i]],SV=SV,type=type,Co=Co,X=X,Yo=Yo*0,d=d)
+      YR[,,k] = mrcigvar_data(m=m, n=n, p=p, T=(P+nstep+1), S=S, W=W, SESVI=SESVI, TH=TH, Go=Go, Ao=Ao, Bo=Bo, Sigmao=Sigmao, Uo=residR[[i]][,,k,], SV=SV, type=type, Co=Co, X=X, Yo=Yo, d=d)$Y
+      YS[,,k] = mrcigvar_data(m=m, n=n, p=p, T=(P+nstep+1), S=S, W=W, SESVI=SESVI, TH=TH, Go=Go, Ao=Ao, Bo=Bo, Sigmao=Sigmao, Uo=residS[[i]][,,k,], SV=SV, type=type, Co=Co, X=X, Yo=Yo, d=d)$Y
     }
 
     MYR = MYR + 1/R*YR
@@ -646,11 +676,18 @@ girf_mrcigvar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
 
 
 #'
-#' This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S) for given a shock vector and initial values.
+#' Generate Generalized Impulse Response Functions with Confidence Bands for MRCIGVAR Models
 #'
-#'                   GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
+#' MRCIGVAR model for a given shock vector and initial values. The GIRF is computed as the 
+#' difference between mean responses with and without the shock, integrating out random effects 
+#' across multiple simulation runs. It also generates bootstrapped confidence intervals.
 #'
-#' It also generates the bootstrapped confidence intervals.
+#' For a given shock vector SHCK:
+#' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#'
+#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
+#' models, Economics Letters, 58(1) p. 17-29.
 #'
 #' @param  res   : a MRCIGVAR object containing the components of an output of MRCIGVARest.
 #' @param  shock : an mn-vector containing the shocks as impulse.
@@ -660,84 +697,86 @@ girf_mrcigvar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
 #' @param  resid_method : resid_method = c("resid", "parametric"), It generate random residuals either from residuals bootstrap or parametric bootstrap.
 #' @param  conf  : a two component vector containing the tail probabilities of the bootstrap confidence interval.
 #' @param  N     : number of bootstrapping runs
-#' @return an (n x n x nstep+1 x 3) array containing of impulse response functions with lower and upper confidence bonds. The rows represent response the columns represent impulses.
+#' @return an (mn x mn x nstep+1 x 3) array containing impulse response functions with lower and upper confidence bands. The rows represent response and the columns represent impulses.
+#'
 #' @examples
 #' m = 2
 #' n = 3
-#' p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0); dim(p) = c(5,3,2)
-#' p = p[1:n,,]; p[,1,] = 3; p[,2,] = 2
+#' p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0)
+#' dim(p) = c(5,3,2)
+#' p = p[1:n,,]
+#' p[,1,] = 3
+#' p[,2,] = 2
 #'
-#' TH = c(1:n)*0; dim(TH) = c(1,n)
-#' SESVI=rep(1,3,5)
-#'r  = rep(1,n)
+#' TH = c(1:n)*0
+#' dim(TH) = c(1,n)
+#' SESVI = rep(1,3,5)
+#' r = rep(1,n)
 #'
 #' ## case of n = 3, m = 2, S = 2    m: number of variables, n: number of countries
-#' res_d <- mrcigvar_data(m=2,n=3,p=p,TH=TH,T=200,S=2, SESVI=c(1,3,5),r=rep(1,3),Ncommtrend=1)
+#' res_d <- mrcigvar_data(m=2, n=3, p=p, TH=TH, T=200, S=2, SESVI=c(1,3,5), r=rep(1,3), Ncommtrend=1)
 #' max(abs(res_d$Y))
 #' spectral_radius(res_d$Go[,,,2])
 #' spectral_radius(res_d$Go[,,,1])
-#' res_e  = mrcigvar_estimate(res=res_d)
+#' res_e <- mrcigvar_estimate(res=res_d)
 #'
 #' spectral_radius(res_e$Go[,,,2])
 #' spectral_radius(res_e$Go[,,,1])
 #'
 #' plot(ts(res_d$Y))
-#' #res_e$Summary
 #'
 #' if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1)|(max(Mod(spectral_radius(res_e$Go[,,,2])))>1)) ) {
-#'   GIRF <- girf_mrcigvar_rm(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
+#'   GIRF <- girf_mrcigvar_rm(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
 #'   resid_method="parametric")
-#'   GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e,shock=c(1,1,1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-#'   resid_method="parametric",conf=c(0.05,0.95),N=100)
+#'   GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
+#'   resid_method="parametric", conf=c(0.05,0.95), N=100)
 #'   IRF_g = plot_irf(GIRF_CB)
 #' }
 #'
 #' @export
-girf_mrcigvar_rm_cb <- function(res,shock,R,nstep,Omega_hist=NA,resid_method="parametric",conf,N) {
-  ##### this is to generate bootstrap GIRF for MRVAR with regime migrations
+girf_mrcigvar_rm_cb <- function(res, shock, R, nstep, Omega_hist=NA, resid_method="parametric", conf, N) {
+  ##### this is to generate bootstrap GIRF for MRCIGVAR with regime migrations
   #####
-  n 		= res$n
-  m 		= res$m
-  p 		= res$p
-  S 		= res$S
-  SESVI		= res$SESVI
-  TH		= res$TH
-  Go          = res$Go
-  Bo		= res$Bo
-  Ao          = res$Ao
-  Co		= res$Co
-  Sigmao	= res$Sigmao
-  W           = res$W
-  type		= res$type
-  SV          = res$SV
-  X 		  = res$X;
-  Yo		  = res$Yo
-  d           = res$d
-  Uo          = res$Uo
-  T           = dim(res$Y)[1]
-  P           = max(d,p)
-  GIRF 		= (1:(m*n*n*m*(nstep+1)*N))*0; dim(GIRF) = c(m*n,m*n,nstep+1,N)
+  n = res$n
+  m = res$m
+  p = res$p
+  S = res$S
+  SESVI = res$SESVI
+  TH = res$TH
+  Go = res$Go
+  Bo = res$Bo
+  Ao = res$Ao
+  Co = res$Co
+  Sigmao = res$Sigmao
+  W = res$W
+  type = res$type
+  SV = res$SV
+  X = res$X
+  Yo = res$Yo
+  d = res$d
+  Uo = res$Uo
+  T = dim(res$Y)[1]
+  P = max(d, p)
+  GIRF = (1:(m*n*n*m*(nstep+1)*N))*0
+  dim(GIRF) = c(m*n, m*n, nstep+1, N)
 
-  GIRFBd	= (1:(m*n*n*m*(nstep+1)*(length(conf)+1)))*0; dim(GIRFBd) = c(m*n,m*n,nstep+1,length(conf)+1)
+  GIRFBd = (1:(m*n*n*m*(nstep+1)*(length(conf)+1)))*0
+  dim(GIRFBd) = c(m*n, m*n, nstep+1, length(conf)+1)
 
-  GIRFBd[,,,1]= girf_mrcigvar_rm(res,shock,R,nstep,Omega_hist,resid_method)
+  GIRFBd[,,,1] = girf_mrcigvar_rm(res, shock, R, nstep, Omega_hist, resid_method)
 
   for (i in 1:N) {
-    #res_run = mrgvar_data(m=m,n=n,p=p,T=T,S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=NA,SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)
-    #res_e   = mrgvar_estimate(res_run)
-    res_run  = mrcigvar_data_r(res)
-    if (length(colnames(res_run$Y))==0) colnames(res_run$Y) = paste("res_runY",1:ncol(res_run$Y),sep="")
-    res_erun   = mrcigvar_estimate(res_run)
-    RF3     = girf_mrcigvar_rm(res=res_erun,shock,R,nstep,Omega_hist,resid_method)
-    GIRF[,,,i]  = RF3
+    res_run = mrcigvar_data_r(res)
+    if (length(colnames(res_run$Y))==0) colnames(res_run$Y) = paste("res_runY", 1:ncol(res_run$Y), sep="")
+    res_erun = mrcigvar_estimate(res_run)
+    RF3 = girf_mrcigvar_rm(res=res_erun, shock, R, nstep, Omega_hist, resid_method)
+    GIRF[,,,i] = RF3
   }
 
-
-  for (tt in 1:(nstep+1) ) {
-    for (i in 1:(n*m))           {
-      for (j in 1:(n*m))     {
-        GIRFBd[i,j,tt,-1] = stats::quantile(GIRF[i,j,tt,], conf)
-
+  for (tt in 1:(nstep+1)) {
+    for (i in 1:(n*m)) {
+      for (j in 1:(n*m)) {
+        GIRFBd[i, j, tt, -1] = stats::quantile(GIRF[i, j, tt, ], conf)
       }
     }
   }
@@ -747,45 +786,47 @@ girf_mrcigvar_rm_cb <- function(res,shock,R,nstep,Omega_hist=NA,resid_method="pa
 
 
 #'
-#' This function calculates the regime specific impulse response functions with confidence bands, using Bo\[,,,s\] and Sigma\[,,s\] matrices of the estimated MRCIVAR.
+#' Generate Impulse Response Functions with Confidence Bands for MRCIVAR Models
 #'
-#' @param res_e an object of MRCIVAR as output of MRVARestm
+#' This function computes the impulse response functions (IRFs) of an estimated MRCIVAR model,
+#' providing confidence bands through bootstrap methods. It allows for various types of IRFs
+#' and can handle different configurations of shocks and responses across multiple regimes.
+#'
+#' @param res_e an object of MRCIVAR as output of mrcivar_estimatem1
 #' @param nstep the length of impulse response function
 #' @param irf types of the impulse response function c("gen","chol","chol1","gen1","comb1"), gen for GIRF, gen1 for GIRF with unit impulse, chol Cholezky decomposition, chol1 Cholezky decomposition with unit impulse, comb1 concerted action with a one unit impulse.
-#' @param runs Number of simulation runs
+#' @param runs number of bootstrap runs to generate the confidence bands
 #' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param G The matrix used in the permanent and transitory decomposition
-#' @param smat An explicit decomposition matrix that defines a structural shock.
-#' @param conf a vector of the tail probabilities of the confidence interval.
-#' @return A list of impulse response function in two regimes and the bootstrap parameters.
-#' @examples
+#' @param G the matrix used in the permanent and transitory decomposition
+#' @param smat an explicit decomposition matrix that defines a structural shock
+#' @param conf a vector of the tail probabilities of the confidence interval
 #'
-#' n =10
+#' @return a list containing impulse response functions with confidence bands for both regimes and the bootstrap parameters
+#'
+#' @examples
+#' n = 10
 #'
 #' Sigma = 1:(n*n*2)
 #' dim(Sigma) = c(n,n,2)
 #' Sigma[,,1] = diag(n)
 #' Sigma[,,2] = diag(n)
-#' p=matrix(0,2,2)
+#' p = matrix(0,2,2)
 #' p[,1] = c(3,3)
-#' res_d = mrcivar_data_m(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
-#' #colnames(res_d$Y) = c("w","p","I","Q")
+#' res_d = mrcivar_data_m(n=n, p=p, T=250, S=2, SESVI=1, TH=0, Sigmao=Sigma, type="const", r=2)
 #' max(abs(res_d$Y))
 #' res_e = mrcivar_estimatem1(res=res_d)
-#' #res_e$Summary
-#' if (! max(Mod(spectral_radius(res_e$Bo[,,,1])),Mod(spectral_radius(res_e$Bo[,,,2])) ) > 1.0001 ) {
 #'
-#'   IRF  = irf_mrcivar_cb(res_e,nstep=20,irf="gen1",runs=100,comb=NA,G=NA,conf=c(0.05,0.95))
+#' if (! max(Mod(spectral_radius(res_e$Bo[,,,1])), Mod(spectral_radius(res_e$Bo[,,,2])) ) > 1.0001 ) {
+#'   IRF = irf_mrcivar_cb(res_e, nstep=20, irf="gen1", runs=100, comb=NA, G=NA, conf=c(0.05,0.95))
 #'   IRF_g1 <- plot_irf(IRF[[1]])        # irf of regime 1
-#'   IRF_g2<- plot_irf(IRF[[2]])         # irf of regime 2
-#'
+#'   IRF_g2 <- plot_irf(IRF[[2]])         # irf of regime 2
 #' }
 #'
 #' @export
-irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"),runs = 100, comb = NA, G = NA, smat=NA, conf = c(0.05, 0.95))
+irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"), runs = 100, comb = NA, G = NA, smat=NA, conf = c(0.05, 0.95))
 {
-  IRF1 = irf_from_params(B = res_e$Bo[, , , 1], sigma = res_e$Sigma[,, 1], nstep = nstep, comb = NA, irf = irf, G = NA,smat=NA)
-  IRF2 = irf_from_params(B = res_e$Bo[, , , 2], sigma = res_e$Sigma[,, 2], nstep = nstep, comb = NA, irf = irf, G = NA,smat=NA)
+  IRF1 = irf_from_params(B = res_e$Bo[, , , 1], sigma = res_e$Sigma[,, 1], nstep = nstep, comb = NA, irf = irf, G = NA, smat=NA)
+  IRF2 = irf_from_params(B = res_e$Bo[, , , 2], sigma = res_e$Sigma[,, 2], nstep = nstep, comb = NA, irf = irf, G = NA, smat=NA)
   n = res_e$n
   p = res_e$p
   T = dim(res_e$Y)[1]
@@ -804,8 +845,8 @@ irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"),runs = 100,
   res_d = mrcivar_data_m(n=n, p=p, T=T, S=S, SESVI=SESVI, TH=TH, Bo=Bo, Co=Co, Sigmao=Sigmao, Uo=Uo, type=type, X=X, r=r)
   neq = res_e$n
   nvar = res_e$n
-  response1 <- array(0, dim = c(neq, nvar, nstep, length(conf) +         1))
-  response2 <- array(0, dim = c(neq, nvar, nstep, length(conf) +         1))
+  response1 <- array(0, dim = c(neq, nvar, nstep, length(conf) + 1))
+  response2 <- array(0, dim = c(neq, nvar, nstep, length(conf) + 1))
   response1[, , , 1] <- IRF1
   response2[, , , 1] <- IRF2
   responseR <- array(0, dim = c(neq, nvar, nstep, runs, S))
@@ -817,7 +858,7 @@ irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"),runs = 100,
   for (i in 1:runs) {
     for (s in 1:S) Uo_run[, , s] = rnorm_sigma(T, Sigmao[, , s])
     if (length(p) > 1) {
-      res_run = mrcivar_data_m(n = n, p = p, T = T, S = S,SESVI = SESVI, TH = TH, Bo = Bo, Co = Co, Sigmao = Sigmao,Uo = Uo_run, type = type,X=X,r = r)
+      res_run = mrcivar_data_m(n = n, p = p, T = T, S = S, SESVI = SESVI, TH = TH, Bo = Bo, Co = Co, Sigmao = Sigmao, Uo = Uo_run, type = type, X=X, r = r)
       res_e_run = mrcivar_estimatem1(res = res_run)
     }
     IRF1 = irf_from_params(B = res_e_run$Bo[, , , 1], sigma = res_e_run$Sigma[, , 1], nstep = nstep, comb = NA, irf = irf, G = NA)
@@ -843,49 +884,63 @@ irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"),runs = 100,
 
 
 #'
-#' This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S).
+#' Generate Generalized Impulse Response Functions for MRCIVAR Models
+#'
+#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
+#' MRCIVAR model for a given shock vector and initial values. The GIRF is computed as the 
+#' difference between mean responses with and without the shock, integrating out random effects 
+#' across multiple simulation runs.
 #'
 #' For a given shock vector SHCK:
-#'
 #' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
 #'
-#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate models, Economics Letters, 58(1) p. 17-29.
-#' and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
+#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
+#' models, Economics Letters, 58(1) p. 17-29.
+#' and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear 
+#' multivariate models, Journal of Econometrics, 74 (1996) 119-74.
 #'
-#' @param  res   : an MRCIVAR object containing the components  of an output of MRCIVARestm1.
-#' @param  shock : an n vector containing the shocks as impulse.
-#' @param  R     : the number runs to integrate out the random effects in order to obtain the means (see equation above).
-#' @param  nstep : the length of the responses
-#' @param  Omega_hist : a (P x n) matrix of initial values, from which the impulse response functions start. Omega_hist determines from which regime the impulse response functions start. For Omega_hist=NA, the impulse response functions will start from the most resent observations.
-#' @param  resid_method : resid_method = c("resid", "parametric"), It generate the random residuals from residuals bootstrap or parametric bootstrap.
-#' @return an (n x n x nstep+1) matrix of impulse response functions. The rows represent response the columns represent impulses.
+#' @param  res   : an MRCIVAR object containing the components of an output of mrcivar_estimatem1.
+#' @param  shock : an n-vector containing the shocks as impulse.
+#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
+#' @param  nstep : the length of the responses.
+#' @param  Omega_hist : a (P x n) matrix of initial values from which the impulse response functions start. 
+#'                      For Omega_hist=NA, the impulse response functions will start from the most recent observations.
+#' @param  resid_method : resid_method = c("resid", "parametric"). It generates random residuals 
+#'                        from residuals bootstrap or parametric bootstrap.
+#'
+#' @return an (n x n x nstep+1) array of impulse response functions. The rows represent response 
+#'         and the columns represent impulses.
+#'
 #' @examples
+#' n <- 4
 #'
-#' n =4
-#'
-#' Sigma = 1:(n*n*2)
-#' dim(Sigma) = c(n,n,2)
-#' Sigma[,,1] = diag(n)
-#' Sigma[,,2] = diag(n)
-#' p=matrix(0,2,2)
-#' p[,1] = c(3,3)
-#' res_d = mrcivar_data_m(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
-#' #colnames(res_d$Y) = c("w","p","I","Q")
+#' Sigma <- 1:(n*n*2)
+#' dim(Sigma) <- c(n,n,2)
+#' Sigma[,,1] <- diag(n)
+#' Sigma[,,2] <- diag(n)
+#' p <- matrix(0,2,2)
+#' p[,1] <- c(3,3)
+#' res_d <- mrcivar_data_m(n=n, p=p, T=250, S=2, SESVI=1, TH=0, 
+#'                          Sigmao=Sigma, type="const", r=2)
 #' max(abs(res_d$Y))
-#' res_e = mrcivar_estimatem1(res=res_d)
+#' res_e <- mrcivar_estimatem1(res=res_d)
 #' res_e$Summary
 #' Mod(spectral_radius(res_e$B[,,,1]))
 #' Mod(spectral_radius(res_e$B[,,,2]))
 #'
-#' if (!((max(Mod(spectral_radius(res_e$B[,,,1])))>1)|(max(Mod(spectral_radius(res_e$B[,,,2])))>1)) ) {
-#'   girf_mrcivar_rm(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,resid_method="parametric")
-#'   GIRF <- girf_mrcivar_rm_cb(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-#'   resid_method="parametric",conf_level=c(0.05,0.95),N=100)
-#'   IRF_g<- plot_irf(GIRF)
+#' if (!((max(Mod(spectral_radius(res_e$B[,,,1])))>1) | 
+#'       (max(Mod(spectral_radius(res_e$B[,,,2])))>1))) {
+#'   GIRF <- girf_mrcivar_rm(res=res_e, shock=c(1,1,1,1), R=100, nstep=10, 
+#'                            Omega_hist=NA, resid_method="parametric")
+#'   GIRF_CB <- girf_mrcivar_rm_cb(res=res_e, shock=c(1,1,1,1), R=100, nstep=10, 
+#'                                  Omega_hist=NA, resid_method="parametric", 
+#'                                  conf_level=c(0.05,0.95), N=100)
+#'   IRF_g <- plot_irf(GIRF_CB)
 #' }
+#'
 #' @export
 #' @keywords internal
-girf_mrcivar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
+girf_mrcivar_rm <- function(res, shock, R, nstep, Omega_hist=NA, resid_method) {
   ####  this function generate the impulse response function of MRVAR with migration
   ####
   ####                  	GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
@@ -963,8 +1018,12 @@ girf_mrcivar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
     residS[[i]] = residI
 
     for (k in 1:n) {
-      YR[,,k] = mrcivar_data_m(n=n,p=p,T=(P+nstep+1),S=S,SESVI=SESVI,TH=TH,Bo=Bo,Co=Co,Sigmao=Sigmao,Uo=residR[[i]][,,k,],type=type,X=X,Yo=Yo,d=d)$Y
-      YS[,,k] = mrcivar_data_m(n=n,p=p,T=(P+nstep+1),S=S,SESVI=SESVI,TH=TH,Bo=Bo,Co=Co,Sigmao=Sigmao,Uo=residS[[i]][,,k,],type=type,X=X,Yo=Yo,d=d)$Y
+      YR[,,k] = mrcivar_data_m(n=n, p=p, T=(P+nstep+1), S=S, SESVI=SESVI, TH=TH, 
+                               Bo=Bo, Co=Co, Sigmao=Sigmao, Uo=residR[[i]][,,k,], 
+                               type=type, X=X, Yo=Yo, d=d)$Y
+      YS[,,k] = mrcivar_data_m(n=n, p=p, T=(P+nstep+1), S=S, SESVI=SESVI, TH=TH, 
+                               Bo=Bo, Co=Co, Sigmao=Sigmao, Uo=residS[[i]][,,k,], 
+                               type=type, X=X, Yo=Yo, d=d)$Y
     }
 
     MYR = MYR + 1/R*YR
@@ -983,48 +1042,57 @@ girf_mrcivar_rm <- function(res,shock,R,nstep,Omega_hist=NA,resid_method) {
 
 
 #'
-#' This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S) with a bootstrapping confidence interval.
+#' Generate Generalized Impulse Response Functions with Confidence Bands for MRCIVAR Models
+#'
+#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
+#' MRCIVAR model for a given shock vector and initial values. The GIRF is computed as the 
+#' difference between mean responses with and without the shock, integrating out random effects 
+#' across multiple simulation runs. It also generates bootstrapped confidence intervals.
 #'
 #' For a given shock vector SHCK:
-#'
 #' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
 #'
-#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate models, Economics Letters, 58(1) p. 17-29.
-#' and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
+#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
+#' models, Economics Letters, 58(1) p. 17-29.
+#' and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear 
+#' multivariate models, Journal of Econometrics, 74 (1996) 119-74.
 #'
-#' @param  res   : an MRCIVAR object containing the components  of an output of MRCIVARestm1.
-#' @param  shock : an n vector containing the shocks as impulse.
-#' @param  R     : the number runs to integrate out the random effects in order to obtain the means (see equation above).
-#' @param  nstep : the length of the responses
-#' @param  Omega_hist : a (P x n) matrix of initial values, from which the impulse response functions start. Omega_hist determines from which regime the impulse response functions start. For Omega_hist=NA, the impulse response functions will start from the most resent observations.
-#' @param  resid_method : resid_method = c("resid", "parametric"), It generate the random residuals from residuals bootstrap or parametric bootstrap.
-#' @param  conf_level : a vecter contain the level of confidences
-#' @param  N            : the number of bootstrap runs in containing the bootstrapped confidence intervals.
-#' @return an (n, n, nstep+1,3) array containing the impulse response functions with lower and upper confidence bonds. The rows represent response, and the columns represent impulses.
+#' @param  res   : an MRCIVAR object containing the components of an output of mrcivar_estimatem1.
+#' @param  shock : an n-vector containing the shocks as impulse.
+#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
+#' @param  nstep : the length of the responses.
+#' @param  Omega_hist : a (P x n) matrix of initial values from which the impulse response functions start. 
+#'                      For Omega_hist=NA, the impulse response functions will start from the most recent observations.
+#' @param  resid_method : resid_method = c("resid", "parametric"). It generates random residuals 
+#'                        from residuals bootstrap or parametric bootstrap.
+#' @param  conf_level : a vector containing the tail probabilities of the bootstrap confidence interval.
+#' @param  N : number of bootstrapping runs.
+#' @return an (n x n x nstep+1 x 3) array containing impulse response functions with lower and upper 
+#'         confidence bands. The rows represent response and the columns represent impulses.
+#'
 #' @examples
-#' n =4
+#' n <- 4
 #'
-#' Sigma = 1:(n*n*2)
-#' dim(Sigma) = c(n,n,2)
-#' Sigma[,,1] = diag(n)
-#' Sigma[,,2] = diag(n)
-#' p=matrix(0,2,2)
-#' p[,1] = c(3,3)
-#' res_d = mrcivar_data_m(n=n,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
-#' #colnames(res_d$Y) = c("w","p","I","Q")
+#' Sigma <- 1:(n*n*2)
+#' dim(Sigma) <- c(n,n,2)
+#' Sigma[,,1] <- diag(n)
+#' Sigma[,,2] <- diag(n)
+#' p <- matrix(0,2,2)
+#' p[,1] <- c(3,3)
+#' res_d <- mrcivar_data_m(n=n, p=p, T=250, S=2, SESVI=1, TH=0, 
+#'                          Sigmao=Sigma, type="const", r=2)
 #' max(abs(res_d$Y))
-#' res_e = mrcivar_estimatem1(res=res_d)
+#' res_e <- mrcivar_estimatem1(res=res_d)
 #' res_e$Summary
-#' Mod(spectral_radius(res_e$B[,,,1]))
-#' Mod(spectral_radius(res_e$B[,,,2]))
+#' Mod(spectral_radius(res_e$Bo[,,,1]))
+#' Mod(spectral_radius(res_e$Bo[,,,2]))
 #'
-#' #res_e$Summary
-#' if (! max(Mod(spectral_radius(res_e$Bo[,,,1])),Mod(spectral_radius(res_e$Bo[,,,2])) ) > 1.0001 ) {
-#'
-#'  IRF  = irf_mrcivar_cb(res_e,nstep=20,irf="gen1",runs=10,comb=NA,G=NA,conf=c(0.05,0.95))
-#'  IRF_g1 <- plot_irf(IRF[[1]])        # irf of regime 1
-#'  IRF_g2<- plot_irf(IRF[[2]])         # irf of regime 2
-#'
+#' if (! max(Mod(spectral_radius(res_e$Bo[,,,1])), 
+#'           Mod(spectral_radius(res_e$Bo[,,,2]))) > 1.0001 ) {
+#'   GIRF_CB <- girf_mrcivar_rm_cb(res=res_e, shock=c(1,1,1,1), R=100, nstep=10, 
+#'                                  Omega_hist=NA, resid_method="parametric", 
+#'                                  conf_level=c(0.05,0.95), N=100)
+#'   IRF_g <- plot_irf(GIRF_CB)
 #' }
 #'
 #' @export
@@ -1070,20 +1138,23 @@ girf_mrcivar_rm_cb <- function (res, shock, R, nstep, Omega_hist=NA, resid_metho
 
 
 #'
-#' This function calculates the regime specific impulse response functions of an estimated MRGVAR(n,p,S).
-#' Using the estimated G\[,,,s\] and Sigma\[,,s\] matrices of the MRGVAR, this function calculated the regime specific impulse response functions.
+#' Generate Impulse Response Functions for MRGVAR Models
+#'
+#' This function computes the impulse response functions (IRFs) of an estimated MRGVAR model,
+#' allowing for various types of IRFs and handling different configurations of shocks and responses
+#' across multiple regimes and countries.
+#'
 #' @param res a list of estimated MRGVAR as output of mrgvar_estimate
+#' @param state an n vector specifying the specific state for each country
 #' @param nstep the length of impulse response function
 #' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param state an n vector specifying the specific state for each country.
-#' @param  irf  : types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
-#' "gen" for generalized impulse response with one standard deviation impulses, "gen1" for GIRF with one unit impulses, "chol" Cholezky decomposition, "chol1" Cholezky decomposition with unit impulses, "comb1" concerted action with unit impulse.
+#' @param irf types of the impulse response irf=c("gen","chol","chol1","gen1","genN1","comb1","smat")
 #' @param G For permanent and transitory decomposition
 #' @param smat For explicit structural decomposition of the correlated shocks
 #' @param sigmaNPDS the state-dependent covariance matrix
-#' @return a list containing the impulse response functions and the accumulated impulse response function, and the boostrap parameters as well.
-#' @examples
+#' @return an (mn,mn,nstep) array containing the IRF with columns representing the impulses and rows the responses
 #'
+#' @examples
 #' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
 #' p = rep(1,12); dim(p) = c(2,3,2)
 #' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
@@ -1101,68 +1172,92 @@ girf_mrcivar_rm_cb <- function (res, shock, R, nstep, Omega_hist=NA, resid_metho
 #' @export
 #' @keywords internal
 #'
-irf_mrgvar = function(res=res,state=state,nstep=nstep,comb=comb,irf = c("gen", "chol", "chol1","gen1","genN1", "comb1","smat"),G=NA,smat=NA,sigmaNPDS=NA) {
-      if (missing(G)) 		G = NA
-      if (missing(sigmaNPDS))	sigmaNPDS=NA
-      if (missing(smat))      smat = NA
-      neq 	= dim(res$Go)[1]
-	    nvar	= dim(res$Go)[2]
-      m 	= res$m
-	    n 	= res$n
-      p 	= res$p
-      if (length(p)>1) pp = max(p[,1:2,]) else pp = p
-	    Bo    = res$Bo
-	    Ao 	= res$Ao
-      W	= res$W
-      B     = bo_ao_ws2_gs(Bo,Ao,W,m,n,pp,state)
-      #if (anyNA(sigmaNPDS))	sigma = sigma_npd(res,state)  else  sigma = sigmaNPDS
-      if (anyNA(sigmaNPDS))	sigma = sigma_npd_select_r(res,state)   else  sigma = sigmaNPDS
-
-      response <- array(0,dim=c(neq,nvar,nstep));
-      response <- irf_from_params(B,sigma,nstep,comb,irf=irf,G=G,smat=smat)
-	return(response)
+irf_mrgvar = function(res=res, state=state, nstep=nstep, comb=comb, irf = c("gen", "chol", "chol1", "gen1", "genN1", "comb1", "smat"), G=NA, smat=NA, sigmaNPDS=NA) {
+  if (missing(G))
+    G = NA
+  if (missing(sigmaNPDS))
+    sigmaNPDS = NA
+  if (missing(smat))
+    smat = NA
+  neq = dim(res$Go)[1]
+  nvar = dim(res$Go)[2]
+  m = res$m
+  n = res$n
+  p = res$p
+  if (length(p) > 1)
+    pp = max(p[, 1:2, ])
+  else
+    pp = p
+  Bo = res$Bo
+  Ao = res$Ao
+  W = res$W
+  B = bo_ao_ws2_gs(Bo, Ao, W, m, n, pp, state)
+  if (anyNA(sigmaNPDS))
+    sigma = sigma_npd_select_r(res, state)
+  else
+    sigma = sigmaNPDS
+  response <- array(0, dim = c(neq, nvar, nstep))
+  response <- irf_from_params(B, sigma, nstep, comb, irf = irf, G = G, smat = smat)
+  return(response)
 }
 
 
 
 #'
-#' This function calculates the generalized impulse response functions of an estimated MRGVAR(n,p,S) for given a shock vector.
+#' Generate Generalized Impulse Response Functions for MRGVAR Models
 #'
-#'                   GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
+#' MRGVAR model for a given shock vector and initial values. The GIRF is computed as the 
+#' difference between mean responses with and without the shock, integrating out random effects 
+#' across multiple simulation runs.
+#'
+#' For a given shock vector SHCK:
+#' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#'
+#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
+#' models, Economics Letters, 58(1) p. 17-29.
 #'
 #' @param  res   : an MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.
 #' @param  shock : an mn-vector containing the shocks as impulse.
-#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means (see equation above).
-#' @param  nstep : the length of the responses
-#' @param  Omega_hist : the initial values from which the simulation runs start.For Omega_hist=NA the most recent values are taken as the initial values. For Omega_hist=0, the initial values are zeros.
-#' @param  resid_method : resid_method = c("resid", "parametric"), It generates the random residuals from residuals bootstrap or parametric bootstrap.
-#' @return an (mn x mn x nstep+1) matrix of impulse response functions. The rows represent response the columns represent impulses.
+#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
+#' @param  nstep : the length of the responses.
+#' @param  Omega_hist : the initial values from which the simulation runs start. For Omega_hist=NA 
+#'                      the most recent values are taken as the initial values. For Omega_hist=0, 
+#'                      the initial values are zeros.
+#' @param  resid_method : resid_method = c("resid", "parametric"). It generates the random residuals 
+#'                        from residuals bootstrap or parametric bootstrap.
+#' @return a list containing three elements: (1) an (mn x mn x nstep+1) array of impulse response 
+#'         functions, (2) the shocked responses, and (3) the baseline responses. The rows represent 
+#'         response and the columns represent impulses.
+#'
 #' @examples
-#' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
-#' p = rep(1,12); dim(p) = c(2,3,2)
-#' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
-#' TH = c(1:2)*0; dim(TH) = c(1,2)
-#' res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
+#' ## Minimal, quick example (safe to run in checks)
+#' ## n: number of countries, m: number of variables, S: simulation draws
+#' p <- rep(1, 12); dim(p) <- c(2, 3, 2)
+#' p[1, 1, 2] <- 2; p[2, 2, 2] <- 2; p[, 3, ] <- 0
+#' TH <- c(1:2) * 0; dim(TH) <- c(1, 2)
+#' res_d <- mrgvar_data(m = 2, n = 2, p = p, TH = TH, T = 50, S = 2,
+#'                      SESVI = c(1, 3), type = "const")
 #' max(res_d$Y)
 #'
-#' ### estimation of the MRGVAR model
-#' colnames(res_d$Y) = c("P","Q","Pa","Qa")
-#' res_e = mrgvar_estimate(res=res_d)
-#' res_e$Summary
+#' \donttest{
+#'   ## Full workflow example (can be slow / sensitive to numerical issues)
+#'   colnames(res_d$Y) <- c("P", "Q", "Pa", "Qa")
+#'   res_e <- mrgvar_estimate(res = res_d)
+#'   res_e$Summary
 #'
-#' IRF_CB  = irf_mrgvar_cb(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
-#' conf=c(0.05,0.95))
-#' IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
-#' IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
+#'   GIRF <- girf_mrgvar_rm(res = res_e, shock = c(1, 1, 1, 1), R = 100,
+#'                          nstep = 10, Omega_hist = NA, resid_method = "parametric")
+#'   GIRF_CB <- girf_mrgvar_rm_cb(res = res_e, shock = c(1, 1, 1, 1), R = 100,
+#'                                nstep = 10, Omega_hist = NA,
+#'                                resid_method = "parametric",
+#'                                conf = c(0.05, 0.95), N = 10)
+#'   IRF_g <- plot_irf(GIRF_CB, Names = c("P", "Q", "Pa", "Qa"))
+#' }
 #'
-#' GIRF    = girf_mrgvar_rm(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-#' resid_method='parametric')
-#' GIRF_CB = girf_mrgvar_rm_cb(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-#' resid_method='parametric',conf=c(0.05,0.95),N=10)
-#' IRF_g   = plot_irf(GIRF_CB,Names=c("P","Q","Pa","Qa"))    #IRF
 #' @export
 #' @keywords internal
-girf_mrgvar_rm <- function(res,shock,R,nstep,Omega_hist,resid_method) {
+girf_mrgvar_rm <- function(res, shock, R, nstep, Omega_hist, resid_method) {
   ####  this function generate the impulse response function of MRVAR with regime migration
   ####
   ####                  GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
@@ -1272,105 +1367,120 @@ girf_mrgvar_rm <- function(res,shock,R,nstep,Omega_hist,resid_method) {
 
 
 #'
-#' This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S) for given a shock vector.
+#' Generate Generalized Impulse Response Functions with Confidence Bands for MRGVAR Models
 #'
-#'                   GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
+#' MRGVAR model for a given shock vector and initial values. The GIRF is computed as the 
+#' difference between mean responses with and without the shock, integrating out random effects 
+#' across multiple simulation runs. It also generates bootstrapped confidence intervals.
 #'
-#' It also generates the bootstrapped confidence intervals.
+#' For a given shock vector SHCK:
+#' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
 #'
-#' @param  res   : a MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.
+#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
+#' models, Economics Letters, 58(1) p. 17-29.
+#'
+#' @param  res   : an MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.
 #' @param  shock : an mn-vector containing the shocks as impulse.
-#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means (see equation above).
-#' @param  nstep : the length of the responses
-#' @param  Omega_hist : the initial values from which the simulation runs of impulse and response functions start
-#' @param  resid_method : resid_method = c("resid", "parametric"), It generate random residuals either from residuals bootstrap or parametric bootstrap.
+#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
+#' @param  nstep : the length of the responses.
+#' @param  Omega_hist : the initial values from which the simulation runs of impulse and response functions start. 
+#'                      For Omega_hist=NA the most recent values are taken as the initial values.
+#' @param  resid_method : resid_method = c("resid", "parametric"). It generates random residuals 
+#'                        either from residuals bootstrap or parametric bootstrap.
 #' @param  conf  : a two component vector containing the tail probabilities of the bootstrap confidence interval.
-#' @param  N     : number of bootstrapping runs
-#' @return an (n x n x nstep+1 x 3) array containing of impulse response functions with lower and upper confidence bonds. The rows represent response the columns represent impulses.
+#' @param  N     : number of bootstrapping runs.
+#' @return an (mn x mn x nstep+1 x 3) array containing impulse response functions with lower and upper 
+#'         confidence bands. The rows represent response and the columns represent impulses.
+#'
 #' @examples
 #' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
-#' p = rep(1,12); dim(p) = c(2,3,2)
-#' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
-#' TH = c(1:2)*0; dim(TH) = c(1,2)
-#' res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
+#' p = rep(1, 12); dim(p) = c(2, 3, 2)
+#' p[1, 1, 2] = 2; p[2, 2, 2] = 2; p[, 3, ] = 0
+#' TH = c(1:2) * 0; dim(TH) = c(1, 2)
+#' res_d <- mrgvar_data(m = 2, n = 2, p = p, TH = TH, T = 100, S = 2, 
+#'                       SESVI = c(1, 3), type = "const")
 #' max(res_d$Y)
 #'
 #' ### estimation of the MRGVAR model
-#' colnames(res_d$Y) = c("P","Q","Pa","Qa")
-#' res_e = mrgvar_estimate(res=res_d)
+#' colnames(res_d$Y) = c("P", "Q", "Pa", "Qa")
+#' res_e = mrgvar_estimate(res = res_d)
 #' res_e$Summary
 #'
-#' Mod(spectral_radius(res_e$Go[,,,1]))
-#' Mod(spectral_radius(res_e$Go[,,,2]))
+#' Mod(spectral_radius(res_e$Go[, , , 1]))
+#' Mod(spectral_radius(res_e$Go[, , , 2]))
 #'
-#' GIRF    = girf_mrgvar_rm(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-#' resid_method='parametric')
-#' GIRF_CB = girf_mrgvar_rm_cb(res=res_e,shock=c(1,1,1,1),R=100,nstep=10,Omega_hist=NA,
-#' resid_method='parametric',conf=c(0.05,0.95),N=10)
-#' GIRF_g  = plot_irf(GIRF_CB,Names=c("P","Q","Pa","Qa"))
+#' GIRF = girf_mrgvar_rm(res = res_e, shock = c(1, 1, 1, 1), R = 100, 
+#'                        nstep = 10, Omega_hist = NA, resid_method = 'parametric')
+#' GIRF_CB = girf_mrgvar_rm_cb(res = res_e, shock = c(1, 1, 1, 1), R = 100, 
+#'                              nstep = 10, Omega_hist = NA, 
+#'                              resid_method = 'parametric', conf = c(0.05, 0.95), N = 10)
+#' GIRF_g = plot_irf(GIRF_CB, Names = c("P", "Q", "Pa", "Qa"))
 #'
 #' @export
-girf_mrgvar_rm_cb <- function(res,shock,R,nstep,Omega_hist=NA,resid_method="parametric",conf,N) {
-  ##### this is to generate bootstrap GIRF for MRVAR with regime migrations
-  #####
-  n 		= res$n
-  m 		= res$m
-  p 		= res$p
-  S 		= res$S
-  SESVI		= res$SESVI
-  TH		= res$TH
-  Go          = res$Go
-  Bo		= res$Bo
-  Ao          = res$Ao
-  Co		= res$Co
-  Sigmao	= res$Sigmao
-  W           = res$W
-  type		= res$type
-  SV          = res$SV
-  X 		  = res$X;
-  Yo		  = res$Yo
-  d           = res$d
-  Uo          = res$Uo
-  T           = dim(res$Y)[1]
-  P           = max(d,p)
-  GIRF 		= (1:(m*n*n*m*(nstep+1)*N))*0; dim(GIRF) = c(m*n,m*n,nstep+1,N)
-
-  GIRFBd	= (1:(m*n*n*m*(nstep+1)*(length(conf)+1)))*0; dim(GIRFBd) = c(m*n,m*n,nstep+1,length(conf)+1)
-
-  GIRFBd[,,,1]= girf_mrgvar_rm(res,shock,R=2*R,nstep,Omega_hist,resid_method)[[1]]
-
+girf_mrgvar_rm_cb <- function(res, shock, R, nstep, Omega_hist = NA, 
+                resid_method = "parametric", conf, N) {
+  n = res$n
+  m = res$m
+  p = res$p
+  S = res$S
+  SESVI = res$SESVI
+  TH = res$TH
+  Go = res$Go
+  Bo = res$Bo
+  Ao = res$Ao
+  Co = res$Co
+  Sigmao = res$Sigmao
+  W = res$W
+  type = res$type
+  SV = res$SV
+  X = res$X
+  Yo = res$Yo
+  d = res$d
+  Uo = res$Uo
+  T = dim(res$Y)[1]
+  P = max(d, p)
+  
+  GIRF = (1:(m * n * n * m * (nstep + 1) * N)) * 0
+  dim(GIRF) = c(m * n, m * n, nstep + 1, N)
+  
+  GIRFBd = (1:(m * n * n * m * (nstep + 1) * (length(conf) + 1))) * 0
+  dim(GIRFBd) = c(m * n, m * n, nstep + 1, length(conf) + 1)
+  
+  GIRFBd[, , , 1] = girf_mrgvar_rm(res, shock, R = 2 * R, nstep, Omega_hist, resid_method)[[1]]
+  
   for (i in 1:N) {
-    #res_run = mrgvar_data(m=m,n=n,p=p,T=T,S=S,W=W,SESVI=SESVI,TH=TH,Go=Go,Ao=Ao,Bo=Bo,Sigmao=Sigmao,Uo=NA,SV=SV,type=type,Co=Co,X=X,Yo=Yo,d=d)
-    #res_e   = mrgvar_estimate(res_run)
-    res_run = mrgvar_data_r(res)
-    if (length(colnames(res_run$Y))==0) colnames(res_run$Y) = paste("res_runY",1:ncol(res_run$Y),sep="")
-    res_erun   = mrgvar_estimate(res_run)
-    RF3     = girf_mrgvar_rm(res=res_erun,shock,R,nstep,Omega_hist,resid_method)[[1]]
-    GIRF[,,,i]  = RF3
+  res_run = mrgvar_data_r(res)
+  if (length(colnames(res_run$Y)) == 0) colnames(res_run$Y) = paste("res_runY", 1:ncol(res_run$Y), sep = "")
+  res_erun = mrgvar_estimate(res_run)
+  RF3 = girf_mrgvar_rm(res = res_erun, shock, R, nstep, Omega_hist, resid_method)[[1]]
+  GIRF[, , , i] = RF3
   }
-
-
-  for (tt in 1:(nstep+1) ) {
-    for (i in 1:(n*m))           {
-      for (j in 1:(n*m))     {
-        GIRFBd[i,j,tt,-1] = stats::quantile(GIRF[i,j,tt,], conf)
-
-      }
+  
+  for (tt in 1:(nstep + 1)) {
+  for (i in 1:(n * m)) {
+    for (j in 1:(n * m)) {
+    GIRFBd[i, j, tt, -1] = stats::quantile(GIRF[i, j, tt, ], conf)
     }
   }
+  }
+  
   return(GIRFBd)
 }
 
 
 
 #'
+#' Calculate Regime Specific Impulse Response Functions for MRGVAR Models
+#'
 #' This function calculates the regime specific impulse response functions of an estimated MRGVAR(n,p,S).
-#' Using the estimated G\[,,,s\] and Sigma\[,,s\] matrices of the MRGVAR, this function calculated the regime specific impulse response functions.
+#' Using the estimated G\[,,,s\] and Sigma\[,,s\] matrices of the MRGVAR, this function calculates the regime specific impulse response functions.
+#'
 #' @param res a list of estimated MRGVAR as output of mrgvar_estimate
 #' @param state an n vector specifying the specific state for each country.
 #' @param nstep the length of impulse response function
 #' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param  irf  : types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
+#' @param irf types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
 #' "gen" for generalized impulse response with one standard deviation impulses, "gen1" for GIRF with one unit impulses, "chol" Cholezky decomposition, "chol1" Cholezky decomposition with unit impulses, "comb1" concerted action with unit impulse.
 #' @param G For permanent and transitory decomposition
 #' @param smat For an explicit structural decomposition of the correlated shocks
@@ -1398,159 +1508,196 @@ girf_mrgvar_rm_cb <- function(res,shock,R,nstep,Omega_hist=NA,resid_method="para
 #' #IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
 #'
 #' @export
-irf_mrgvar_cb = function (res, state = c(2, 1), nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"), G=NA,smat=NA,sigmaNPDS=NA,runs = 200, conf = c(0.05, 0.95),NT = 1)
-{
-    m = res$m
-    n = res$n
-    p = res$p
-    if (length(p) > 1)
-        pp = max(p[, 1:2, ])
-    else pp = p
-    T = dim(res$Y)[1] * NT
-    W = res$W
-    S = res$S
-    SV = res$SV
-    SESVI = res$SESVI
-    TH = res$TH
-    Ao = res$Ao
-    Bo = res$Bo
-    Co = res$Co
-    Go = res$Go
-    GoColect = array(0, c(dim(Go), runs))
-    BoColect = array(0, c(dim(Bo), runs))
-    AoColect = array(0, c(dim(Ao), runs))
-    UoColect = array(0, c(T, m * n, S, runs))
-    YColect = array(0, c(T, m * n, runs))
-    type = res$type
-    X = res$X
-    mu = res$mu
-    B = bo_ao_ws2_gs(Bo, Ao, W, m, n, pp, state)
-    neq = dim(B)[1]
-    nvar = dim(B)[2]
-    sigma = res$Sigmao
-    response <- array(0, dim = c(neq, nvar, nstep, length(conf) + 1))
-    accresponse <- response
-    sigmaNPDS = sigma_npd(res, state)
-    response[, , , 1] <- irf_mrgvar(res=res, nstep=nstep, comb=comb, state=state, irf=irf)
-    accresponse[, , , 1] <- response[, , , 1]
-    for (tt in 2:nstep) {  accresponse[, ,tt, 1] = accresponse[, ,tt-1, 1] + response[, ,tt, 1] }
+irf_mrgvar_cb = function (res, state = c(2, 1), nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"), G=NA, smat=NA, sigmaNPDS=NA, runs = 200, conf = c(0.05, 0.95), NT = 1) {
+  m = res$m
+  n = res$n
+  p = res$p
+  if (length(p) > 1)
+    pp = max(p[, 1:2, ])
+  else pp = p
+  T = dim(res$Y)[1] * NT
+  W = res$W
+  S = res$S
+  SV = res$SV
+  SESVI = res$SESVI
+  TH = res$TH
+  Ao = res$Ao
+  Bo = res$Bo
+  Co = res$Co
+  Go = res$Go
+  GoColect = array(0, c(dim(Go), runs))
+  BoColect = array(0, c(dim(Bo), runs))
+  AoColect = array(0, c(dim(Ao), runs))
+  UoColect = array(0, c(T, m * n, S, runs))
+  YColect = array(0, c(T, m * n, runs))
+  type = res$type
+  X = res$X
+  mu = res$mu
+  B = bo_ao_ws2_gs(Bo, Ao, W, m, n, pp, state)
+  neq = dim(B)[1]
+  nvar = dim(B)[2]
+  sigma = res$Sigmao
+  response <- array(0, dim = c(neq, nvar, nstep, length(conf) + 1))
+  accresponse <- response
+  sigmaNPDS = sigma_npd(res, state)
+  response[, , , 1] <- irf_mrgvar(res=res, nstep=nstep, comb=comb, state=state, irf=irf)
+  accresponse[, , , 1] <- response[, , , 1]
+  for (tt in 2:nstep) {  accresponse[, ,tt, 1] = accresponse[, ,tt-1, 1] + response[, ,tt, 1] }
 
-    responseR <- array(0, dim = c(neq, nvar, nstep, runs))
-    accresponseR <- responseR
-    Uo_run = array(0, c(T, n * m, S))
-    for (i in 1:runs) {
-        for (s in 1:S) Uo_run[, , s] = rnorm_sigma(T, res$Sigmao[,, s])
-        if (length(p) > 1) {
-            res_run = mrgvar_data_r(res)
-            if (length(colnames(res_run$Y))==0) colnames(res_run$Y) = paste("res_runY",1:ncol(res_run$Y),sep="")
-            res_e   = mrgvar_estimate(res_run)
-        }
-
-        responseR[, , , i] <- irf_mrgvar(res=res_e,  state=state,nstep=nstep, comb=comb, irf=irf, G=G,smat=smat,sigmaNPDS=sigmaNPDS)
-        accresponseR[, , , i] <-  responseR[, , , i]
-        for (tt in 2:nstep) {  accresponseR[, ,tt, i] = accresponseR[, ,tt-1, i] + responseR[, ,tt, i] }
-        GoColect[, , , , i] <- res_e$Go
-        BoColect[, , , , , i] <- res_e$Bo
-        AoColect[, , , , , i] <- res_e$Ao
-        #UoColect[, , , i] <- res_run$Uo
-        #YColect[, , i] <- res_run$Y
+  responseR <- array(0, dim = c(neq, nvar, nstep, runs))
+  accresponseR <- responseR
+  Uo_run = array(0, c(T, n * m, S))
+  for (i in 1:runs) {
+    for (s in 1:S) Uo_run[, , s] = rnorm_sigma(T, res$Sigmao[,, s])
+    if (length(p) > 1) {
+      res_run = mrgvar_data_r(res)
+      if (length(colnames(res_run$Y))==0) colnames(res_run$Y) = paste("res_runY",1:ncol(res_run$Y),sep="")
+      res_e   = mrgvar_estimate(res_run)
     }
-    responseR[, , , 1]    = response[, , , 1]
-    accresponseR[, , , 1] = accresponse[, , , 1]
 
-    for (tt in 1:(nstep)) {
-        for (i in 1:neq) {
-            for (j in 1:nvar) {
-                response[i, j, tt, -1]    = stats::quantile(responseR[i, j, tt, ], conf)
- 		    accresponse[i, j, tt, -1] = stats::quantile(accresponseR[i, j, tt, ], conf)
-            }
-        }
+    responseR[, , , i] <- irf_mrgvar(res=res_e,  state=state,nstep=nstep, comb=comb, irf=irf, G=G, smat=smat, sigmaNPDS=sigmaNPDS)
+    accresponseR[, , , i] <-  responseR[, , , i]
+    for (tt in 2:nstep) {  accresponseR[, ,tt, i] = accresponseR[, ,tt-1, i] + responseR[, ,tt, i] }
+    GoColect[, , , , i] <- res_e$Go
+    BoColect[, , , , , i] <- res_e$Bo
+    AoColect[, , , , , i] <- res_e$Ao
+    #UoColect[, , , i] <- res_run$Uo
+    #YColect[, , i] <- res_run$Y
+  }
+  responseR[, , , 1]    = response[, , , 1]
+  accresponseR[, , , 1] = accresponse[, , , 1]
+
+  for (tt in 1:(nstep)) {
+    for (i in 1:neq) {
+      for (j in 1:nvar) {
+        response[i, j, tt, -1]    = stats::quantile(responseR[i, j, tt, ], conf)
+        accresponse[i, j, tt, -1] = stats::quantile(accresponseR[i, j, tt, ], conf)
+      }
     }
-    return(list(response, accresponse, GoColect, BoColect, AoColect, UoColect, YColect,responseR))
+  }
+  return(list(response, accresponse, GoColect, BoColect, AoColect, UoColect, YColect, responseR))
 }
 
 
 
+#'
+#' Calculate Accumulated Impulse Response Functions
+#'
+#' This function calculates the cumulative impulse response functions from a given set of impulse response functions.
+#' It sums the impulse responses over time to provide a cumulative effect of the shocks.
 #'
 #' @param IRF An impulse response function
 #'
 #' @return The cumulative impulse response function
+#' @examples
+#' # Example usage of accir_fconf_r
+#' # Assuming IRF is a predefined impulse response function arrays
+#' p = matrix(c(2,1,0,0),2,2)
+#' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1)
+#' max(abs(res_d$Y))
+#' res_e  = mrvar_estimate(res_d)
+#' res_e$Summary
+#' 
+#' IRF <- irf_mrvar_nm(res_e,nstep=10,comb=NA,irf="gen")
+#' cumulative_response <- accir_fconf_r(IRF)
 #' @export
 #'
 #' @keywords internal
-accir_fconf_r = function(IRF) {
-      ACCirf = IRF
-        dm = dim(IRF)
-      for (t in 2:dm[3])          {
-                 ACCirf[,,t,] =    ACCirf[,,t-1,] + IRF[,,t,]
-      }
-      return(ACCirf)
+#'
+accir_fconf_r <- function(IRF) {
+  ACCirf = IRF
+  dm = dim(IRF)
+  for (t in 2:dm[3]) {
+    ACCirf[,,t,] = ACCirf[,,t-1,] + IRF[,,t,]
+  }
+  return(ACCirf)
 }
 
 
 
 #'
-#'This function calculates global or regional responses from a set of bootstrapped impulse response functions and a weighting matrix for the aggregation of the global responses.
+#' Calculate Global Impulse Response Functions with Confidence Bands
+#'
+#' This function calculates global or regional responses from a set of bootstrapped impulse response functions 
+#' and a weighting matrix for the aggregation of the global responses. It returns both the global impulse response 
+#' functions and their accumulated versions, along with confidence intervals.
 #'
 #' @param IRF_CB an output of irf_mrgvar_cb
 #' @param comb_all a weighting matrix for the aggregation of the global responses
 #'
 #' @return a list containing the global impulse response functions and the accumulated global impulse response functions.
+#' @examples
+#' # Example usage of irf_global_response_cb
+#' # Assuming IRF_CB is the output from irf_mrgvar_cb and comb_all is a predefined weighting matrix
+#' p = matrix(c(2,1,0,0),2,2)
+#' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1)
+#' max(abs(res_d$Y))
+#' res_e  = mrvar_estimate(res_d)
+#' res_e$Summary
+#' 
+#' IRF_CB <- irf_mrvar_nm_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.90))
+#' result <- irf_global_response_cb(IRF_CB, comb_all)
 #' @export
 #'
-irf_gloabal_response_cb <- function(IRF_CB,comb_all) {
-
-  bootarray <-IRF_CB[[8]]
+irf_global_response_cb <- function(IRF_CB, comb_all) {
+  
+  bootarray <- IRF_CB[[8]]
   DIM <- dim(bootarray)
-  #bootarray = IRFC[[8]]
-  glresp <-dim(comb_all)[2]
-  nN     <-DIM[1]
-  nstep  <-DIM[3]
-  nrun   <-DIM[4]
-  globalbootarray <-array(0,dim=c(glresp,nN,nstep,nrun))
-
-  for (m in 1:glresp)     {
-    for (j in 1:(nN))    {
-      for (k in 1:nstep ) {
-        for (q in  1:nrun) {
-          globalbootarray[m,j,k,q] = sum(bootarray[,j,k,q]*comb_all[,m])
-
-        }}}}
-
-  globalbootconf = c(1:(3*glresp*nN*nstep))*0
-  dim(globalbootconf) = c(glresp,nN,nstep,3)
+  glresp <- dim(comb_all)[2]
+  nN <- DIM[1]
+  nstep <- DIM[3]
+  nrun <- DIM[4]
+  globalbootarray <- array(0, dim = c(glresp, nN, nstep, nrun))
+  
+  for (m in 1:glresp) {
+  for (j in 1:(nN)) {
+    for (k in 1:nstep) {
+    for (q in 1:nrun) {
+      globalbootarray[m, j, k, q] = sum(bootarray[, j, k, q] * comb_all[, m])
+    }
+    }
+  }
+  }
+  
+  globalbootconf = c(1:(3 * glresp * nN * nstep)) * 0
+  dim(globalbootconf) = c(glresp, nN, nstep, 3)
   globalbootconf[,,,1] = globalbootarray[,,,1]
-
-  for (i in 1:glresp)       {
-    for (j in 1:(nN))     {
-      for (k in 1:nstep ) {
-        globalbootconf[i,j,k,2:3] = stats::quantile(globalbootarray[i,j,k,],c(.05,.95))
-      }}}
-  dim(globalbootconf)
-
+  
+  for (i in 1:glresp) {
+  for (j in 1:(nN)) {
+    for (k in 1:nstep) {
+    globalbootconf[i, j, k, 2:3] = stats::quantile(globalbootarray[i, j, k, ], c(.05, .95))
+    }
+  }
+  }
+  
   ACCbootconf3N = accir_fconf_r(globalbootconf)
-  return(list(globalbootconf,ACCbootconf3N))
+  return(list(globalbootconf, ACCbootconf3N))
 }
 
 
 
+#' Calculate Generalized Impulse Response Functions for MRVAR Models
 #'
-#' This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S) for a given shock vector SHCK.
-#'
-#'
+#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
+#' MRVAR(n,p,S) model for a given shock vector. It computes the difference between mean responses 
+#' with and without the shock, integrating out random effects across multiple simulation runs.
 #'
 #' ### GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
 #'
-#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate models, Economics Letters, 58(1) p. 17-29.
-#' and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
-#'###########################################################################################################################################
+#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
+#' models, Economics Letters, 58(1) p. 17-29, and G. Koop, M. H. Pesaran, and S. M. Potter (1996), 
+#' Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
+#'
 #' @param  RES   : an MRVAR object that is an output of MRVARest.
 #' @param  shock : an n vector containing the shocks as impulse.
-#' @param  R     : the number runs to integrate out the random effects in order to obtain the means (see equation above).
-#' @param  nstep : the length of the responses
-#' @param  Omega_hist : a (P x n) matrix of initial values, from which the impulse response functions start. Omega_hist determines from which regime the impulse response functions start. For Omega_hist=NA, the impulse response functions will start from the most resent observations.
-#' @param  resid_method : resid_method = c("resid", "parametric"), It generate the random residuals from residuals bootstrap or parametric bootstrap.
-#' @return an (n x n x nstep+1) matrix of impulse response functions. The rows represent response the columns represent impulses.
+#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
+#' @param  nstep : the length of the responses.
+#' @param  Omega_hist : a (P x n) matrix of initial values, from which the impulse response functions start. 
+#'                      For Omega_hist=NA, the impulse response functions will start from the most recent observations.
+#' @param  resid_method : resid_method = c("resid", "parametric"), it generates the random residuals from 
+#'                        residuals bootstrap or parametric bootstrap.
+#' @return an (n x n x nstep+1) matrix of impulse response functions. The rows represent responses and the columns represent impulses.
 #' @examples
 #' p = matrix(c(2,1,0,0),2,2)
 #' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1,type="none")
@@ -1560,101 +1707,95 @@ irf_gloabal_response_cb <- function(IRF_CB,comb_all) {
 #' RF3 = girf_mrvar_rm(RES=res_e,shock=c(1,1),R = 100,nstep=20,Omega_hist=NA,resid_method="parametric")
 #' RF4 = girf_mrvar_rm_cb(RES=res_e, shock=c(1,1), R=100, nstep=20, Omega_hist=NA,
 #' resid_method = "parametric", conf_level=c(0.05,0.95), N=100)
-#' IRF_list <-plot_irf(RF4)
-#'
+#' IRF_list <- plot_irf(RF4)
 #' @export
 #' @keywords internal
-#'
-girf_mrvar_rm <- function(RES,shock,R,nstep,Omega_hist=NA,resid_method) {
+girf_mrvar_rm <- function(RES, shock, R, nstep, Omega_hist = NA, resid_method) {
   ####  this function generate the impulse response function of MRVAR with migration
   ####
   ####                  	GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
-  ####
   ####
   #### RES is the output of mrvar_estimate
   n = RES$n
   p = RES$p
   S = RES$S
-  SESVI= RES$SESVI; if (is.null(SESVI)) SESVI = NA
-  TH= RES$TH;    if (is.null(TH))       TH = NA
-  Bo= RES$Bo
-  Co= RES$Co
-  Sigmao= RES$Sigmao
-  d= RES$d
-  type= RES$type
-  P           = max(p,d);
-  X= RES$X;  if (!anyNA(X))  X = X[1:(P+nstep+1),]
-  Yo= RES$Yo; if (is.null(Yo)) Yo = NA
-  Uo          = RES$Uo
-  #res = RES$res
+  SESVI = RES$SESVI; if (is.null(SESVI)) SESVI = NA
+  TH = RES$TH; if (is.null(TH)) TH = NA
+  Bo = RES$Bo
+  Co = RES$Co
+  Sigmao = RES$Sigmao
+  d = RES$d
+  type = RES$type
+  P = max(p, d)
+  X = RES$X; if (!anyNA(X)) X = X[1:(P + nstep + 1), ]
+  Yo = RES$Yo; if (is.null(Yo)) Yo = NA
+  Uo = RES$Uo
   vars_obj = RES$vars_obj
-  TT          = dim(RES$Y)[1]
+  TT = dim(RES$Y)[1]
 
   IRF = list()
-  YR          = list()
-  YS          = list()
-  residR   <-  list()
-  residS   <-  residR
+  YR = list()
+  YS = list()
+  residR = list()
+  residS = residR
 
-  if (anyNA(Omega_hist)) Omega_hist = RES$Y[(dim(RES$Y)[1]-P+1):dim(RES$Y)[1],,drop=FALSE]
-  state <- as.numeric(Omega_hist[P-d+1,SESVI]>TH) + 1
+  if (anyNA(Omega_hist)) Omega_hist = RES$Y[(dim(RES$Y)[1] - P + 1):dim(RES$Y)[1], , drop = FALSE]
+  state <- as.numeric(Omega_hist[P - d + 1, SESVI] > TH) + 1
 
-  #R = 400
-  #shock       = (1:n)/(1:n)
-  DIMresid    = dim(Uo)
-  if (length(DIMresid) == 3)  residI = Uo[1:(P+1+nstep),,]*0
-  if (length(DIMresid) == 2)  residI = Uo[1:(P+1+nstep),]*0
-  shock_mat = Sigmao[,,state]%*%solve(diag(diag(Sigmao[,,state])))%*%diag(shock)
+  DIMresid = dim(Uo)
+  if (length(DIMresid) == 3) residI = Uo[1:(P + 1 + nstep), , ] * 0
+  if (length(DIMresid) == 2) residI = Uo[1:(P + 1 + nstep), ] * 0
+  shock_mat = Sigmao[, , state] %*% solve(diag(diag(Sigmao[, , state]))) %*% diag(shock)
 
-  residI    = array(0,c(P+1+nstep,n,n,DIMresid[3]))
+  residI = array(0, c(P + 1 + nstep, n, n, DIMresid[3]))
 
   Yo = Omega_hist
-  YR = array(0,c(P+1+nstep,n,n))
-  YS <- YR
-  MYS <- YS
-  MYR <- YS
-  GIRF <- array(0,c(n,n,nstep+1))
+  YR = array(0, c(P + 1 + nstep, n, n))
+  YS = YR
+  MYS = YS
+  MYR = YS
+  GIRF = array(0, c(n, n, nstep + 1))
 
   for (i in 1:R) {
-    if ( resid_method=="resid" ) {
-      if (length(DIMresid) == 2)  {
-        residI  = Uo[sample_n_out_of_t(P+nstep+1,DIMresid[1]),];
+    if (resid_method == "resid") {
+      if (length(DIMresid) == 2) {
+        residI = Uo[sample_n_out_of_t(P + nstep + 1, DIMresid[1]), ]
       }
-      if (length(DIMresid) == 3)  {
+      if (length(DIMresid) == 3) {
         for (k in 1:n) {
-          residI[,,k,]  = Uo[sample_n_out_of_t(P+nstep+1,DIMresid[1]),,];
+          residI[, , k, ] = Uo[sample_n_out_of_t(P + nstep + 1, DIMresid[1]), , ]
         }
       }
     }
-    if ( resid_method=="parametric" ) {
-      if (length(DIMresid) == 2)  {
-        residI   = rnorm_sigma(P+nstep+1,Sigmao)
-        residI[1:P,]= residI[1:P,]*0
+    if (resid_method == "parametric") {
+      if (length(DIMresid) == 2) {
+        residI = rnorm_sigma(P + nstep + 1, Sigmao)
+        residI[1:P, ] = residI[1:P, ] * 0
       }
-      if (length(DIMresid) == 3)  {
+      if (length(DIMresid) == 3) {
         for (k in 1:n) {
-          for (s in 1:S)   residI[,,k,s] = rnorm_sigma(P+nstep+1,Sigmao[,,s])
+          for (s in 1:S) residI[, , k, s] = rnorm_sigma(P + nstep + 1, Sigmao[, , s])
         }
       }
     }
 
     residR[[i]] <- residI
-    residI[P+1,,,state] <-shock_mat
+    residI[P + 1, , , state] <- shock_mat
     residS[[i]] = residI
 
     for (k in 1:n) {
-      YR[,,k] = mrvar_data(n=n,p=p,T=(P+nstep+1),S=S,SESVI=SESVI,TH=TH,Bo=Bo,Co=Co,Sigmao=Sigmao,Uo=residR[[i]][,,k,],type=type,X=X,Yo=Yo,d=d)$Y
-      YS[,,k] = mrvar_data(n=n,p=p,T=(P+nstep+1),S=S,SESVI=SESVI,TH=TH,Bo=Bo,Co=Co,Sigmao=Sigmao,Uo=residS[[i]][,,k,],type=type,X=X,Yo=Yo,d=d)$Y
+      YR[, , k] = mrvar_data(n = n, p = p, T = (P + nstep + 1), S = S, SESVI = SESVI, TH = TH, Bo = Bo, Co = Co, Sigmao = Sigmao, Uo = residR[[i]][,, k, ], type = type, X = X, Yo = Yo, d = d)$Y
+      YS[, , k] = mrvar_data(n = n, p = p, T = (P + nstep + 1), S = S, SESVI = SESVI, TH = TH, Bo = Bo, Co = Co, Sigmao = Sigmao, Uo = residS[[i]][,, k, ], type = type, X = X, Yo = Yo, d = d)$Y
     }
 
-    MYR = MYR + 1/R*YR
-    MYS = MYS + 1/R*YS
-
+    MYR = MYR + 1/R * YR
+    MYS = MYS + 1/R * YS
   }  # end of R loop
+
   ############## integrating out the disturbances
-  for (i in 1:n ) {
+  for (i in 1:n) {
     for (j in 1:n) {
-      for (k in 1:(nstep+1)) GIRF[i,j,k] = MYS[P+k,i,j]-MYR[P+k,i,j]
+      for (k in 1:(nstep + 1)) GIRF[i, j, k] = MYS[P + k, i, j] - MYR[P + k, i, j]
     }
   }
   return(GIRF)
@@ -1663,23 +1804,29 @@ girf_mrvar_rm <- function(RES,shock,R,nstep,Omega_hist=NA,resid_method) {
 
 
 #'
-#' This function calculates the generalized impulse response functions of an estimated MRVAR(n,p,S) for given a shock vector. It provides also a bootstrapped confidence interval.
+#' Calculate Generalized Impulse Response Functions with Bootstrapped Confidence Intervals for MRVAR Models
 #'
-#'
+#' This function calculates the generalized impulse response functions (GIRF) of an estimated MRVAR(n,p,S) 
+#' for a given shock vector. It also provides bootstrapped confidence intervals for the impulse response functions.
 #'
 #' ### GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
 #'
-#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate models, Economics Letters, 58(1) p. 17-29.
-#' and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
-#' @param  RES   : an estimated MRVAR object.
-#' @param  shock : an n-vector containing the shocks as impulse.
-#' @param  R     : number of runs to integrate out the random effects in order to obtain the means (see equation above).
-#' @param  nstep : length of the impuse response function
-#' @param  Omega_hist : a (P x n) matrix of initial values, from which the impulse response functions start. Omega_hist determines from which regime the impulse response functions start.
-#' @param  resid_method : resid_method = c("resid", "parametric"), It generate the random residuals from residuals bootstrap or parametric bootstrap.
-#' @param  conf_level : a vector contain the level of confidences
-#' @param  N            : the number of bootstrap runs in containing the bootstrapped confidence intervals.
-#' @return an (n, n, nstep+1,3) array containing the impulse response functions with lower and upper confidence bonds. The rows represent response, and the columns represent impulses.
+#' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate models, 
+#' Economics Letters, 58(1) p. 17-29, and G. Koop, M. H. Pesaran, and S. M. Potter (1996), 
+#' Impulse response analysis in nonlinear multivariate models, Journal of Econometrics, 74 (1996) 119-74.
+#'
+#' @param  RES        : an estimated MRVAR object.
+#' @param  shock      : an n-vector containing the shocks as impulse.
+#' @param  R         : number of runs to integrate out the random effects in order to obtain the means (see equation above).
+#' @param  nstep     : length of the impulse response function.
+#' @param  Omega_hist : a (P x n) matrix of initial values, from which the impulse response functions start. 
+#'                      Omega_hist determines from which regime the impulse response functions start.
+#' @param  resid_method : resid_method = c("resid", "parametric"), it generates the random residuals from 
+#'                       residuals bootstrap or parametric bootstrap.
+#' @param  conf_level : a vector containing the levels of confidence.
+#' @param  N         : the number of bootstrap runs in containing the bootstrapped confidence intervals.
+#' @return an (n, n, nstep+1, 3) array containing the impulse response functions with lower and upper confidence bands. 
+#'         The rows represent responses, and the columns represent impulses.
 #' @examples
 #' p = matrix(c(2,1,0,0),2,2)
 #' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1,type="none")
@@ -1688,11 +1835,10 @@ girf_mrvar_rm <- function(RES,shock,R,nstep,Omega_hist=NA,resid_method) {
 #' res_e = mrvar_estimate(res=res_d)
 #' RF3 = girf_mrvar_rm(RES=res_e,shock=c(1,1),R = 200,nstep=20,Omega_hist=NA,resid_method="parametric")
 #' RF4 = girf_mrvar_rm_cb(RES=res_e, shock=c(1,1), R=200, nstep=20, Omega_hist=NA,
-#' resid_method = "parametric", conf_level=c(0.05,0.95), N=100)
-#' IRF_list <-plot_irf(RF4)
+#'                         resid_method="parametric", conf_level=c(0.05,0.95), N=100)
+#' IRF_list <- plot_irf(RF4)
 #' @export
-girf_mrvar_rm_cb <- function (RES, shock, R, nstep, Omega_hist=NA, resid_method = "parametric", conf_level, N)
-{
+girf_mrvar_rm_cb <- function(RES, shock, R, nstep, Omega_hist = NA, resid_method = "parametric", conf_level, N) {
   n = RES$n
   p = RES$p
   S = RES$S
@@ -1706,40 +1852,55 @@ girf_mrvar_rm_cb <- function (RES, shock, R, nstep, Omega_hist=NA, resid_method 
   X = RES$X
   T = dim(RES$Y)[1]
   P = max(p, d)
+  
   GIRF = (1:(n * n * (nstep + 1) * N)) * 0
   dim(GIRF) = c(n, n, nstep + 1, N)
+  
   GIRFBd = (1:(n * n * (nstep + 1) * (length(conf_level) + 1))) * 0
   dim(GIRFBd) = c(n, n, nstep + 1, length(conf_level) + 1)
-  GIRFBd[, , , 1] = girf_mrvar_rm(RES, shock = shock, R = 2*R, nstep, Omega_hist=Omega_hist, resid_method)
+  
+  GIRFBd[, , , 1] = girf_mrvar_rm(RES, shock = shock, R = 2 * R, nstep, Omega_hist = Omega_hist, resid_method)
+  
   for (i in 1:N) {
     res_d = mrvar_data(n = n, p = p, T = T, S = S, SESVI = SESVI, TH = TH, Bo = Bo, Co = Co, Sigmao, type = type, X = X, d = d)
-    if (length(colnames(res_d$Y))==0) colnames(res_d$Y) = paste("Y",1:ncol(res_d$Y),sep="")
+    if (length(colnames(res_d$Y)) == 0) colnames(res_d$Y) = paste("Y", 1:ncol(res_d$Y), sep = "")
     RESS = mrvar_estimate(res_d)
-    RF3 = girf_mrvar_rm(RES = RESS, shock = shock, R = R, nstep, Omega_hist=Omega_hist, resid_method)
+    RF3 = girf_mrvar_rm(RES = RESS, shock = shock, R = R, nstep, Omega_hist = Omega_hist, resid_method)
     GIRF[, , , i] = RF3
   }
+  
   GIRF[,,,1] = GIRFBd[, , , 1]
-  for (tt in 1:( nstep + 1)) {
+  
+  for (tt in 1:(nstep + 1)) {
     for (i in 1:n) {
       for (j in 1:n) {
         GIRFBd[i, j, tt, -1] = stats::quantile(GIRF[i, j, tt, ], conf_level)
       }
     }
   }
+  
   return(GIRFBd)
 }
 
 
 
 #'
-#' This function calculates the regime specific impulse response functions of an estimated MRVAR(n,p,S), using Bo\[,,,s\] and Sigma\[,,s\] matrices of the estimated MRVAR(n,p,S).
+#' Calculate Regime Specific Impulse Response Functions for MRVAR Models
+#'
+#' This function calculates the regime specific impulse response functions of an estimated MRVAR(n,p,S),
+#' using the Bo\[,,,s\] and Sigma\[,,s\] matrices of the estimated MRVAR(n,p,S).
+#'
 #' @param RESS an output of mrvar_estimate
 #' @param nstep the length of impulse response function
-#' @param comb a vector specify the weights used in GVAR models. For MRVAR its value is NA.
-#' @param irf types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse in GVAR.
+#' @param comb a vector specifying the weights used in GVAR models. For MRVAR its value is NA.
+#' @param irf types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"),
+#'            gen for generalized IRF with one standard deviation shocks,
+#'            gen1 for generalized IRF with one unit impulse,
+#'            chol for IRF with Cholezky decomposition of the covariance matrix,
+#'            chol1 for Cholezky decomposition with one unit impulse,
+#'            comb1 for concerted action with one unit impulse in GVAR.
 #' @return an (n,n,nstep,2) array of IRF with columns representing the impulse and rows the responses.
 #' @examples
-#'
 #' p = matrix(c(2,1,0,0),2,2)
 #' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1)
 #' max(abs(res_d$Y))
@@ -1748,14 +1909,13 @@ girf_mrvar_rm_cb <- function (RES, shock, R, nstep, Omega_hist=NA, resid_method 
 #'
 #' IRF    = irf_mrvar_nm(res_e,nstep=10,comb=NA,irf="gen")
 #' IRF_CB = irf_mrvar_nm_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.90))
-#' IRF_list1 <-plot_irf(IRF_CB[,,,,1])
-#' IRF_list2 <-plot_irf(IRF_CB[,,,,2])
+#' IRF_list1 <- plot_irf(IRF_CB[,,,,1])
+#' IRF_list2 <- plot_irf(IRF_CB[,,,,2])
 #'
 #' @export
 #' @keywords internal
 #'
-irf_mrvar_nm <-function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"))
-{
+irf_mrvar_nm <- function(RESS, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1")) {
   p = RESS$p
   Bo = RESS$Bo
   Sigmao = RESS$Sigmao
@@ -1764,23 +1924,37 @@ irf_mrvar_nm <-function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", "gen
   S = dim(Bo)[4]
   response <- array(0, dim = c(neq, nvar, nstep, S))
   BBo = list()
+  
   for (s in 1:S) {
     BBo[[s]] = Bo[, , 1:p[s, 1], s]
     if (length(dim(BBo[[s]])) < 3)
       dim(BBo[[s]]) = c(dim(BBo[[s]]), 1)
   }
-  for (s in 1:S) response[, , , s] <- irf_from_params(B=BBo[[s]], sigma=Sigmao[, , s], nstep, comb, irf = irf)
+  
+  for (s in 1:S) 
+    response[, , , s] <- irf_from_params(B = BBo[[s]], sigma = Sigmao[, , s], nstep, comb, irf = irf)
+  
   return(response)
 }
 
 
 
 #'
-#' This function calculates the regime specific impulse response functions of an estimated MRVAR(n,p,S), using Bo\[,,,s\] and Sigma\[,,s\] of the estimated MRVAR.
+#' Calculate Regime Specific Impulse Response Functions with Confidence Bands for MRVAR Models
+#'
+#' This function calculates the regime specific impulse response functions of an estimated MRVAR(n,p,S),
+#' using the Bo\[,,,s\] and Sigma\[,,s\] matrices of the estimated MRVAR. It also provides bootstrapped 
+#' confidence intervals for the impulse response functions.
+#'
 #' @param RESS an output of MRVARest.
 #' @param nstep the length of impulse response function
-#' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param irf types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse in GVAR.
+#' @param comb a vector specifying the concerted action in policy-simulation impulse response function
+#' @param irf types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), 
+#'            gen for generalized IRF with one standard deviation shocks, 
+#'            gen1 for generalized IRF with one unit impulse, 
+#'            chol for IRF with Cholezky decomposition of the covariance matrix, 
+#'            chol1 for Cholezky decomposition with one unit impulse, 
+#'            comb1 for concerted action with one unit impulse in GVAR.
 #' @param runs number of simulation runs
 #' @param conf a two components vector containing the tail probabilities of the bootstrap confidence interval.
 #' @return an (n,n,nstep,3,2) array containing the IRF of the two regimes. The IRF columns represent the impulse and the rows the responses.
@@ -1793,12 +1967,11 @@ irf_mrvar_nm <-function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", "gen
 #'
 #' IRF    = irf_mrvar_nm(res_e,nstep=10,comb=NA,irf="gen")
 #' IRF_CB = irf_mrvar_nm_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.90))
-#' IRF_list1 <-plot_irf(IRF_CB[,,,,1])
-#' IRF_list2 <-plot_irf(IRF_CB[,,,,2])
+#' IRF_list1 <- plot_irf(IRF_CB[,,,,1])
+#' IRF_list2 <- plot_irf(IRF_CB[,,,,2])
 #'
 #' @export
-irf_mrvar_nm_cb <- function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"), runs = 200, conf = c(0.05, 0.95))
-{
+irf_mrvar_nm_cb <- function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"), runs = 200, conf = c(0.05, 0.95)) {
   n = RESS$n
   p = RESS$p
   T = dim(RESS$Y)[1]
@@ -1828,8 +2001,7 @@ irf_mrvar_nm_cb <- function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", 
   neq = dim(Bo)[1]
   nvar = dim(Bo)[2]
   U_run = Uo_run * 0
-  response <- array(0, dim = c(neq, nvar, nstep, length(conf) +
-                                 1, S))
+  response <- array(0, dim = c(neq, nvar, nstep, length(conf) + 1, S))
   response[, , , 1, ] <- irf_mrvar_nm(RESS, nstep, comb, irf)
   responseR <- array(0, dim = c(neq, nvar, nstep, runs, S))
   for (i in 1:runs) {
@@ -1839,8 +2011,7 @@ irf_mrvar_nm_cb <- function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", 
       if (length(dim(B)) == 2)
         dim(B) = c(dim(B), 1)
       res_run = var_data(n = n, p = p[s, 1], T = T, B = B,
-                        Co = 0 * (1:n), Sigma = Sigmao[, , s], U = U_run[,
-                                                                         , s], type = "none")
+                         Co = 0 * (1:n), Sigma = Sigmao[, , s], U = U_run[, , s], type = "none")
       res_e = var_estimate(res_run)
       responseR[, , , i, s] <- irf_from_params(res_e$B, res_e$Sigma, nstep, comb, irf)
     }
@@ -1857,12 +2028,21 @@ irf_mrvar_nm_cb <- function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", 
 
 
 
+#' Calculate Regime Specific Impulse Response Functions with Confidence Bands for MRVAR Models
 #'
-#' This function calculates the regime specific impulse response functions of an estimated MRVAR(n,p,S).
+#' This function calculates the regime specific impulse response functions of an estimated MRVAR(n,p,S),
+#' using the Bo\[,,,s\] and Sigma\[,,s\] matrices of the estimated MRVAR. It also provides bootstrapped 
+#' confidence intervals for the impulse response functions.
+#'
 #' @param res_e an output of MRVARest.
 #' @param nstep the length of impulse response function
-#' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param irf types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse in GVAR.
+#' @param comb a vector specifying the concerted action in policy-simulation impulse response function
+#' @param irf types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), 
+#'            gen for generalized IRF with one standard deviation shocks, 
+#'            gen1 for generalized IRF with one unit impulse, 
+#'            chol for IRF with Cholezky decomposition of the covariance matrix, 
+#'            chol1 for Cholezky decomposition with one unit impulse, 
+#'            comb1 for concerted action with one unit impulse in GVAR.
 #' @param Xshks number of selected exogenous shocks
 #' @param runs number of simulation runs
 #' @param conf a two components vector containing the tail probabilities of the bootstrap confidence interval.
@@ -1874,14 +2054,12 @@ irf_mrvar_nm_cb <- function (RESS, nstep, comb, irf = c("gen", "chol", "chol1", 
 #' res_e  = mrvar_estimate(res_d)
 #' res_e$Summary
 #'
-#'
 #' IRF_CB = irf_mrvar_cb(res_e,nstep=20,comb=NA,irf="gen1",runs=100,conf=c(0.05,0.90))
-#' IRF_list1 <-plot_irf(IRF_CB[[1]])
-#' IRF_list2 <-plot_irf(IRF_CB[[2]])
+#' IRF_list1 <- plot_irf(IRF_CB[[1]])
+#' IRF_list2 <- plot_irf(IRF_CB[[2]])
 #'
 #' @export
-irf_mrvar_cb <- function (res_e, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1", "irfX"), Xshks=NA, runs = 200, conf = c(0.05, 0.95))
-{
+irf_mrvar_cb <- function (res_e, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1", "irfX"), Xshks=NA, runs = 200, conf = c(0.05, 0.95)) {
   n = res_e$n
   p = res_e$p
   T = dim(res_e$Y)[1]
@@ -1961,27 +2139,30 @@ irf_mrvar_cb <- function (res_e, nstep, comb, irf = c("gen", "chol", "chol1", "g
 
 
 #'
-#' This function generates impulse response functions of an estimated VAR(p)
+#' Calculate Bootstrapped Confidence Intervals for Impulse Response Functions of VAR Models
+#'
+#' This function generates impulse response functions of an estimated VAR(p) model, 
+#' providing bootstrapped confidence intervals for the impulse response functions.
+#'
 #' @param res an object of the output of var_estimate
 #' @param nstep length of the impulse response functions
 #' @param comb a vector containing the weights of a combined policy actions
 #' @param irf types of impulse response functions
 #' @param runs number of simulation runs in generating the confidence interval of the impulse response functions
 #' @param conf confidence levels
-#' @param smat chock to response transformation matrix for the option irf="smat"
+#' @param smat shock to response transformation matrix for the option irf="smat"
 #' @param Xshks the number of exogenous variables
 #'
 #' @return an (n, n, nstep, 3) array containing the impulse response functions
 #' @examples
 #' res_d = var_data(n=2,p=2,T=100,type="const")
-#' res_e = var_estimate(res=res_d);
+#' res_e = var_estimate(res=res_d)
 #' IRF_CB = irf_var_cb(res=res_e,nstep=20, comb=NA, irf = "gen1", runs = 100, conf = c(0.05, 0.95))
-#' IRF_list <-plot_irf(IRF_CB)
+#' IRF_list <- plot_irf(IRF_CB)
 #' res_e$Summary
 #'
 #' @export
-irf_var_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1","irfX"), runs = 200, conf = c(0.05, 0.95),smat=NA,Xshks=NA)
-{
+irf_var_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1","irfX"), runs = 200, conf = c(0.05, 0.95), smat = NA, Xshks = NA) {
   n = res$n
   p = res$p
   T = dim(res$Y)[1]
@@ -1995,9 +2176,14 @@ irf_var_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1"
   nvar = dim(B)[2]
   sigma = res$Sigma
   response <- array(0, dim = c(neq, nvar, nstep, length(conf) + 1))
-  if (irf=="irfX") { Xshk=t(Co[,1+Xshks])}
-  response[, , , 1] <- irf_from_params(B = B, sigma = sigma, nstep, comb, irf, G=NA, A0=NA, B0=NA, smat, Xshk)
+  
+  if (irf == "irfX") { 
+    Xshk = t(Co[, 1 + Xshks]) 
+  }
+  
+  response[, , , 1] <- irf_from_params(B = B, sigma = sigma, nstep, comb, irf, G = NA, A0 = NA, B0 = NA, smat, Xshk)
   responseR <- array(0, dim = c(neq, nvar, nstep, runs))
+  
   for (i in 1:runs) {
     Uo_run = rnorm_sigma(T, sigma)
     res_run = var_data(n, p, T, r_np = NA, A = NA, B, Co, U = Uo_run, Sigma = NA, type, X, mu = NA, Yo = NA)
@@ -2005,9 +2191,14 @@ irf_var_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1"
     B_run = res_e$B
     Co_run = res_e$Co
     sigma_run = res_e$Sigma
-    if (irf=="irfX") { Xshk=t(Co_run[,1+Xshks])}
-    responseR[, , , i] <- irf_from_params(B = res_e$B, sigma = res_e$Sigma, nstep, comb, irf, G=NA, A0=NA, B0=NA, smat, Xshk)
+    
+    if (irf == "irfX") { 
+      Xshk = t(Co_run[, 1 + Xshks]) 
+    }
+    
+    responseR[, , , i] <- irf_from_params(B = res_e$B, sigma = res_e$Sigma, nstep, comb, irf, G = NA, A0 = NA, B0 = NA, smat, Xshk)
   }
+  
   for (tt in 1:(nstep)) {
     for (i in 1:neq) {
       for (j in 1:nvar) {
@@ -2015,21 +2206,23 @@ irf_var_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1"
       }
     }
   }
+  
   return(response)
 }
 
 
 
 #'
-#' This function generates impulse response functions for VAR,CIVAR,MRVAR MRCIVAR, also for GVAR, CIGVAR, MRGVAR and MRCIGVAR.
-#' For the later four classes of models it also provides the functionalities to calculate the global, regional and country-specific shocks.
-#' It also calculates global and regional responses and coordinated policy actions.
+#' Generate Impulse Response Functions from Model Parameters
+#'
+#' This function generates impulse response functions for various types of models including VAR, CIVAR, MRVAR, MRCIVAR, GVAR, CIGVAR, MRGVAR, and MRCIGVAR. 
+#' It also provides functionalities to calculate global, regional, and country-specific shocks, as well as global and regional responses and coordinated policy actions.
 #'
 #' @param B An (nxnxp) coefficients array of an n-dimensional VAR(p) model
 #' @param sigma The covariance matrix of the VAR(p) model
 #' @param nstep Number of steps of the impulse response function
 #' @param comb An n-vector of weights of the coordinated policy actions
-#' @param irf infer_deterministic_type of impulse response function
+#' @param irf Type of impulse response function
 #' @param G The matrix used in the permanent and transitory decomposition
 #' @param A0 The matrix for A/B identification in VAR
 #' @param B0 The matrix for A/B identification in VAR
@@ -2038,126 +2231,149 @@ irf_var_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1"
 #'
 #' @export
 irf_from_params <- function (B, sigma, nstep, comb, irf = c("gen", "chol",
-                                                        "chol1", "gen1", "genN1", "comb1",
-                                                        "smat", "concerts1","PTdecomp","ABSVAR","irfX"), G = NA, A0=NA, B0=NA, smat=NA,Xshk=NA)
-{
+                              "chol1", "gen1", "genN1", "comb1",
+                              "smat", "concerts1","PTdecomp","ABSVAR","irfX"), 
+               G = NA, A0=NA, B0=NA, smat=NA, Xshk=NA) {
   neq <- dim(B)[1]
   nvar <- dim(B)[2]
   lags <- dim(B)[3]
   n = dim(sigma)[1]
+  
   if (irf == "irfX") {
-    smat = matrix(0,n,n)
-    smat[1:nrow(Xshk),] = Xshk
+  smat = matrix(0, n, n)
+  smat[1:nrow(Xshk),] = Xshk
   }
 
   if (irf == "smat") {
-    smat = (smat)
+  smat = (smat)
   }
   if (irf == "chol") {
-    smat = chol(sigma)
+  smat = chol(sigma)
   }
   if (irf == "PTdecomp") {
-    smat = t(solve(G)%*%t(chol(G %*% sigma %*% t(G))))
+  smat = t(solve(G) %*% t(chol(G %*% sigma %*% t(G))))
   }
   if (irf == "ABSVAR") {
-    smat = t(solve(A0)%*%B0)
+  smat = t(solve(A0) %*% B0)
   }
   if (irf == "gen") {
-    smat = t(sigma %*% diag(1/(sqrt(diag(sigma)))))
+  smat = t(sigma %*% diag(1/(sqrt(diag(sigma)))))
   }
   if (irf == "chol1") {
-    smat = chol(sigma) %*% diag(1/diag(chol(sigma)))
+  smat = chol(sigma) %*% diag(1/diag(chol(sigma)))
   }
   if (irf == "gen1") {
-    smat = t(sigma %*% diag(1/(diag(sigma))))
+  smat = t(sigma %*% diag(1/(diag(sigma))))
   }
   if (irf == "genN1") {
-    smat = t(sigma %*% diag(-1/(diag(sigma))))
+  smat = t(sigma %*% diag(-1/(diag(sigma))))
   }
   if (irf == "concerts1") {
-    smat = t((sigma %*% diag(1/(diag(sigma)))) %*% comb)
+  smat = t((sigma %*% diag(1/(diag(sigma)))) %*% comb)
   }
   if (irf == "concerts0") {
-    smat = t((sigma %*% diag(1/(sqrt(diag(sigma))))) %*%
-               comb)
+  smat = t((sigma %*% diag(1/(sqrt(diag(sigma))))) %*% comb)
   }
   if (irf == "concertc") {
-    c = as.numeric(!(comb[, 1] == 0))
-    smat = matrix(0, n, n)
-    for (i in 1:n) {
-      smat[i, ] = sigma[i, ] %*% diag(c) %*% invi(sigma,
-                                                  c, i) %*% comb
-    }
-    smat = t(smat)
+  c = as.numeric(!(comb[, 1] == 0))
+  smat = matrix(0, n, n)
+  for (i in 1:n) {
+    smat[i, ] = sigma[i, ] %*% diag(c) %*% invi(sigma, c, i) %*% comb
+  }
+  smat = t(smat)
   }
   if (irf == "comb") {
-    DD = diag(t(comb) %*% sigma %*% comb)
-    for (i in 1:length(DD)) {
-      if (DD[i] > 0)
-        DD[i] = sqrt(1/DD[i])
-    }
-    DD = diag(DD)
-    smat = t(sigma %*% comb %*% DD)
+  DD = diag(t(comb) %*% sigma %*% comb)
+  for (i in 1:length(DD)) {
+    if (DD[i] > 0)
+    DD[i] = sqrt(1/DD[i])
+  }
+  DD = diag(DD)
+  smat = t(sigma %*% comb %*% DD)
   }
   if (irf == "comb1") {
-    DD = diag(t(comb) %*% sigma %*% comb)
-    for (i in 1:length(DD)) {
-      if (DD[i] > 0)
-        DD[i] = (1/DD[i])
-    }
-    DD = diag(DD)
-    smat = t(sigma %*% comb %*% DD)
+  DD = diag(t(comb) %*% sigma %*% comb)
+  for (i in 1:length(DD)) {
+    if (DD[i] > 0)
+    DD[i] = (1/DD[i])
   }
+  DD = diag(DD)
+  smat = t(sigma %*% comb %*% DD)
+  }
+  
   if (dim(smat)[2] != dim(B)[2])
-    stop("B and smat conflict on # of variables")
+  stop("B and smat conflict on # of variables")
+  
   response <- array(0, dim = c(neq, nvar, nstep))
   response[, , 1] <- t(smat)
+  
   for (it in 2:nstep) {
-    for (ilag in 1:min(lags, it - 1)) response[, , it] <- response[, , it] + B[, , ilag] %*% response[, , it - ilag]
+  for (ilag in 1:min(lags, it - 1)) 
+    response[, , it] <- response[, , it] + B[, , ilag] %*% response[, , it - ilag]
   }
+  
   dimnames(response) <- list(dimnames(B)[[2]], dimnames(smat)[[1]], as.character(0:(nstep - 1)))
+  
+  # @examples
+  # B = array(runif(8), dim = c(2, 2, 2))
+  # sigma = diag(2)
+  # nstep = 10
+  # comb = c(1, 0)
+  # irf = "gen"
+  # response = irf_from_params(B, sigma, nstep, comb, irf)
+  
   return(response)
 }
 
 
 
 #'
+#' Plot Impulse Response Functions with Confidence Bands
+#'
+#' This function generates a list of ggplot objects for visualizing impulse response functions 
+#' along with their confidence bands. It allows for customization of variable names and impulse 
+#' indices for better clarity in the plots.
+#'
 #' @param IRF_CB An (n x n x L x 3) array of impulse response function with confidence bands
 #' @param Names An n-vector of strings of the variable names
 #' @param INames An n-vector of string of the impulse names
-#' @param response An vector of impulse indices
-#' @param impulse An vector of response indices
+#' @param response A vector of impulse indices
+#' @param impulse A vector of response indices
 #' @param ncol Number of columns of impulse response functions in the plot
 #'
 #' @return An ggplot object of impulse response functions
 #' @export
 #' @keywords internal
-plot_irf <- function(IRF_CB=IRF_CB,Names = NA,INames=NA,response=c(1:n),impulse=c(1:n),ncol=n) {
+plot_irf <- function(IRF_CB = IRF_CB, Names = NA, INames = NA, response = c(1:n), impulse = c(1:n), ncol = n) {
   ### This function create a list of ggplot objects for the impulse response functions
   IRF_list = list()
   n = dim(IRF_CB)[1]
-  if (anyNA(Names))   Names  <-  colnames(IRF_CB)
-  if (is.null(Names)) Names  <-  paste0(rep("Y",n),c(1:n))
-  if (anyNA(INames))  INames <-  Names
+  
+  if (anyNA(Names)) Names <- colnames(IRF_CB)
+  if (is.null(Names)) Names <- paste0(rep("Y", n), c(1:n))
+  if (anyNA(INames)) INames <- Names
 
   k = 0
-  for (i in response) for (j in impulse) {
-    k =  k +1
-    myData <- as.data.frame(cbind(c(0:(dim(IRF_CB)[3]-1)),IRF_CB[i,j,,]))
-    V1=1;V2=1;V3=1;V4=1
-    IRF_list[[k]] <-  ggplot2::ggplot(myData,
-                                      ggplot2::aes(x=V1, y=V2, ymin=V3, ymax=V4)) +
-      ggplot2::geom_hline(yintercept = 0, color="red") +
-      ggplot2::geom_ribbon(fill="grey", alpha=0.5) +
-      ggplot2::geom_line() +
-      ggplot2::theme_light() +
-      ggplot2::ggtitle(paste(Names[i],"response to", INames[j], "shock"))+
-      ggplot2::ylab("")+
-      ggplot2::xlab("") +
-      ggplot2::theme(plot.title = ggplot2::element_text(size = 11, hjust=0.5), axis.title.y = ggplot2::element_text(size=11))
+  for (i in response) {
+    for (j in impulse) {
+      k = k + 1
+      myData <- as.data.frame(cbind(c(0:(dim(IRF_CB)[3] - 1)), IRF_CB[i, j, , ]))
+      V1 = 1; V2 = 1; V3 = 1; V4 = 1
+      IRF_list[[k]] <- ggplot2::ggplot(myData,
+                                        ggplot2::aes(x = V1, y = V2, ymin = V3, ymax = V4)) +
+        ggplot2::geom_hline(yintercept = 0, color = "red") +
+        ggplot2::geom_ribbon(fill = "grey", alpha = 0.5) +
+        ggplot2::geom_line() +
+        ggplot2::theme_light() +
+        ggplot2::ggtitle(paste(Names[i], "response to", INames[j], "shock")) +
+        ggplot2::ylab("") +
+        ggplot2::xlab("") +
+        ggplot2::theme(plot.title = ggplot2::element_text(size = 11, hjust = 0.5), 
+                       axis.title.y = ggplot2::element_text(size = 11))
+    }
   }
 
-  do.call(gridExtra::grid.arrange,c(IRF_list,ncol=ncol))
+  do.call(gridExtra::grid.arrange, c(IRF_list, ncol = ncol))
   return(IRF_list)
 }
 

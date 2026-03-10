@@ -3,34 +3,44 @@
 
 
 
+#' Compute Near Positive Definite Covariance Matrix for Selected States
+#'
+#' Calculates the covariance matrix of residuals for selected states from a GVAR model
+#' and returns its nearest positive definite approximation.
 #'
 #' @param res An estimated GVAR object
 #' @param StateT A vector of selected states of each country
 #'
 #' @return The covariance matrix of the selected states
+#'
+#' @examples
+#' \dontrun{
+#'   sigma_npd(gvar_model, c(1, 2, 3))
+#' }
+#'
 #' @export
 #' @keywords internal
 #'
-sigma_npd = function(res,StateT) {
+sigma_npd = function(res, StateT) {
       m = res$m
       p = res$p
-      if (length(p)>1 ) pp = max(p[,1:2,]) else pp = p
-      n = length(StateT);
-      dim(StateT) = c(1,n);
-      resid = res$resid[,,1]*0
-      for (i in 1:n)  {
-          resid[,(1+(i-1)*m):(m*i)]=res$resid[,(1+(i-1)*m):(m*i),StateT[i]]
+      if (length(p) > 1) pp = max(p[, 1:2, ]) else pp = p
+      n = length(StateT)
+      dim(StateT) = c(1, n)
+      resid = res$resid[, , 1] * 0
+      for (i in 1:n) {
+            resid[, (1 + (i - 1) * m):(m * i)] = res$resid[, (1 + (i - 1) * m):(m * i), StateT[i]]
       }
 
-      sigmaT = diag(n*m)
-	for (i in 1:n)        {
-      	for (j in 1:n)  {
-                NN = sum((abs(resid[,((i-1)*m+1):(i*m)])>0)*(abs(resid[,((j-1)*m+1):(j*m)])>0))/m-pp*m
-                if (NN>5)  sigmaT[((i-1)*m+1):(i*m),((j-1)*m+1):(j*m)] = t(resid[,((i-1)*m+1):(i*m)])%*%resid[,((j-1)*m+1):(j*m)]/NN
-                   else    sigmaT[((i-1)*m+1):(i*m),((j-1)*m+1):(j*m)] = t(res$resid[,((i-1)*m+1):(i*m),1]+res$resid[,((i-1)*m+1):(i*m),2])%*%(res$resid[,((j-1)*m+1):(j*m),1]+res$resid[,((j-1)*m+1):(j*m),2])/dim(resid)[1]
+      sigmaT = diag(n * m)
+      for (i in 1:n) {
+            for (j in 1:n) {
+                  NN = sum((abs(resid[, ((i - 1) * m + 1):(i * m)]) > 0) * (abs(resid[, ((j - 1) * m + 1):(j * m)]) > 0)) / m - pp * m
+                  if (NN > 5) sigmaT[((i - 1) * m + 1):(i * m), ((j - 1) * m + 1):(j * m)] = t(resid[, ((i - 1) * m + 1):(i * m)]) %*% resid[, ((j - 1) * m + 1):(j * m)] / NN
+                  else sigmaT[((i - 1) * m + 1):(i * m), ((j - 1) * m + 1):(j * m)] = t(res$resid[, ((i - 1) * m + 1):(i * m), 1] + res$resid[, ((i - 1) * m + 1):(i * m), 2]) %*% (res$resid[, ((j - 1) * m + 1):(j * m), 1] + res$resid[, ((j - 1) * m + 1):(j * m), 2]) / dim(resid)[1]
+            }
       }
-      }
-      sigmanpd = as.matrix(Matrix::nearPD(sigmaT,conv.tol = 1e-10)[[1]])
+      sigmanpd = as.matrix(Matrix::nearPD(sigmaT, conv.tol = 1e-10)[[1]])
       return(sigmanpd)
 }
 

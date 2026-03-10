@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_cigvar_cb}
 \alias{irf_cigvar_cb}
-\title{This function generates impulse response functions of an estimated CIGVAR(m,n,p) with confidence bands.}
+\title{Generate Impulse Response Functions with Confidence Bands for CIGVAR Models}
 \usage{
 irf_cigvar_cb(
   res,
@@ -30,7 +30,9 @@ irf_cigvar_cb(
 a matrix of (mn,mn,nstep,3) as the IRF columns representing the impulse rows the responses
 }
 \description{
-This function generates impulse response functions of an estimated CIGVAR(m,n,p) with confidence bands.
+This function computes the impulse response functions (IRFs) of an estimated CIGVAR model,
+providing confidence bands through bootstrap methods. It allows for various types of IRFs
+and can handle different configurations of shocks and responses.
 }
 \examples{
 

@@ -3,14 +3,14 @@
 
 
 
+#' CIGVAR Model Selection Function
 #'
-#' This function calculates AIC and BIC criteria for a range of lag specifications of the domestic and foreign variables up to the maximum given in L_V.
+#' This function performs model selection for the CIGVAR (Cointegrated Global Vector Autoregression) framework by calculating AIC and BIC criteria for various lag specifications of domestic and foreign variables for multiple countries.
 #'
 #' @param  res  : an object generated from CIGVARest.
 #' @param  L_V  : a 2 components vector containing the maxima of the domestic lag and the foreign lag, respectively.
 #' @return a matrix with different lag specifications and the corresponding information criteria.
 #' @examples
-#'
 #'
 #' n = 5
 #' p = (1:15)*0; dim(p) = c(5,3)
@@ -41,14 +41,14 @@ for (I in 1:n )           {
 for (l_d in 2: L_V[1] )   {
 for (l_f in 2: L_V[2] )   {
 
-      idx = idx + 1
-      res_dd$p[I,1] = l_d
-      res_dd$p[I,2] = l_f
+  idx = idx + 1
+  res_dd$p[I,1] = l_d
+  res_dd$p[I,2] = l_f
 
 
-    	res_s = cigvar_estimate(res_dd)
-      Criteria[idx,] = c(as.vector(res_dd$p),res_s$Summary$AIC_g,res_s$Summary$BIC_g,sum(res_s$Summary$AIC),sum(res_s$Summary$BIC))
-      #colnames(Criteria) = c("l_d","l_f","AIC_g","BIC_g","AIC","BIC")
+  res_s = cigvar_estimate(res_dd)
+  Criteria[idx,] = c(as.vector(res_dd$p),res_s$Summary$AIC_g,res_s$Summary$BIC_g,sum(res_s$Summary$AIC),sum(res_s$Summary$BIC))
+  #colnames(Criteria) = c("l_d","l_f","AIC_g","BIC_g","AIC","BIC")
     }
  }
 }
@@ -57,12 +57,19 @@ return(Criteria)
 
 
 
-#' @examples
+#' GVAR Model Selection Function
 #'
+#' This function performs model selection for the GVAR (Global Vector Autoregression) framework by calculating AIC and BIC criteria for various lag specifications of domestic and foreign variables for a specific country equation.
+#'
+#' @param res A GVAR object generated from gvar_data
+#' @param L_V A 2 components vector containing the maxima of the domestic lag and the foreign lag, respectively
+#' @param I Index of the country equation under investigation
+#' @return A matrix with different lag specifications and the corresponding information criteria (AIC and BIC)
+#'
+#' @examples
 #' n = 4
 #' p = (1:12)*0; dim(p) = c(4,3);p[,1] = 2; p[,2]=1; p[2:3,2] = 2
 #' res_d = gvar_data(m=2,n=4,p=p,T=4000,type="const")
-#'
 #'
 #' I = 3
 #' L_V = c(4,4)
@@ -88,30 +95,30 @@ Criteria = matrix(0,L_V[1]*L_V[2],4)
 idx = 0
 
 for (l_d in 1: L_V[1] )   {
-   for (l_f in 1:L_V[2] ) {
-      idx = idx + 1
-	X = stats::embed(FYI,l_f+1)[,-(1:m)]
-	XX = matrix(0,T,dim(X)[2])
-	XX[(l_f+1):T,] = X
-      if (type=="none")  { type_holder = "exog0"; Co = (1:(m*(1+l_f*m))); dim(Co) = c(m,l_f*m+1); Co[,1]=0}
-      if (type=="const") { type_holder = "exog1"; Co = (1:(m*(1+l_f*m))); dim(Co) = c(m,l_f*m+1); Co[,1]=1}
+  for (l_f in 1:L_V[2] ) {
+    idx = idx + 1
+  X = stats::embed(FYI,l_f+1)[,-(1:m)]
+  XX = matrix(0,T,dim(X)[2])
+  XX[(l_f+1):T,] = X
+    if (type=="none")  { type_holder = "exog0"; Co = (1:(m*(1+l_f*m))); dim(Co) = c(m,l_f*m+1); Co[,1]=0}
+    if (type=="const") { type_holder = "exog1"; Co = (1:(m*(1+l_f*m))); dim(Co) = c(m,l_f*m+1); Co[,1]=1}
 
 
-	if (l_d>=l_f) {
-            if (type=="exog0") { type_holder = type; XX = cbind(XX,XXX[,,I]); Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=0}
-	      if (type=="exog1") { type_holder = type; XX = cbind(XX,XXX[,,I]); Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=1}
-		res_dd = var_data(n=m,p=l_d,T=T,Co=Co,type=type_holder,X=as.matrix(XX))
-		res_dd$Y = Yi
-	}   else  {
-            XX = XX[(l_f-l_d+1):T,];
-	   	if (type=="exog0") { type_holder = type; XX = cbind(XX,XXX[(l_f-l_d+1):T,,I]);Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=0 }
-	   	if (type=="exog1") { type_holder = type; XX = cbind(XX,XXX[(l_f-l_d+1):T,,I]);Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=1 }
-		res_dd = var_data(n=m,p=l_d,T=(T-(l_f-l_d)),Co=Co,type=type_holder,X=XX)
-		res_dd$Y = Yi[(l_f-l_d+1):T,]
-	}
-	res_e = var_estimate(res=res_dd)
-	Criteria[idx,] = c (l_d,l_f,res_e$Summary$AIC,res_e$Summary$BIC)
-    }
+  if (l_d>=l_f) {
+        if (type=="exog0") { type_holder = type; XX = cbind(XX,XXX[,,I]); Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=0}
+      if (type=="exog1") { type_holder = type; XX = cbind(XX,XXX[,,I]); Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=1}
+    res_dd = var_data(n=m,p=l_d,T=T,Co=Co,type=type_holder,X=as.matrix(XX))
+    res_dd$Y = Yi
+  }   else  {
+        XX = XX[(l_f-l_d+1):T,];
+      if (type=="exog0") { type_holder = type; XX = cbind(XX,XXX[(l_f-l_d+1):T,,I]);Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=0 }
+      if (type=="exog1") { type_holder = type; XX = cbind(XX,XXX[(l_f-l_d+1):T,,I]);Co = matrix(1,m,1+dim(XX)[2]); Co[,1]=1 }
+    res_dd = var_data(n=m,p=l_d,T=(T-(l_f-l_d)),Co=Co,type=type_holder,X=XX)
+    res_dd$Y = Yi[(l_f-l_d+1):T,]
+  }
+  res_e = var_estimate(res=res_dd)
+  Criteria[idx,] = c (l_d,l_f,res_e$Summary$AIC,res_e$Summary$BIC)
+   }
 }
 colnames(Criteria) = c("Domestic Lags","Foreign Lags","AIC","BIC")
 return(Criteria)
@@ -119,13 +126,16 @@ return(Criteria)
 
 
 
+#' MRCIGVAR Model Selection Function
 #'
-#' @param  res  : an MRCIGVAR object generated from mrcigvar_data or estimated from MRCIGVARest.
+#' This function performs model selection for the MRCIGVAR (Markov Regime-Switching Cointegrated GVAR) framework by calculating AIC, BIC, and other information criteria for various lag specifications and threshold values across regimes and countries.
+#'
+#' @param  res  : an MRCIGVAR object generated from mrcigvar_data or estimated from mrcigvar_estimate.
 #' @param  L_V  : a 2 components vector containing the maxima of the domestic lag length and the foreign lag length respectively.
-#' @param  TH_V  : a vector containing possible threshold values .
-#' @return a matrix with different lag specifications,  threshold values and the corresponding information criteria.
-#' @examples
+#' @param  TH_V  : a vector containing possible threshold values.
+#' @return a matrix with different lag specifications, threshold values and the corresponding information criteria.
 #'
+#' @examples
 #' m = 2                  ## m: number of variables, n: number of countries
 #' n = 4
 #' p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0); dim(p) = c(5,3,2)
@@ -176,6 +186,10 @@ mrcigvar_select_ = function(res,L_V=L_V,TH_V=TH_V)  {
 
 
 
+#' MRCIVAR Model Selection Function
+#'
+#' This function performs model selection for the MRCIVAR framework by calculating AIC and BIC criteria for various lag specifications and threshold values.
+#'
 #' @examples
 #'
 #' Sigma = 1:(4*4*2)
@@ -207,7 +221,6 @@ mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
   p[,1]  = max(L_V)
   S      = res_dd$S
   r      = res_dd$r
-  #res_dd = MRCIVARData(n=n,p=p,T=T,S=S,SESVI=SESVI,TH=TH,Sigmao=NA,type=type,r=r)
 
   Criteria = matrix(0,(L_V[1]-1)*(L_V[2]-1)*length(TH_V),9)
   idx = 0
@@ -220,17 +233,9 @@ mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
         res_dd$p[2,1] = l_f
         res_dd$TH     = TH_V[l_th]
 
-        #res_dd = mrcivar_data_m(n=n,p=p,T=T,S=S,SESVI=SESVI,TH=TH,Sigmao=NA,type=type,r=r)
-        #res_dd$Y= res$Y
-
-        # for MRCIVARestm
         res_s         = mrcivar_estimatem1(res=res_dd)
         Criteria[idx,] = c (l_d,l_f,TH_V[l_th],res_s$Summary$LH_AIC,res_s$Summary$LH_BIC,res_s$Summary$LHH_AIC,res_s$Summary$LHH_BIC,res_s$Summary$ORAIC,res_s$Summary$ORBIC)
         colnames(Criteria) = c("Lag_regime1","Lag_regime2" ,"threshold","AIC","BIC","LHH_AIC","LHH_BIC","ORAIC","ORBIC")
-        # for MECIVARest
-        #res_s         = MRCIVARest(res=res_dd)
-        #Criteria[idx,] = c (l_d,l_f,TH_V[l_th],res_s$LH_AIC,res_s$LH_BIC,res_s$LH_P,res_s$LH_N,res_s$ORAIC,res_s$ORBIC)
-        #colnames(Criteria) = c("Lag_regime1","Lag_regime2" ,"threshold","AIC","BIC","LH_P","LH_N","ORAIC","ORBIC")
       }
     }
   }
@@ -239,6 +244,20 @@ mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
 
 
 
+#' MRGVAR Model Selection Function
+#'
+#' This function performs model selection for the MRGVAR framework by calculating AIC, BIC, and other criteria for various lag specifications and threshold values across regimes.
+#'
+#' @param res An object generated from mrgvar_data
+#' @param I Index of the equation under investigation
+#' @param L_V A vector of length 4 containing maximum lags for regime 1 domestic, regime 1 foreign, regime 2 domestic, and regime 2 foreign
+#' @param TH_V A vector containing possible threshold values
+#'
+#' @return A list containing two elements: a matrix with lag specifications and criteria values, and the estimation results
+#'
+#' @examples
+#' p = (1:30)*0; dim(p) = c(5,3,2)
+#' p[,1:2,1] = 2; p[,1:2,2] = 2
 #' p[,2,] = 1; p[1,1,1] = 1; p[3,1,1] = 1; p[2,1,2] = 1
 #'
 #' TH = c(1:5)*0; dim(TH) = c(1,5)
@@ -400,6 +419,9 @@ mrgvar_select_ <- function(res,I,L_V,TH_V) {
 
 
 
+#' Select Regime-Specific Covariance Matrix
+#'
+#' Extracts and ensures positive definiteness of the covariance matrix for selected regimes across countries from a GVAR model output.
 #'
 #' @param res An estimated GVAR object
 #' @param StateT A vector of selected regimes of each country
@@ -408,35 +430,49 @@ mrgvar_select_ <- function(res,I,L_V,TH_V) {
 #' @export
 #' @keywords internal
 #'
+#' @examples
+#' # Example with sample covariance structure
+#' n <- 3  # number of countries
+#' N <- 2  # dimension per country
+#' SigmaS <- diag(n*N*2*n)  # Create sample covariance matrix
+#' res <- list(SigmaS = SigmaS)
+#' StateT <- c(1, 2, 1)  # Selected regime for each country
+#' 
+#' sigma_matrix <- sigma_npd_select_r(res, StateT)
+#' dim(sigma_matrix)
+#'
 sigma_npd_select_r = function(res,StateT) {
-      n = length(StateT);
-      dim(StateT) = c(1,n);
-      Ranking = 1:n;
-      SigmaS = res$SigmaS
-      N = dim(SigmaS)[1]/(2*n)
-      sigmaT = diag(n*N)
-        for (i in 1:n)        {
-        for (j in 1:n)  {
-            sigmaT[((i-1)*N+1):(i*N),((j-1)*N+1):(j*N)] = SigmaS[((StateT[1,i]-1)*n*N+(i-1)*N+1):((StateT[1,i]-1)*n*N+i*N),((StateT[1,j]-1)*n*N+(j-1)*N+1):((StateT[1,j]-1)*n*N+j*N)]
-      }
-      }
-      #if (anyNA(sigmaT)) { sigmanpd = SigmaRKSelect(Model,StateT,Ranking)[[1]] }
-      #else {
-      #    sigmanpd = as.matrix(Matrix::nearPD(sigmaT,conv.tol = 1e-10)[[1]])
-      #}
-      sigmanpd = as.matrix(Matrix::nearPD(sigmaT,conv.tol = 1e-10)[[1]])
-      return(sigmanpd)
+  n = length(StateT);
+  dim(StateT) = c(1,n);
+  Ranking = 1:n;
+  SigmaS = res$SigmaS
+  N = dim(SigmaS)[1]/(2*n)
+  sigmaT = diag(n*N)
+    for (i in 1:n)        {
+    for (j in 1:n)  {
+    sigmaT[((i-1)*N+1):(i*N),((j-1)*N+1):(j*N)] = SigmaS[((StateT[1,i]-1)*n*N+(i-1)*N+1):((StateT[1,i]-1)*n*N+i*N),((StateT[1,j]-1)*n*N+(j-1)*N+1):((StateT[1,j]-1)*n*N+j*N)]
+  }
+  }
+  #if (anyNA(sigmaT)) { sigmanpd = SigmaRKSelect(Model,StateT,Ranking)[[1]] }
+  #else {
+  #    sigmanpd = as.matrix(Matrix::nearPD(sigmaT,conv.tol = 1e-10)[[1]])
+  #}
+  sigmanpd = as.matrix(Matrix::nearPD(sigmaT,conv.tol = 1e-10)[[1]])
+  return(sigmanpd)
 }
 
 
 
+#' MRVAR Model Selection Function
 #'
-#' @param  res  : an MRVAR object generated from mrvar_data or estimated from MRVARest.
+#' This function performs model selection for the MRVAR (Markov Regime-Switching VAR) framework by calculating AIC, BIC, and other information criteria for various lag specifications and threshold values across regimes.
+#'
+#' @param  res  : an MRVAR object generated from mrvar_data or estimated from mrvar_estimate.
 #' @param  L_V  : a 2 components vector containing the maxima lags in the two regimes, respectively.
 #' @param  TH_V  : a vector containing the possible threshold values over which the model selection criteria values will be calculated.
 #' @return a matrix with different lag specifications and threshold values as well as the corresponding information criterion values.
-#' @examples
 #'
+#' @examples
 #' res_d = mrvar_data(n=4,p=matrix(c(2,1,2,2,0,0,0,0),4,2),T=800,S=2,SESVI=1)
 #' max(res_d$Y)
 #' colnames(res_d$Y) = c("P","Y","R","U")
@@ -445,6 +481,7 @@ sigma_npd_select_r = function(res,StateT) {
 #' L_v = c(5,5)
 #' Sel = mrvar_select_(res=res_e,L_V=L_v,TH_V=TH_v)
 #' mrvar_select__summary(Sel)
+#'
 #' @export
 mrvar_select_ <- function (res, L_V = L_V, TH_V = TH_V)
 {
@@ -488,12 +525,28 @@ mrvar_select_ <- function (res, L_V = L_V, TH_V = TH_V)
 
 
 
+#' Summarize MRVAR Model Selection Results
 #'
-#' @param Sel An output of mrvar_select_
+#' This function extracts the optimal models from MRVAR model selection results based on information criteria.
+#' It returns the models with the lowest BIC and AIC values, which are commonly used for model comparison.
 #'
-#' @return The optimal model according to BIC or AIC
+#' @param Sel An output matrix from mrvar_select_
+#'
+#' @return A list with two elements: the first contains the optimal model by BIC criterion, 
+#'         the second contains the optimal model by AIC criterion. Each element includes 
+#'         lag specifications for both regimes, threshold value, and the criterion value.
+#' 
+#' @examples
+#' res_d = mrvar_data(n=4,p=matrix(c(2,1,2,2,0,0,0,0),4,2),T=800,S=2,SESVI=1)
+#' res_e = mrvar_estimate(res=res_d)
+#' TH_v = c(0,0.0)
+#' L_v = c(5,5)
+#' Sel = mrvar_select_(res=res_e,L_V=L_v,TH_V=TH_v)
+#' summary_result = mrvar_select__summary(Sel)
+#' summary_result[[1]]  # Optimal model by BIC
+#' summary_result[[2]]  # Optimal model by AIC
+#'
 #' @export
-#'
 mrvar_select__summary = function(Sel) {
   result = list()
   result[[1]] = Sel[which.min(Sel[,5]),c(1,2,3,5)]

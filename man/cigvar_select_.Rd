@@ -2,7 +2,7 @@
 % Please edit documentation in R/model_selection.R
 \name{cigvar_select_}
 \alias{cigvar_select_}
-\title{This function calculates AIC and BIC criteria for a range of lag specifications of the domestic and foreign variables up to the maximum given in L_V.}
+\title{CIGVAR Model Selection Function}
 \usage{
 cigvar_select_(res, L_V = L_V)
 }
@@ -15,10 +15,9 @@ cigvar_select_(res, L_V = L_V)
 a matrix with different lag specifications and the corresponding information criteria.
 }
 \description{
-This function calculates AIC and BIC criteria for a range of lag specifications of the domestic and foreign variables up to the maximum given in L_V.
+This function performs model selection for the CIGVAR (Cointegrated Global Vector Autoregression) framework by calculating AIC and BIC criteria for various lag specifications of domestic and foreign variables for multiple countries.
 }
 \examples{
-
 
 n = 5
 p = (1:15)*0; dim(p) = c(5,3)

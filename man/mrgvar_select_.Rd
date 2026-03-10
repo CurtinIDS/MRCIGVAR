@@ -2,40 +2,52 @@
 % Please edit documentation in R/model_selection.R
 \name{mrgvar_select_}
 \alias{mrgvar_select_}
-\title{p\link{,2,} = 1; p\link{1,1,1} = 1; p\link{3,1,1} = 1; p\link{2,1,2} = 1}
+\title{MRGVAR Model Selection Function}
 \usage{
 mrgvar_select_(res, I, L_V, TH_V)
 }
+\arguments{
+\item{res}{An object generated from mrgvar_data}
+
+\item{I}{Index of the equation under investigation}
+
+\item{L_V}{A vector of length 4 containing maximum lags for regime 1 domestic, regime 1 foreign, regime 2 domestic, and regime 2 foreign}
+
+\item{TH_V}{A vector containing possible threshold values}
+}
+\value{
+A list containing two elements: a matrix with lag specifications and criteria values, and the estimation results
+}
 \description{
+This function performs model selection for the MRGVAR framework by calculating AIC, BIC, and other criteria for various lag specifications and threshold values across regimes.
+}
+\examples{
+p = (1:30)*0; dim(p) = c(5,3,2)
+p[,1:2,1] = 2; p[,1:2,2] = 2
+p[,2,] = 1; p[1,1,1] = 1; p[3,1,1] = 1; p[2,1,2] = 1
+
 TH = c(1:5)*0; dim(TH) = c(1,5)
 res_d <- mrgvar_data(m=3,n=5,p=p,TH =TH,T=400,S=2,SESVI=((1:5)*3-2))
 max(abs(res_d$Y))		# to make sure it is not explosive
 colnames(res_d$Y) = c("Y11","Y21","Y31","Y12","Y22","Y32","Y13","Y23","Y33","Y14",
 "Y24","Y34","Y15","Y25","Y35")
 res_e = mrgvar_estimate(res=res_d)
-}
-\details{
-\subsection{four numbers for the maxima lag length in country I:}{
-}
 
-\subsection{regime 1: domestic foreign regime 2: domestic and foreign}{
-
+### four numbers for the maxima lag length in country I:
+### regime 1: domestic foreign regime 2: domestic and foreign
 L_v  = c(3,3,3,3)
-}
-
-\subsection{a vector containing possible threshold values}{
-
+### a vector containing possible threshold values
 TH_v = c(-0.1, -0.05, 0,0.05, 0.1  )
 CC = mrgvar_select_(res=res_d,I=1,L_V=L_v,TH_V=TH_v)
-CCC = CC[\link{1}]
+ CCC = CC[[1]]
 
-CCC[which.min(CCC\link{,9}),]
-CCC[which.min(CCC\link{,18}),]
+CCC[which.min(CCC[,9]),]
+CCC[which.min(CCC[,18]),]
 
 CC = mrgvar_select_(res=res_d,I=2,L_V=L_v,TH_V=TH_v)
-CCC = CC[\link{1}]
+CCC = CC[[1]]
 
-CCC[which.min(CCC\link{,9}),]
-CCC[which.min(CCC\link{,18}),]
-}
+CCC[which.min(CCC[,9]),]
+CCC[which.min(CCC[,18]),]
+
 }
