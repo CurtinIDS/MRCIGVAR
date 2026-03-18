@@ -882,6 +882,7 @@ m_ix_civar_data = function(n,p,T,r,k,type,Bo=NA,Y=NA,X=NA,D=NA,Go=NA,B=NA,Sigma 
 #' Creates a GVAR dataset under the package’s model specification.
 #'
 #' @examples
+#' \dontrun{
 #' p = (1:12)*0; dim(p) = c(4,3);p[,1] = 2; p[,2]=1;   p[,3]=1; p[2,2]=2;
 #' p    ## country-wise lag specification
 #'
@@ -892,6 +893,7 @@ m_ix_civar_data = function(n,p,T,r,k,type,Bo=NA,Y=NA,X=NA,D=NA,Go=NA,B=NA,Sigma 
 #' IRF_CB = irf_gvar_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
 #' dim(IRF_CB)
 #' IRF_g = plot_irf(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
+#' }
 #'
 #' @export
 gvar_data <- function (m, n, p, T, W = NA, r_npo = NA, Ao = NA, Bo = NA, Co = NA, Uo = NA, Sigmao = NA, type = NA, X = NA, mu = NA)
@@ -1852,16 +1854,6 @@ mrcivar_data_m = function(n=2,p=matrix(2,2,2),T=100,S=2,SESVI,TH,Bo,Co,Sigmao,Uo
 #' TH = c(1:2)*0; dim(TH) = c(1,2)
 #' res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
 #' max(res_d$Y)
-#'
-#' ### estimation of the MRGVAR model
-#' colnames(res_d$Y) = c("P","Q","Pa","Qa")
-#' res_e = mrgvar_estimate(res=res_d)
-#' res_e$Summary
-#'
-#' IRF_CB  = irf_mrgvar_cb(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
-#' conf=c(0.05,0.95))
-#' IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
-#' #IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
 #' @export
 
 mrgvar_data=function(m,n,p,T,S,W=NA,SESVI=NA,TH=NA,Go=NA,Ao=NA,Bo=NA,Sigmao=NA,Uo=NA,SV=NA,type=NA,Co=NA,X=NA,Yo=NA,d=NA) {

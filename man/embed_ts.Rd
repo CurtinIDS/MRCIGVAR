@@ -2,21 +2,38 @@
 % Please edit documentation in R/utils.R
 \name{embed_ts}
 \alias{embed_ts}
-\title{Embeds the time series y into a low-dimensional Euclidean space with column names.}
+\title{Embed a time series with lagged columns and informative names}
 \usage{
 embed_ts(y = tseries::ts(c(1:20)), p = 3, prefix = "")
 }
 \arguments{
-\item{y}{The time series to be embedded}
+\item{y}{The time series (vector, matrix, or \code{ts}) to be embedded.}
 
-\item{p}{Number of lags for embedding}
+\item{p}{Number of lags for embedding.}
 
-\item{prefix}{Prefix of the column names}
+\item{prefix}{Prefix to prepend to the original column names (default \code{""}).}
 }
 \value{
-A matrix containing the embedded time series y.
+A matrix containing the lag-embedded time series.
 }
 \description{
-Embeds the time series y into a low-dimensional Euclidean space with column names.
+Wraps \code{stats::embed()} to create a lag-embedded matrix from a univariate or
+multivariate time series \code{y}. If \code{y} has column names, the embedded matrix
+columns are named using those series names plus lag suffixes (".1", ".2", ...),
+optionally preceded by \code{prefix}.
+}
+\examples{
+\dontrun{
+# Univariate example
+y <- tseries::ts(1:20)
+YY <- embed_ts(y, p = 3)
+dim(YY)
+
+# Multivariate example with column names
+y2 <- cbind(a = 1:20, b = 21:40)
+YY2 <- embed_ts(y2, p = 2, prefix = "X_")
+colnames(YY2)
+}
+
 }
 \keyword{internal}

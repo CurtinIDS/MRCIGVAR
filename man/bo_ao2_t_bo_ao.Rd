@@ -2,23 +2,53 @@
 % Please edit documentation in R/utils.R
 \name{bo_ao2_t_bo_ao}
 \alias{bo_ao2_t_bo_ao}
-\title{This function calculates a full rank linear transformation of initial Bo and Ao matrices with independent common trends and idiosyncratic trends.}
+\title{Apply a full-rank linear transformation to Bo and Ao in a multi-regime GVAR}
 \usage{
 bo_ao2_t_bo_ao(Bo, Ao, W, S)
 }
 \arguments{
-\item{Bo}{The initial Bo matrix}
+\item{Bo}{The initial domestic coefficient array.}
 
-\item{Ao}{The initial Ao matrix}
+\item{Ao}{The initial foreign coefficient array.}
 
-\item{W}{A weighting matrix of the GVAR model}
+\item{W}{A weighting matrix of the GVAR model (n x n).}
 
-\item{S}{Number of regimes}
+\item{S}{Number of regimes.}
 }
 \value{
-Transformed Bo and Ao matrices
+A list containing:
+\itemize{
+\item TBo: transformed domestic coefficient array (same shape as \code{Bo})
+\item TAo: transformed foreign coefficient array (same shape as \code{Ao})
+}
 }
 \description{
-This function calculates a full rank linear transformation of initial Bo and Ao matrices with independent common trends and idiosyncratic trends.
+Applies a block-diagonal, full-rank linear transformation to the initial domestic
+(\code{Bo}) and foreign (\code{Ao}) coefficient arrays in a (multi-country) GVAR setting.
+The transformation is identical across countries (same m x m block repeated along
+the diagonal), and is applied for each lag and regime. For \code{Ao}, the transformation
+additionally accounts for the GVAR weighting structure via \code{kronecker(W, diag(m))}.
+}
+\details{
+This is useful for reparameterising a system with independent common trends and
+idiosyncratic trends while preserving the model structure under an invertible
+change of basis.
+}
+\examples{
+# Minimal illustrative example (fabricated arrays)
+set.seed(1)
+n <- 2
+m <- 3
+L <- 2
+S <- 2
+
+Bo <- array(rnorm(m * m * L * n * S), dim = c(m, m, L, n, S))
+Ao <- array(rnorm(m * m * L * n * S), dim = c(m, m, L, n, S))
+W  <- matrix(c(0.7, 0.3,
+               0.4, 0.6), nrow = n, byrow = TRUE)
+
+out <- bo_ao2_t_bo_ao(Bo = Bo, Ao = Ao, W = W, S = S)
+str(out)
+
 }
 \keyword{internal}

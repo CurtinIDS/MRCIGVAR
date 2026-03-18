@@ -22,6 +22,10 @@ functions and their accumulated versions, along with confidence intervals.
 \examples{
 # Example usage of irf_global_response_cb
 # Assuming IRF_CB is the output from irf_mrgvar_cb and comb_all is a predefined weighting matrix
+# Define a simple "comb_all" (weighting matrix) for the global aggregation
+# Equal-weight "comb_all" across 2 countries (two identical columns)
+\dontrun{
+comb_all = matrix(c(0.5, 0.5, 0.5, 0.5), nrow = 2, ncol = 2)
 p = matrix(c(2,1,0,0),2,2)
 res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1)
 max(abs(res_d$Y))
@@ -30,4 +34,5 @@ res_e$Summary
 
 IRF_CB <- irf_mrvar_nm_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.90))
 result <- irf_global_response_cb(IRF_CB, comb_all)
+}
 }

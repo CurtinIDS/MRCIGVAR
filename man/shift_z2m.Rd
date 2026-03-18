@@ -2,25 +2,50 @@
 % Please edit documentation in R/utils.R
 \name{shift_z2m}
 \alias{shift_z2m}
-\title{This function generates impulse response functions of an estimated CIGVAR(m,n,p) with confidence bands.}
+\title{Shift common-factor regressors to the end of Z2 (domestic + foreign lag structure)}
 \usage{
 shift_z2m(Z2, kz, n1, p, p2)
 }
 \arguments{
-\item{Z2}{: Regressor's matrix to be shifted}
+\item{Z2}{Regressor matrix to be shifted.}
 
-\item{kz}{: number of common exogenous factors}
+\item{kz}{Number of common exogenous factors.}
 
-\item{n1}{: number of domestic variables}
+\item{n1}{Number of domestic variables.}
 
-\item{p}{: the lag length of domestic variables in Z2 which is also the lag length of exogenous common factors}
+\item{p}{Lag length of domestic variables in \code{Z2} (also the lag length of common factors).}
 
-\item{p2}{: the lag length of foreign  variables in Z2}
+\item{p2}{Lag length of foreign variables in \code{Z2}.}
 }
 \value{
-a shifted Z2 if there are exogenous common factors. It returns Z2 without shift if there are no common factors.
+A regressor matrix with common-factor columns shifted to the end (when applicable).
 }
 \description{
-This function generates impulse response functions of an estimated CIGVAR(m,n,p) with confidence bands.
+Reorders the regressor matrix \code{Z2} by moving the lagged exogenous common-factor
+columns (if present) to the end, when \code{Z2} contains both domestic and foreign lag
+blocks. If there are no common factors (\code{kz = 0}) or no domestic lags (\code{p = 0}),
+\code{Z2} is returned unchanged.
+}
+\details{
+Compared with \code{shift_z2()}, this variant also accounts for an additional block
+structure that includes foreign-variable lags (\code{p2}) and shifts the corresponding
+common-factor positions in both relevant parts of the regressor layout.
+}
+\examples{
+set.seed(1)
+T <- 10
+n1 <- 2
+kz <- 1
+p <- 2
+p2 <- 2
+
+# Fabricate a Z2 with enough columns for the intended indexing pattern
+# (Exact layout depends on how Z2 is constructed upstream.)
+ncol_Z2 <- 2 * (p * (n1 + kz) + p2 * n1)
+Z2 <- matrix(rnorm(T * ncol_Z2), nrow = T, ncol = ncol_Z2)
+
+Z2s <- shift_z2m(Z2 = Z2, kz = kz, n1 = n1, p = p, p2 = p2)
+dim(Z2s)
+
 }
 \keyword{internal}

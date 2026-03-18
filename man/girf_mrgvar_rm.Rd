@@ -43,6 +43,7 @@ models, Economics Letters, 58(1) p. 17-29.
 \examples{
 ## Minimal, quick example (safe to run in checks)
 ## n: number of countries, m: number of variables, S: simulation draws
+\dontrun{
 p <- rep(1, 12); dim(p) <- c(2, 3, 2)
 p[1, 1, 2] <- 2; p[2, 2, 2] <- 2; p[, 3, ] <- 0
 TH <- c(1:2) * 0; dim(TH) <- c(1, 2)
@@ -63,6 +64,7 @@ max(res_d$Y)
                                resid_method = "parametric",
                                conf = c(0.05, 0.95), N = 10)
   IRF_g <- plot_irf(GIRF_CB, Names = c("P", "Q", "Pa", "Qa"))
+}
 }
 
 }

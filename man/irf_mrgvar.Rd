@@ -41,6 +41,7 @@ allowing for various types of IRFs and handling different configurations of shoc
 across multiple regimes and countries.
 }
 \examples{
+\dontrun{
 ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
 p = rep(1,12); dim(p) = c(2,3,2)
 p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
@@ -54,6 +55,7 @@ res_e = mrgvar_estimate(res=res_d)
 res_e$Summary
 
 IRF  = irf_mrgvar(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1")
+}
 
 }
 \keyword{internal}

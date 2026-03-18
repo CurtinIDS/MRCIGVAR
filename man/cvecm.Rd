@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{cvecm}
 \alias{cvecm}
-\title{This function estimates the unknown parameters of a multi regime conditional VECM based on provided data.}
+\title{Estimate a conditional VECM and Johansen cointegration test statistics}
 \usage{
 cvecm(
   y,
@@ -15,24 +15,59 @@ cvecm(
 )
 }
 \arguments{
-\item{y}{data matrix of the endogenous variables}
+\item{y}{Data matrix of the endogenous variables.}
 
-\item{x}{data matrix of the exogenous variables}
+\item{x}{Data matrix of the exogenous (conditioning) variables. If \code{length(x) == 1},
+the model is estimated without additional conditioning variables.}
 
-\item{model}{type of the specification of the deterministic components. "none" and "const" are two options.}
+\item{model}{Deterministic component specification. One of \code{"I"}, \code{"II"}, \code{"III"},
+\code{"IV"}, \code{"V"}.}
 
-\item{type}{=c("eigen", "trace")}
+\item{type}{Johansen test type. One of \code{"eigen"} (maximum eigenvalue) or \code{"trace"}.}
 
-\item{crk}{cointegration rank}
+\item{crk}{Cointegration rank.}
 
-\item{p}{lag length in level}
+\item{p}{Lag length in levels.}
 
-\item{q}{significance level}
+\item{q}{Significance level (must be one of \code{0.9}, \code{0.95}, \code{0.99}).}
 }
 \value{
-a list of estimated parameters and test statistics
+A list containing estimated parameters and test statistics, including:
+\itemize{
+\item erg: matrix of test statistics and critical values
+\item estimation: fitted VECM (lm object)
+\item lambda: transformed eigenvalue-based statistics
+\item z: combined data matrix of endogenous and exogenous variables
+\item Z2: lagged differenced regressors (or \code{NULL})
+\item beta: estimated cointegration vectors
+\item PI: short-run parameter matrix
+\item GAMMA: additional short-run parameters (or \code{NULL})
+\item model: deterministic specification used
+}
 }
 \description{
-This function estimates the unknown parameters of a multi regime conditional VECM based on provided data.
+Estimates the parameters of a conditional vector error correction model (VECM)
+using the Johansen procedure, allowing for different deterministic component
+specifications (models I–V). The function returns estimated objects and
+cointegration test statistics (either maximum-eigenvalue or trace).
+}
+\examples{
+# Minimal illustrative example (fabricated data)
+set.seed(1)
+T <- 120
+y <- cbind(
+  y1 = cumsum(rnorm(T)),
+  y2 = cumsum(rnorm(T))
+)
+x <- cbind(
+  x1 = cumsum(rnorm(T))
+)
+
+# Estimate with a constant in the cointegration relation (model II),
+# using the maximum-eigenvalue test statistic.
+fit <- cvecm(y = y, x = x, model = "II", type = "eigen", crk = 1, p = 2, q = 0.95)
+fit$erg
+fit$beta
+
 }
 \keyword{internal}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{varb_commtrend}
 \alias{varb_commtrend}
-\title{This function creates independent common stochastic trends and idiosyncratic trends.}
+\title{Generate Independent Common Stochastic Trends and Idiosyncratic Trends for VAR Models}
 \usage{
 varb_commtrend(m, p, T, r_npo, Ncommtrend, n)
 }
@@ -20,9 +20,31 @@ varb_commtrend(m, p, T, r_npo, Ncommtrend, n)
 \item{n}{number of countries}
 }
 \value{
-A list containing the parameter matrix of the domestic variables, the cointegration vectors and the adjustment vectors
+A list containing the parameter matrix of the domestic variables,
+the cointegration vectors, and the adjustment vectors
 }
 \description{
-This function creates independent common stochastic trends and idiosyncratic trends.
+This function creates independent common stochastic trends and idiosyncratic trends
+for a given number of variables, lags, and observations. It also computes the
+parameter matrix of domestic variables, cointegration vectors, and adjustment vectors
+based on the specified roots of the characteristic polynomial.
+}
+\examples{
+\dontrun{
+m <- 3
+p <- matrix(c(1, 2,
+              2, 1), ncol = 2, byrow = TRUE)
+T <- 100
+n <- 2
+Pmax <- max(p[, 1])
+
+# Provide valid roots array (see package vignette for recommended settings)
+r_npo <- array(runif(m * Pmax * n), dim = c(m, Pmax, n))
+
+Ncommtrend <- 1
+result <- varb_commtrend(m, p, T, r_npo, Ncommtrend, n)
+print(result)
+}
+
 }
 \keyword{internal}

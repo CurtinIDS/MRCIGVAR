@@ -2,19 +2,30 @@
 % Please edit documentation in R/utils.R
 \name{rnorm_sigma}
 \alias{rnorm_sigma}
-\title{This function will generate iid multivariate normal random time series.}
+\title{Generate iid multivariate normal time series with a given covariance}
 \usage{
 rnorm_sigma(T, sigma)
 }
 \arguments{
-\item{T}{Length of the generated time series}
+\item{T}{Length of the generated time series.}
 
-\item{sigma}{An (n x n) covariance matrix of the normal series}
+\item{sigma}{An (n x n) covariance matrix of the normal series.}
 }
 \value{
-T x n matrix of iid normal time series
+A \verb{T x n} matrix of iid normal time series.
 }
 \description{
-This function will generate iid multivariate normal random time series.
+Simulates an iid multivariate normal series of length \code{T} with zero mean and
+covariance matrix \code{sigma}. The output is a \verb{T x n} matrix, where \code{n} is the
+dimension of \code{sigma}.
+}
+\examples{
+set.seed(1)
+sigma <- matrix(c(1, 0.3,
+                  0.3, 2), nrow = 2, byrow = TRUE)
+x <- rnorm_sigma(T = 100, sigma = sigma)
+dim(x)
+cov(x)
+
 }
 \keyword{internal}

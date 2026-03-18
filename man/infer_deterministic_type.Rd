@@ -2,22 +2,35 @@
 % Please edit documentation in R/utils.R
 \name{infer_deterministic_type}
 \alias{infer_deterministic_type}
-\title{This function will output type according to specification of Co and EXOG and type.}
+\title{Infer deterministic specification type from Co and exogenous regressors}
 \usage{
 infer_deterministic_type(Co, EXOG, type)
 }
 \arguments{
-\item{Co}{The coefficients of the deterministic components}
+\item{Co}{The coefficients of the deterministic components (or \code{NA}).}
 
-\item{EXOG}{The exogenous variables}
+\item{EXOG}{The exogenous variables (or \code{NA}).}
 
-\item{type}{The type of the deterministic specification for comparison}
+\item{type}{The type of the deterministic specification for comparison (or \code{NA}).}
 }
 \value{
-type
+A character string giving the inferred deterministic specification type.
 }
 \description{
-This function will output type according to specification of Co and EXOG and type.
+Infers the deterministic specification label (\code{type}) based on whether the
+deterministic coefficient matrix \code{Co} and/or the exogenous regressor matrix
+\code{EXOG} are provided, and on simple structural checks (for example, whether \code{Co}
+contains only zeros, or whether \code{Co} has one more column than \code{EXOG}).
+}
+\details{
+The returned value is one of:
+\itemize{
+\item \code{"none"}  : no deterministic component (all elements of \code{Co} are zero, and no \code{EXOG})
+\item \code{"const"} : constant-only deterministic component
+\item \code{"exog0"} : exogenous regressors present and the first column of \code{Co} is all zeros
+\item \code{"exog1"} : exogenous regressors present and the first column of \code{Co} is not all zeros
+\item \code{" Co column<> EXOG column "} : shape mismatch between \code{Co} and \code{EXOG}
+}
 }
 \examples{
 infer_deterministic_type(Co=matrix(c(0,0,1,1),2,2),EXOG= c(1:10),type="exog0")
@@ -27,4 +40,5 @@ infer_deterministic_type(Co=c(1,1),EXOG= NA,type=NA)
 infer_deterministic_type(Co=c(0,0),EXOG= NA,type=NA)
 var_data(n=2,p=2,T=100,Co=matrix(c(2,2,1,1),2,2),type="exog0",X=c(1:100))
 var_data(n=2,p=2,T=100,Co=matrix(c(1,1,1,1),2,2),type="exog1",X=c(1:100))
+
 }

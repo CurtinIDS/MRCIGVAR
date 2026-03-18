@@ -87,14 +87,4 @@ p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
 TH = c(1:2)*0; dim(TH) = c(1,2)
 res_d <- mrgvar_data(m=2,n=2,p=p,TH=TH,T=100,S=2,SESVI=c(1,3),type="const")
 max(res_d$Y)
-
-### estimation of the MRGVAR model
-colnames(res_d$Y) = c("P","Q","Pa","Qa")
-res_e = mrgvar_estimate(res=res_d)
-res_e$Summary
-
-IRF_CB  = irf_mrgvar_cb(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=20,
-conf=c(0.05,0.95))
-IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
-#IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
 }

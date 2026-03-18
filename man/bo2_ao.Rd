@@ -2,33 +2,62 @@
 % Please edit documentation in R/utils.R
 \name{bo2_ao}
 \alias{bo2_ao}
-\title{This function calculates Ao coefficients from Bo with common trends.}
+\title{Construct foreign-variable coefficient arrays (Ao) from domestic dynamics with common trends}
 \usage{
 bo2_ao(m, p, T, r, Ncommtrend, n, S, r_npo, DFYflag = NA)
 }
 \arguments{
-\item{m}{Number of variables}
+\item{m}{Number of variables.}
 
-\item{p}{Lags}
+\item{p}{Lags (country- and regime-specific). Used as indexed in the function.}
 
-\item{T}{Number of observations}
+\item{T}{Number of observations.}
 
-\item{r}{Number of stochastic trends}
+\item{r}{Number of stochastic trends per country.}
 
-\item{Ncommtrend}{Number of the common trends}
+\item{Ncommtrend}{Number of common trends.}
 
-\item{n}{Number of countries}
+\item{n}{Number of countries.}
 
-\item{S}{Number of regimes}
+\item{S}{Number of regimes.}
 
-\item{r_npo}{The matrix containing the roots of the characteristic polynomial}
+\item{r_npo}{The matrix/array containing the roots of the characteristic polynomial.}
 
-\item{DFYflag}{switching indicator whether the foreign variables enter the cointegration space}
+\item{DFYflag}{Switching indicator of whether foreign variables enter the cointegration space.
+Defaults to \code{0} when \code{NA}.}
 }
 \value{
-Parameter matrix of the foreign variables in the country equation of the GVAR model
+An array \code{Ao} of dimension (m, m, Pmax, n, S) containing the parameter matrices
+of the foreign variables in each country equation of the GVAR model.
 }
 \description{
-This function calculates Ao coefficients from Bo with common trends.
+Computes the regime- and country-specific foreign-variable coefficient arrays \code{Ao}
+for a GVAR-type country equation when domestic dynamics \code{Bo} are generated under
+(optional) common stochastic trends. Internally, \code{Bo} (and the implied error-correction
+components \code{alpha} and \code{beta}) are obtained from \code{varbs_commtrend()}. For each country
+and regime, a stable VAR block is generated via \code{var_data()} and then mapped into
+\code{Ao} in levels. If \code{DFYflag = 1}, the term \code{alpha \%*\% t(beta)} is added into the first
+lag to allow foreign variables to enter the cointegration space.
+}
+\examples{
+# Minimal illustrative example (fabricated shapes; relies on varbs_commtrend() and var_data())
+\dontrun{
+set.seed(1)
+m <- 4
+n <- 2
+S <- 2
+T <- 100
+r <- c(1, 1)
+
+# p indexed as p[i, 1:2, s] inside the function, so we create an array with that shape
+p <- array(3, dim = c(n, 2, S))
+
+# r_npo is passed through to varbs_commtrend()
+r_npo <- array(0.5, dim = c(m, max(p[,1,]), n, S))
+
+Ao <- bo2_ao(m = m, p = p, T = T, r = r, Ncommtrend = 1, n = n, S = S, r_npo = r_npo, DFYflag = 1)
+dim(Ao)
+}
+
 }
 \keyword{internal}

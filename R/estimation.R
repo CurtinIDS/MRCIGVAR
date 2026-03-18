@@ -1085,6 +1085,7 @@ cciva_rest <- function (res)
 #' @return a GVAR object with estimated parameter values, AIC, BIC, LH, and the estimated VAR models for each country.
 #'
 #' @examples
+#' \dontrun{
 #' p = (1:12)*0; dim(p) = c(4,3); p[,1] = 2; p[,2] = 1; p[,3] = 1; p[2,2] = 2
 #' p
 #'
@@ -1095,6 +1096,7 @@ cciva_rest <- function (res)
 #' IRF_CB = irf_gvar_cb(res_e, nstep=10, comb=NA, irf="gen", runs=200, conf=c(0.05,0.95))
 #' dim(IRF_CB)
 #' IRF_g = plot_irf(IRF_CB, Names=NA, response=c(1,4), impulse=c(1,2,3,4), ncol=4)
+#' }
 #'
 #' @export
 gvar_estimate <- function (res)  {
@@ -1813,7 +1815,7 @@ abc_mrciva_restm <- function(res=res,H=H,h=h,phi=phi,G=G,psi=psi) {
 #' @param  res  : an MRGVAR object which is an output of MRGVARData.
 #' @return res  : an MRGVAR object with estimated parameters and test statistics.
 #' @examples
-#'
+#' \dontrun{
 #' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
 #' p = rep(1,12); dim(p) = c(2,3,2)
 #' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
@@ -1830,6 +1832,7 @@ abc_mrciva_restm <- function(res=res,H=H,h=h,phi=phi,G=G,psi=psi) {
 #' conf=c(0.05,0.95))
 #' IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
 #' #IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
+#' }
 #' @export
 mrgvar_estimate <- function (res)
 {

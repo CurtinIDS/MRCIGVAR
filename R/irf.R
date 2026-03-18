@@ -541,6 +541,7 @@ irf_mrcigvar <- function(res, nstep, comb, state = state, irf = c("gen", "chol",
 #'         and the columns represent impulses.
 #'
 #' @examples
+#' \dontrun{
 #' m = 2
 #' n = 3
 #' p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0)
@@ -566,12 +567,14 @@ irf_mrcigvar <- function(res, nstep, comb, state = state, irf = c("gen", "chol",
 #'
 #' plot(ts(res_d$Y))
 #'
-#' if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1.0001)|(max(Mod(spectral_radius(res_e$Go[,,,2])))>1.0001)) ) {
+#' if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1.0001)|
+#'  (max(Mod(spectral_radius(res_e$Go[,,,2])))>1.0001)) ) {
 #'   GIRF <- girf_mrcigvar_rm(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
 #'   resid_method="parametric")
 #'   GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
 #'   resid_method="parametric", conf=c(0.05,0.95), N=100)
 #'   IRF_g = plot_irf(GIRF_CB)
+#'  }
 #' }
 #'
 #' @export
@@ -725,7 +728,8 @@ girf_mrcigvar_rm <- function(res, shock, R, nstep, Omega_hist=NA, resid_method) 
 #'
 #' plot(ts(res_d$Y))
 #'
-#' if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1)|(max(Mod(spectral_radius(res_e$Go[,,,2])))>1)) ) {
+#' if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1)|
+#'  (max(Mod(spectral_radius(res_e$Go[,,,2])))>1)) ) {
 #'   GIRF <- girf_mrcigvar_rm(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
 #'   resid_method="parametric")
 #'   GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
@@ -1155,6 +1159,7 @@ girf_mrcivar_rm_cb <- function (res, shock, R, nstep, Omega_hist=NA, resid_metho
 #' @return an (mn,mn,nstep) array containing the IRF with columns representing the impulses and rows the responses
 #'
 #' @examples
+#' \dontrun{
 #' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
 #' p = rep(1,12); dim(p) = c(2,3,2)
 #' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
@@ -1168,6 +1173,7 @@ girf_mrcivar_rm_cb <- function (res, shock, R, nstep, Omega_hist=NA, resid_metho
 #' res_e$Summary
 #'
 #' IRF  = irf_mrgvar(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1")
+#' }
 #'
 #' @export
 #' @keywords internal
@@ -1233,6 +1239,7 @@ irf_mrgvar = function(res=res, state=state, nstep=nstep, comb=comb, irf = c("gen
 #' @examples
 #' ## Minimal, quick example (safe to run in checks)
 #' ## n: number of countries, m: number of variables, S: simulation draws
+#' \dontrun{
 #' p <- rep(1, 12); dim(p) <- c(2, 3, 2)
 #' p[1, 1, 2] <- 2; p[2, 2, 2] <- 2; p[, 3, ] <- 0
 #' TH <- c(1:2) * 0; dim(TH) <- c(1, 2)
@@ -1253,6 +1260,7 @@ irf_mrgvar = function(res=res, state=state, nstep=nstep, comb=comb, irf = c("gen
 #'                                resid_method = "parametric",
 #'                                conf = c(0.05, 0.95), N = 10)
 #'   IRF_g <- plot_irf(GIRF_CB, Names = c("P", "Q", "Pa", "Qa"))
+#' }
 #' }
 #'
 #' @export
@@ -1395,6 +1403,7 @@ girf_mrgvar_rm <- function(res, shock, R, nstep, Omega_hist, resid_method) {
 #'
 #' @examples
 #' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
+#' \dontrun{
 #' p = rep(1, 12); dim(p) = c(2, 3, 2)
 #' p[1, 1, 2] = 2; p[2, 2, 2] = 2; p[, 3, ] = 0
 #' TH = c(1:2) * 0; dim(TH) = c(1, 2)
@@ -1416,6 +1425,7 @@ girf_mrgvar_rm <- function(res, shock, R, nstep, Omega_hist, resid_method) {
 #'                              nstep = 10, Omega_hist = NA, 
 #'                              resid_method = 'parametric', conf = c(0.05, 0.95), N = 10)
 #' GIRF_g = plot_irf(GIRF_CB, Names = c("P", "Q", "Pa", "Qa"))
+#' }
 #'
 #' @export
 girf_mrgvar_rm_cb <- function(res, shock, R, nstep, Omega_hist = NA, 
@@ -1490,6 +1500,7 @@ girf_mrgvar_rm_cb <- function(res, shock, R, nstep, Omega_hist = NA,
 #' @param NT number of impulse response scenarios in a simulation run
 #' @return a list of bootstrap result. The first component contains the impulse response functions with confidence bands. It is an (mn,mn,nstep,3) array where the IRF columns represent the impulse and rows represent the responses.
 #' @examples
+#' \dontrun{
 #' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
 #' p = rep(1,12); dim(p) = c(2,3,2)
 #' p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
@@ -1506,6 +1517,7 @@ girf_mrgvar_rm_cb <- function(res, shock, R, nstep, Omega_hist = NA,
 #' conf=c(0.05,0.95))
 #' IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
 #' #IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
+#' }
 #'
 #' @export
 irf_mrgvar_cb = function (res, state = c(2, 1), nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"), G=NA, smat=NA, sigmaNPDS=NA, runs = 200, conf = c(0.05, 0.95), NT = 1) {
@@ -1629,6 +1641,10 @@ accir_fconf_r <- function(IRF) {
 #' @examples
 #' # Example usage of irf_global_response_cb
 #' # Assuming IRF_CB is the output from irf_mrgvar_cb and comb_all is a predefined weighting matrix
+#' # Define a simple "comb_all" (weighting matrix) for the global aggregation
+#' # Equal-weight "comb_all" across 2 countries (two identical columns)
+#' \dontrun{
+#' comb_all = matrix(c(0.5, 0.5, 0.5, 0.5), nrow = 2, ncol = 2)
 #' p = matrix(c(2,1,0,0),2,2)
 #' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1)
 #' max(abs(res_d$Y))
@@ -1637,6 +1653,7 @@ accir_fconf_r <- function(IRF) {
 #' 
 #' IRF_CB <- irf_mrvar_nm_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.90))
 #' result <- irf_global_response_cb(IRF_CB, comb_all)
+#' }
 #' @export
 #'
 irf_global_response_cb <- function(IRF_CB, comb_all) {

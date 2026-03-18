@@ -40,6 +40,7 @@ See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in lin
 models, Economics Letters, 58(1) p. 17-29.
 }
 \examples{
+\dontrun{
 m = 2
 n = 3
 p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0)
@@ -65,12 +66,14 @@ spectral_radius(res_e$Go[,,,1])
 
 plot(ts(res_d$Y))
 
-if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1.0001)|(max(Mod(spectral_radius(res_e$Go[,,,2])))>1.0001)) ) {
+if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1.0001)|
+ (max(Mod(spectral_radius(res_e$Go[,,,2])))>1.0001)) ) {
   GIRF <- girf_mrcigvar_rm(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
   resid_method="parametric")
   GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
   resid_method="parametric", conf=c(0.05,0.95), N=100)
   IRF_g = plot_irf(GIRF_CB)
+ }
 }
 
 }

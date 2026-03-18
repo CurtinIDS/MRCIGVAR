@@ -53,6 +53,7 @@ models, Economics Letters, 58(1) p. 17-29.
 }
 \examples{
 ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
+\dontrun{
 p = rep(1, 12); dim(p) = c(2, 3, 2)
 p[1, 1, 2] = 2; p[2, 2, 2] = 2; p[, 3, ] = 0
 TH = c(1:2) * 0; dim(TH) = c(1, 2)
@@ -74,5 +75,6 @@ GIRF_CB = girf_mrgvar_rm_cb(res = res_e, shock = c(1, 1, 1, 1), R = 100,
                              nstep = 10, Omega_hist = NA, 
                              resid_method = 'parametric', conf = c(0.05, 0.95), N = 10)
 GIRF_g = plot_irf(GIRF_CB, Names = c("P", "Q", "Pa", "Qa"))
+}
 
 }

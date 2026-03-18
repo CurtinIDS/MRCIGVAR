@@ -2,20 +2,27 @@
 % Please edit documentation in R/utils.R
 \name{roots_to_coef}
 \alias{roots_to_coef}
-\title{Given the roots of a characteristic polynom in lags, output the coefficients of the corresponding AR process.}
+\title{Convert characteristic roots to AR coefficients}
 \usage{
 roots_to_coef(p, r_p)
 }
 \arguments{
-\item{p}{The lag length}
+\item{p}{The lag length (AR order).}
 
-\item{r_p}{A p-vector of roots outside the unit circle}
+\item{r_p}{A length-\code{p} vector of characteristic roots outside the unit circle.}
 }
 \value{
-A vector of AR coefficients
+A numeric vector of length \code{p} containing the AR coefficients. Returns a
+character message if any root lies within the unit circle.
 }
 \description{
-Given the roots of a characteristic polynom in lags, output the coefficients of the corresponding AR process.
+Given the roots of a characteristic polynomial in lags (all outside the unit circle),
+this function computes the coefficients of the corresponding autoregressive (AR)
+process of order \code{p}. If \code{r_p} is not provided, random roots outside the unit circle
+are generated.
+}
+\examples{
+roots_to_coef(3, c(1.1, 1.2, 1.3))
+
 }
 \keyword{internal}
-\keyword{roots_to_coef(3,c(1.1,1.2,1.3))}

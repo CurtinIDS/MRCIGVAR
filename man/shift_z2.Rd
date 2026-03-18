@@ -2,23 +2,43 @@
 % Please edit documentation in R/utils.R
 \name{shift_z2}
 \alias{shift_z2}
-\title{This function generates impulse response functions of an estimated CIGVAR(m,n,p) with confidence bands.}
+\title{Shift common-factor regressors to the end of Z2}
 \usage{
 shift_z2(Z2, kz, n1, p)
 }
 \arguments{
-\item{Z2}{: Regressor's matrix to be shifted}
+\item{Z2}{Regressor matrix to be shifted.}
 
-\item{kz}{: number of common exogenous factors}
+\item{kz}{Number of common exogenous factors.}
 
-\item{n1}{: number of domestic variables}
+\item{n1}{Number of domestic variables.}
 
-\item{p}{: the lag length of domestic variables in Z2 which is also the lag length of exogenous common factors}
+\item{p}{Lag length of domestic regressors in \code{Z2} (also the lag length of common factors).}
 }
 \value{
-a shifted Z2 if there are exogenous common factors. It returns Z2 without shift if there are no common factors.
+A regressor matrix with common-factor columns shifted to the end (when applicable).
 }
 \description{
-This function generates impulse response functions of an estimated CIGVAR(m,n,p) with confidence bands.
+Reorders the auxiliary-regression regressor matrix \code{Z2} by moving the lagged
+exogenous common-factor blocks (if present) to the end of the matrix. If there are
+no common factors (\code{kz = 0}) or no lags (\code{p = 0}), \code{Z2} is returned unchanged.
+}
+\details{
+This is used when the regressor matrix is stacked by lag as
+(domestic variables, common factors) for each lag, and a downstream routine expects
+domestic regressors first, followed by all common-factor regressors.
+}
+\examples{
+set.seed(1)
+T <- 10
+n1 <- 2
+kz <- 1
+p <- 3
+
+# Z2 columns are arranged by lag blocks: (n1 domestic + kz factors) per lag
+Z2 <- matrix(rnorm(T * (n1 + kz) * p), nrow = T)
+Z2s <- shift_z2(Z2 = Z2, kz = kz, n1 = n1, p = p)
+dim(Z2s)
+
 }
 \keyword{internal}

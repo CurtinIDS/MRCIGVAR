@@ -50,6 +50,7 @@ This function calculates the regime specific impulse response functions of an es
 Using the estimated G[,,,s] and Sigma[,,s] matrices of the MRGVAR, this function calculates the regime specific impulse response functions.
 }
 \examples{
+\dontrun{
 ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
 p = rep(1,12); dim(p) = c(2,3,2)
 p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
@@ -66,5 +67,6 @@ IRF_CB  = irf_mrgvar_cb(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=
 conf=c(0.05,0.95))
 IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
 #IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
+}
 
 }

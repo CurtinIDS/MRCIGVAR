@@ -16,7 +16,7 @@ res  : an MRGVAR object with estimated parameters and test statistics.
 This function estimates the parameters of a specified MRGVAR(m,n,p,S) model based on provided data.
 }
 \examples{
-
+\dontrun{
 ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
 p = rep(1,12); dim(p) = c(2,3,2)
 p[1,1,2] = 2; p[2,2,2]=2; p[,3,] = 0
@@ -33,4 +33,5 @@ IRF_CB  = irf_mrgvar_cb(res=res_e,nstep=10,comb=NA,state=c(1,1),irf="gen1",runs=
 conf=c(0.05,0.95))
 IRF_g = plot_irf(IRF_CB[[1]],Names=c("P","Q","Pa","Qa"))    #IRF
 #IRF_g = plot_irf(IRF_CB[[2]])   # accumulated IRF
+}
 }

@@ -2,25 +2,47 @@
 % Please edit documentation in R/utils.R
 \name{rnorm_sigma_cond}
 \alias{rnorm_sigma_cond}
-\title{This function generates random numbers from iid multivariate conditional normal distribution with covariance matrix Sigma, given i-th component has the value of v, this will be an (n-1) dimensional random number}
+\title{Generate iid conditional multivariate normal time series}
 \usage{
 rnorm_sigma_cond(T, sigma, I, v, switch)
 }
 \arguments{
-\item{T}{Length of generated time series}
+\item{T}{Length of generated time series.}
 
-\item{sigma}{The (n x n) covariance matrix of the normal series}
+\item{sigma}{The (n x n) covariance matrix of the normal series.}
 
-\item{I}{Index of conditioning component}
+\item{I}{Index of conditioning component (integer in 1..n).}
 
-\item{v}{The value of the conditioning component}
+\item{v}{The value of the conditioning component.}
 
-\item{switch}{A switch variable: switch = 1 gives the conditional random series and switch = 0 gives the expected values.}
+\item{switch}{A switch variable: \code{switch = 1} gives the conditional random series and
+\code{switch = 0} gives the expected values.}
 }
 \value{
-A (T x (n-1)) matrix of iid conditional normal time series or the conditional expected values
+A (T x (n-1)) matrix of iid conditional normal time series (or conditional expected values).
 }
 \description{
-This function generates random numbers from iid multivariate conditional normal distribution with covariance matrix Sigma, given i-th component has the value of v, this will be an (n-1) dimensional random number
+Simulates an iid conditional multivariate normal series given that the \code{I}-th
+component is fixed at value \code{v}. The function returns an (n-1)-dimensional series
+with conditional covariance and conditional mean implied by \code{sigma}.
+}
+\details{
+If \code{switch = 1}, the output is a random series drawn from the conditional normal.
+If \code{switch = 0}, the output is the conditional expected value repeated over time.
+}
+\examples{
+set.seed(1)
+sigma <- matrix(c(1, 0.4, 0.2,
+                  0.4, 2, 0.5,
+                  0.2, 0.5, 1.5), nrow = 3, byrow = TRUE)
+
+# Condition on component I = 2 being v = 1
+x_rand <- rnorm_sigma_cond(T = 100, sigma = sigma, I = 2, v = 1, switch = 1)
+dim(x_rand)  # 100 x (3-1)
+
+# Conditional mean only (repeated over time)
+x_mean <- rnorm_sigma_cond(T = 5, sigma = sigma, I = 2, v = 1, switch = 0)
+x_mean
+
 }
 \keyword{internal}

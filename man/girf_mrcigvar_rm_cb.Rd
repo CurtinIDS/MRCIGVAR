@@ -74,7 +74,8 @@ spectral_radius(res_e$Go[,,,1])
 
 plot(ts(res_d$Y))
 
-if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1)|(max(Mod(spectral_radius(res_e$Go[,,,2])))>1)) ) {
+if (!((max(Mod(spectral_radius(res_e$Go[,,,1])))>1)|
+ (max(Mod(spectral_radius(res_e$Go[,,,2])))>1)) ) {
   GIRF <- girf_mrcigvar_rm(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,
   resid_method="parametric")
   GIRF_CB <- girf_mrcigvar_rm_cb(res=res_e, shock=c(1,1,1,1,1,1), R=100, nstep=10, Omega_hist=NA,

@@ -24,15 +24,21 @@
 #' @keywords internal
 #'
 #' @examples
-#' # Example usage of varb_commtrend function
+#' \dontrun{
 #' m <- 3
-#' p <- matrix(c(1, 2, 2, 1), ncol = 2)
+#' p <- matrix(c(1, 2,
+#'               2, 1), ncol = 2, byrow = TRUE)
 #' T <- 100
-#' r_npo <- matrix(runif(m * max(p)), nrow = m)
-#' Ncommtrend <- 1
 #' n <- 2
+#' Pmax <- max(p[, 1])
+#'
+#' # Provide valid roots array (see package vignette for recommended settings)
+#' r_npo <- array(runif(m * Pmax * n), dim = c(m, Pmax, n))
+#'
+#' Ncommtrend <- 1
 #' result <- varb_commtrend(m, p, T, r_npo, Ncommtrend, n)
 #' print(result)
+#' }
 #'
 varb_commtrend <- function (m, p, T, r_npo, Ncommtrend, n) {
   alpha = list()
@@ -101,24 +107,36 @@ varb_commtrend <- function (m, p, T, r_npo, Ncommtrend, n) {
 #' @keywords internal
 #'
 #' @examples
-#' # Example usage of summary_civar function
-#' model <- lm(y ~ x1 + x2)  # Replace with actual model fitting
-#' summary_result <- summary_civar(model, sname = "Z2\\[,4:9\\]")
+#' set.seed(1)
+#' dat <- data.frame(
+#'   y  = rnorm(50),
+#'   x1 = rnorm(50),
+#'   x2 = rnorm(50)
+#' )
+#' model <- lm(y ~ x1 + x2, data = dat)
+#' summary_result <- summary_civar(model, sname ="Z2\\[,4:9\\]")
 #' print(summary_result)
-summary_civar <- function(lm1=lm1, sname ="Z2\\[,4:9\\]") {
-  #### this function replace the Matrix name and leave the colnames in the output
-  summ = summary(lm1)
-  n = length(summ)
-  if (n > 1) {
-    for (i in 1:n) {
-      LL <- dimnames(summ[[i]]$coefficients)[[1]]
-      dimnames(summ[[i]]$coefficients)[[1]] <- sub(sname, "", LL)
+summary_civar <- function(lm1=lm1, sname = "Z2\\[,4:9\\]") {
+  # Helper: rewrite rownames of a coefficients matrix if present
+  fix_coeff_names <- function(summ_obj) {
+    coefs <- summ_obj$coefficients
+    if (is.null(coefs) || is.null(dimnames(coefs)) || is.null(dimnames(coefs)[[1]])) {
+      return(summ_obj)
     }
-  } else {
-    LL <- dimnames(summ$coefficients)[[1]]
-    dimnames(summ$coefficients)[[1]] <- sub(sname, "", LL)
+    rn <- dimnames(coefs)[[1]]
+    dimnames(coefs)[[1]] <- sub(sname, "", rn)
+    summ_obj$coefficients <- coefs
+    summ_obj
   }
-  return(summ)
+
+  # Case 1: user passes a list of models or summaries
+  if (is.list(lm1) && !inherits(lm1, "lm") && !inherits(lm1, "summary.lm")) {
+    return(lapply(lm1, function(obj) fix_coeff_names(summary(obj))))
+  }
+
+  # Case 2: single model / single summary
+  summ <- if (inherits(lm1, "summary.lm")) lm1 else summary(lm1)
+  fix_coeff_names(summ)
 }
 
 
@@ -145,10 +163,14 @@ summary_civar <- function(lm1=lm1, sname ="Z2\\[,4:9\\]") {
 #'
 #' @examples
 #' # Example usage of vecm2_var function
-#' param <- matrix(rnorm(100), nrow = 10)
-#' beta <- matrix(rnorm(20), nrow = 10)
-#' result <- vecm2_var(param, beta, q = c(1, 2, 2, 2, 2), s = NA, kz = 0, Dxflag = 0)
-#' print(result)
+#' set.seed(1)
+#' m <- 3
+#' q <- c(2, 2, 2, 2, 2)
+#' n_rows <- q[1] + sum(q[-1]) * m  # minimum rows needed when kz = 0
+#' param <- matrix(rnorm(n_rows * m), nrow = n_rows, ncol = m)
+#' beta  <- matrix(rnorm(m * q[1]), nrow = m, ncol = q[1])
+#' result <- vecm2_var(param, beta, q = q, s = NA, kz = 0, Dxflag = 0)
+#' str(result)
 vecm2_var <- function(param, beta, q = c(1, 2, 2, 2, 2), s = NA, kz = 0, Dxflag = 0) {
   m = dim(param)[2]
   VECB = t(param)
@@ -325,6 +347,7 @@ b2_cib <- function (B) {
 #' # NOTE: This is a minimal, illustrative example. It fabricates a `tst` object
 #' # with the fields this function expects, so it can run without the full package
 #' # estimation pipeline.
+#' \dontrun{
 #' set.seed(1)
 #' tst <- list()
 #' tst$P <- c(2, 2)         # domestic and foreign lag orders
@@ -340,6 +363,7 @@ b2_cib <- function (B) {
 #'
 #' res <- cib2_b(tst)
 #' str(res)
+#' }
 #'
 #' @export
 #' @keywords internal
@@ -1105,6 +1129,7 @@ x_abf <-  function(x, A0, B0, Sigma) {
 #' }
 #'
 #' @examples
+#' \dontrun{
 #' set.seed(1)
 #' n <- 3
 #' Sigma <- crossprod(matrix(rnorm(n * 80), nrow = 80)) / 80
@@ -1125,6 +1150,7 @@ x_abf <-  function(x, A0, B0, Sigma) {
 #' res[[1]]  # A
 #' res[[2]]  # B
 #' res[[3]]  # diff
+#' }
 #'
 #' @export
 absvar <- function(x0, A0, B0, Sigma) {
@@ -1374,22 +1400,22 @@ sw2comb <- function(SW, n, N, K)
 #' @examples
 #' # Minimal illustrative example (fabricated shapes; relies on var_data() and b2_cib())
 #' # This example shows how to call the function, assuming the helper functions exist.
+#' \dontrun{
 #' set.seed(1)
 #' m <- 4
 #' n <- 2
 #' S <- 2
 #' T <- 100
 #' r <- c(1, 1)
-#'
-#' # p indexed as p[i, 1:2, s] inside the function, so we create an array with that shape
 #' p <- array(2, dim = c(n, 2, S))
 #'
-#' # r_npo is indexed as r_npo[(r[i]+1):m, 1:p[i,1,s], i, s]
-#' # so we fabricate a compatible 4D object
-#' r_npo <- array(0.5, dim = c(m, max(p[,1,]), n, S))
+#' # r_npo must satisfy var_data()'s “roots specification” requirements.
+#' # See vignette for recommended construction.
+#' r_npo <- array(0.5, dim = c(m, max(p[, 1, ]), n, S))
 #'
 #' out <- varbs_commtrend(m = m, p = p, T = T, r = r, Ncommtrend = 1, n = n, S = S, r_npo = r_npo)
 #' str(out)
+#' }
 #'
 #' @export
 #' @keywords internal
@@ -1491,6 +1517,7 @@ varbs_commtrend <- function(m, p, T, r, Ncommtrend, n, S, r_npo) {
 #'
 #' @examples
 #' # Minimal illustrative example (fabricated shapes; relies on varbs_commtrend() and var_data())
+#' \dontrun{
 #' set.seed(1)
 #' m <- 4
 #' n <- 2
@@ -1506,6 +1533,7 @@ varbs_commtrend <- function(m, p, T, r, Ncommtrend, n, S, r_npo) {
 #'
 #' Ao <- bo2_ao(m = m, p = p, T = T, r = r, Ncommtrend = 1, n = n, S = S, r_npo = r_npo, DFYflag = 1)
 #' dim(Ao)
+#' }
 #'
 #' @export
 #' @keywords internal
@@ -2138,6 +2166,7 @@ sample_n_out_of_t <- function(N, T) {
 #' @return A matrix containing the lag-embedded time series.
 #'
 #' @examples
+#' \dontrun{
 #' # Univariate example
 #' y <- tseries::ts(1:20)
 #' YY <- embed_ts(y, p = 3)
@@ -2147,6 +2176,7 @@ sample_n_out_of_t <- function(N, T) {
 #' y2 <- cbind(a = 1:20, b = 21:40)
 #' YY2 <- embed_ts(y2, p = 2, prefix = "X_")
 #' colnames(YY2)
+#' }
 #'
 #' @export
 #' @keywords internal
