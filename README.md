@@ -46,7 +46,14 @@ Install the development version from GitHub with:
 pak::pak("CurtinIDS/MRCIGVAR")
 ```
 
-For local development, clone the repository and use `devtools::load_all()`.
+For local development, clone the repository and either load or install the
+package locally:
+
+``` r
+devtools::load_all()
+# or
+devtools::install()
+```
 
 ## Refactored API
 

@@ -33,6 +33,15 @@ The package is being refactored toward a more consistent public API. The
 refactored names use lower snake_case, while legacy aliases are still available
  for backward compatibility.
 
+If you are working from a local clone of the repository, install the package or
+load it before running this vignette:
+
+```{r local-dev-note, eval = FALSE}
+devtools::load_all()
+# or
+devtools::install()
+```
+
 ```{r setup}
 library(MRCIGVAR)
 ```
