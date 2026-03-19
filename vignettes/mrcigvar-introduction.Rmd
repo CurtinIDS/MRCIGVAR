@@ -1,8 +1,8 @@
 ---
-title: "mrcigvar-introduction"
+title: "Introduction to MRCIGVAR"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{mrcigvar-introduction}
+  %\VignetteIndexEntry{Introduction to MRCIGVAR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,6 +14,247 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Overview
+
+`MRCIGVAR` is an econometrics package for data generation, estimation, model
+selection, diagnostics, and impulse response analysis across several related
+time-series model classes:
+
+- `VAR`
+- `CIVAR`
+- `MRVAR`
+- `MRCIVAR`
+- `GVAR`
+- `CIGVAR`
+- `MRGVAR`
+- `MRCIGVAR`
+
+The package is being refactored toward a more consistent public API. The
+refactored names use lower snake_case, while legacy aliases are still available
+ for backward compatibility.
+
 ```{r setup}
 library(MRCIGVAR)
 ```
+
+## Refactored naming scheme
+
+The public API follows a family-based naming convention:
+
+- `*_data()` for data generators and constructors
+- `*_estimate()` for estimation routines
+- `*_select_*()` for model-selection helpers
+- `irf_*()` for impulse response functions
+- `girf_*()` for generalized impulse response functions
+
+Examples:
+
+- `cigvar_data()`, `cigvar_estimate()`, `cigvar_select_()`
+- `mrcigvar_data()`, `mrcigvar_estimate()`, `mrcigvar_select_()`
+- `irf_cigvar_cb()`, `irf_mrcigvar_cb()`
+
+When writing new scripts, prefer the refactored names over legacy aliases such
+as `CIGVARest()` or `BoAoW2G()`.
+
+## Documentation map
+
+This introduction vignette is the entry point to a larger vignette set:
+
+- `core-model-workflows` for `VAR`, `CIVAR`, `GVAR`, and `CIGVAR`
+- `mrcigvar-workflow` for the flagship multi-regime global workflow
+- `irf-and-girf` for response analysis
+- `refactor-migration-guide` for moving from legacy names to the refactored API
+
+## Package workflow
+
+For most model families, the workflow is:
+
+1. Generate or prepare a model object with `*_data()`.
+2. Estimate the model with `*_estimate()`.
+3. Compare alternative lag or threshold specifications with `*_select_*()`.
+4. Compute IRFs or GIRFs with `irf_*()` or `girf_*()`.
+5. Plot responses with `plot_irf()` where applicable.
+
+The exact arguments differ by model family, but the object flow is designed to
+stay consistent.
+
+## A simple CIGVAR workflow
+
+The example below shows a compact CIGVAR workflow using the refactored API.
+
+```{r cigvar-workflow, eval = FALSE}
+n <- 4
+p <- matrix(0, nrow = n, ncol = 3)
+p[, 1] <- 2
+p[, 2] <- 2
+
+res_d <- cigvar_data(
+  m = 2,
+  n = n,
+  p = p,
+  T = 200,
+  type = "const",
+  DFYflag = 0
+)
+
+res_e <- cigvar_estimate(res_d)
+res_e$Summary
+```
+
+The estimated object contains the fitted model components, residual covariance
+matrix, country-specific VECM objects, and summary criteria such as AIC, BIC,
+and log-likelihood values.
+
+### Model selection
+
+```{r cigvar-selection, eval = FALSE}
+sel <- cigvar_select_(res = res_e, L_V = c(3, 3))
+
+sel[which.min(sel[, ncol(sel)]), ]
+```
+
+The selection helper returns a matrix of candidate lag specifications and the
+corresponding information criteria.
+
+### Impulse responses
+
+```{r cigvar-irf, eval = FALSE}
+irf_cb <- irf_cigvar_cb(
+  res = res_e,
+  nstep = 12,
+  comb = NA,
+  irf = "gen1",
+  runs = 50,
+  conf = c(0.05, 0.95)
+)
+
+plot_irf(irf_cb, response = c(1, 2), impulse = c(1, 2), ncol = 2)
+```
+
+The `_cb` suffix indicates that the function returns confidence bands in
+addition to the point estimate.
+
+## A multi-regime MRCIGVAR workflow
+
+The flagship multi-regime model family extends the same ideas to threshold- or
+state-dependent global dynamics.
+
+```{r mrcigvar-workflow, eval = FALSE}
+m <- 2
+n <- 3
+S <- 2
+
+p <- array(0, dim = c(n, 3, S))
+p[, 1, ] <- 2
+p[, 2, ] <- 2
+
+TH <- matrix(0, nrow = 1, ncol = n)
+SESVI <- c(1, 3, 5)
+
+res_d <- mrcigvar_data(
+  m = m,
+  n = n,
+  p = p,
+  TH = TH,
+  T = 150,
+  S = S,
+  SESVI = SESVI,
+  r = rep(1, n),
+  Ncommtrend = 1
+)
+
+res_e <- mrcigvar_estimate(res = res_d)
+res_e$Summary
+```
+
+Once estimated, you can explore regime-specific or state-specific responses.
+
+```{r mrcigvar-irf, eval = FALSE}
+irf_cb <- irf_mrcigvar_cb(
+  res = res_e,
+  nstep = 10,
+  comb = NA,
+  state = c(2, 1, 1),
+  irf = "gen1",
+  runs = 20,
+  conf = c(0.05, 0.95),
+  NT = 1
+)
+
+plot_irf(irf_cb[[1]])
+```
+
+For regime-migration GIRFs, use the corresponding `girf_*_rm()` and
+`girf_*_rm_cb()` helpers.
+
+## Working across model families
+
+The same high-level ideas extend to other supported classes:
+
+- `var_data()` / `var_estimate()`
+- `civar_data()` / `civar_estimate()`
+- `mrvar_data()` / `mrvar_estimate()`
+- `mrcivar_data_m()` / `mrcivar_estimatem1()`
+- `gvar_data()` / `gvar_estimate()`
+- `mrgvar_data()` / `mrgvar_estimate()`
+
+This shared naming scheme is intentional and is one of the main goals of the
+refactor.
+
+## Supporting utilities
+
+The package also contains reusable helpers for:
+
+- converting between VECM and VAR parameterisations
+- constructing weighting matrices
+- building regime-specific coefficient arrays
+- computing characteristic roots
+- drawing Gaussian innovations with structured covariance
+- constructing shock matrices for IRF analysis
+
+Examples include:
+
+- `vecm2_var()`
+- `cvecm2_cvar()`
+- `bo_ao_w2_g()`
+- `spectral_radius()`
+- `rnorm_sigma()`
+- `u1()`
+
+These helpers are useful both inside the package and when debugging or
+extending model workflows.
+
+## Documentation status
+
+This package is still under active refactoring. The current documentation
+effort is focused on:
+
+- standardising function names
+- standardising roxygen documentation
+- clarifying module boundaries in `R/`
+- preserving compatibility with legacy APIs
+
+Users should expect the refactored snake_case API to remain the preferred
+interface going forward.
+
+## Development notes
+
+If you are contributing to the package:
+
+- edit `README.Rmd`, not `README.md`
+- let roxygen2 manage `NAMESPACE`
+- treat `R/compat-legacy-aliases.R` as generated
+- follow the conventions documented in `CONTRIBUTING.md`
+
+## Next steps
+
+Typical next steps after working through this vignette are:
+
+1. pick a model family relevant to your use case
+2. generate or prepare a data object with `*_data()`
+3. estimate the model with `*_estimate()`
+4. compare specifications with `*_select_*()`
+5. inspect dynamics with `irf_*()` or `girf_*()`
+
+For package-level examples, start with the README. For implementation and
+contribution standards, see `CONTRIBUTING.md`.

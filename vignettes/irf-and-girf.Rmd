@@ -1,0 +1,184 @@
+---
+title: "Impulse Responses and GIRFs"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Impulse Responses and GIRFs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(MRCIGVAR)
+```
+
+## Purpose
+
+This vignette summarises the impulse-response tooling in `MRCIGVAR`, including:
+
+- standard IRFs
+- confidence-band variants
+- regime-specific IRFs
+- generalized impulse response functions under regime migration
+
+## Naming conventions
+
+The package follows a predictable naming scheme:
+
+- `irf_*()` for impulse response functions
+- `irf_*_cb()` for impulse responses with confidence bands
+- `girf_*_rm()` for generalized impulse responses with regime migration
+- `girf_*_rm_cb()` for GIRFs with confidence bands
+
+Examples:
+
+- `irf_civar_cb()`
+- `irf_gvar_cb()`
+- `irf_mrcigvar_cb()`
+- `girf_mrcigvar_rm()`
+- `girf_mrgvar_rm_cb()`
+
+## Common IRF arguments
+
+Across many model families, the main arguments are:
+
+- `res`: the fitted model object
+- `nstep`: the number of horizons
+- `comb`: optional combined-shock definition
+- `irf`: the identification or response type
+- `runs`: bootstrap replications
+- `conf`: confidence-band tail probabilities
+
+This common interface is one of the main advantages of the refactored API.
+
+## A standard IRF example
+
+```{r cigvar-irf, eval = FALSE}
+n <- 4
+p <- matrix(0, nrow = n, ncol = 3)
+p[, 1] <- 2
+p[, 2] <- 2
+
+res_d <- cigvar_data(m = 2, n = n, p = p, T = 200, type = "const")
+res_e <- cigvar_estimate(res_d)
+
+irf_cb <- irf_cigvar_cb(
+  res = res_e,
+  nstep = 12,
+  comb = NA,
+  irf = "gen1",
+  runs = 50,
+  conf = c(0.05, 0.95)
+)
+
+plot_irf(irf_cb, response = c(1, 2), impulse = c(1, 2), ncol = 2)
+```
+
+## Multi-regime IRFs
+
+For multi-regime systems, state selection becomes part of the response
+definition.
+
+```{r mrcigvar-irf, eval = FALSE}
+irf_cb <- irf_mrcigvar_cb(
+  res = res_e,
+  nstep = 10,
+  comb = NA,
+  state = c(2, 1, 1),
+  irf = "gen1",
+  runs = 20,
+  conf = c(0.05, 0.95),
+  NT = 1
+)
+```
+
+In that setting, `state[i]` determines which regime is active for country `i`
+during the IRF construction.
+
+## GIRFs under regime migration
+
+For nonlinear response analysis with simulated regime paths, use the GIRF
+helpers.
+
+```{r girf-example, eval = FALSE}
+girf <- girf_mrcigvar_rm(
+  res = res_e,
+  shock = c(1, 1, 1, 1, 1, 1),
+  R = 100,
+  nstep = 10,
+  Omega_hist = NA,
+  resid_method = "parametric"
+)
+
+girf_cb <- girf_mrcigvar_rm_cb(
+  res = res_e,
+  shock = c(1, 1, 1, 1, 1, 1),
+  R = 100,
+  nstep = 10,
+  Omega_hist = NA,
+  resid_method = "parametric",
+  conf = c(0.05, 0.95),
+  N = 50
+)
+```
+
+These functions are especially useful when the response depends on the
+simulated path of the regime process rather than only on a fixed linear state.
+
+## Identification options
+
+Many IRF helpers accept an `irf` argument with options such as:
+
+- `"gen"`
+- `"gen1"`
+- `"chol"`
+- `"chol1"`
+- `"comb1"`
+
+Some model families also support:
+
+- permanent-transitory decompositions
+- AB-SVAR style transformations
+- explicit structural matrices
+- exogenous-shock responses
+
+The lower-level helper `u1()` constructs the shock transformation matrix used by
+these routines.
+
+## Plotting
+
+Use `plot_irf()` to visualize IRF arrays returned by many of the high-level
+response functions.
+
+```{r plot-example, eval = FALSE}
+plot_irf(
+  irf_cb,
+  Names = NA,
+  INames = NA,
+  response = c(1, 2),
+  impulse = c(1, 2),
+  ncol = 2
+)
+```
+
+## Practical guidance
+
+- Use smaller `runs` values during exploratory work and larger values for final
+  analysis.
+- Verify output dimensions before downstream use.
+- Keep the interpretation of `comb` explicit when constructing concerted or
+  combined shocks.
+- Prefer state-specific IRFs for linear regime comparisons and GIRFs for
+  nonlinear path-dependent analysis.
+
+## Related vignettes
+
+- `mrcigvar-workflow` for the flagship regime-switching workflow
+- `core-model-workflows` for standard estimation pipelines
+- `mrcigvar-introduction` for the documentation map
