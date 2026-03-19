@@ -7,15 +7,14 @@
 cib3_b(CIB)
 }
 \arguments{
-\item{CIB}{An (m, m, L) array of coefficient matrices of a VECM with lag L-1.}
+\item{CIB}{Three-dimensional array of VECM coefficients.}
 }
 \value{
-B An (m, m, L) array of coefficient matrices of a VAR with lag L.
+A three-dimensional array of VAR coefficients.
 }
 \description{
-Transforms an array of VECM coefficient matrices (with lag order L-1) into the
-corresponding VAR coefficient matrices (with lag order L). The input and output
-are both 3D arrays, where the third dimension indexes lags.
+Transform an array of VECM coefficients into the corresponding VAR
+coefficients in levels.
 }
 \examples{
 # Example with m = 3 variables and L = 2 (so VECM lag is L-1 = 1)

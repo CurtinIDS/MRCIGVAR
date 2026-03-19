@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrgvar}
 \alias{irf_mrgvar}
-\title{Generate Impulse Response Functions for MRGVAR Models}
+\title{Compute MRGVAR impulse responses}
 \usage{
 irf_mrgvar(
   res = res,
@@ -16,29 +16,34 @@ irf_mrgvar(
 )
 }
 \arguments{
-\item{res}{a list of estimated MRGVAR as output of mrgvar_estimate}
+\item{res}{A fitted MRGVAR object, typically returned by \code{mrgvar_estimate()}.}
 
-\item{state}{an n vector specifying the specific state for each country}
+\item{state}{Integer vector of length \code{n} specifying the state assigned to
+each country.}
 
-\item{nstep}{the length of impulse response function}
+\item{nstep}{Integer scalar giving the number of IRF horizons.}
 
-\item{comb}{a vector specify the concerted action in policy-simulation impulse response function}
+\item{comb}{Numeric vector defining a combined or concerted-action shock.}
 
-\item{irf}{types of the impulse response irf=c("gen","chol","chol1","gen1","genN1","comb1","smat")}
+\item{irf}{Character string specifying the IRF type. Supported values are
+\code{"gen"}, \code{"chol"}, \code{"chol1"}, \code{"gen1"}, \code{"genN1"}, \code{"comb1"}, and
+\code{"smat"}.}
 
-\item{G}{For permanent and transitory decomposition}
+\item{G}{Optional transformation matrix used in permanent-transitory
+decompositions.}
 
-\item{smat}{For explicit structural decomposition of the correlated shocks}
+\item{smat}{Optional explicit shock-decomposition matrix.}
 
-\item{sigmaNPDS}{the state-dependent covariance matrix}
+\item{sigmaNPDS}{Optional state-dependent covariance matrix. When \code{NA}, the
+matrix is computed from \code{res} and \code{state}.}
 }
 \value{
-an (mn,mn,nstep) array containing the IRF with columns representing the impulses and rows the responses
+A three-dimensional array of dimension \verb{(m * n, m * n, nstep)},
+indexed by responses, impulses, and horizons.
 }
 \description{
-This function computes the impulse response functions (IRFs) of an estimated MRGVAR model,
-allowing for various types of IRFs and handling different configurations of shocks and responses
-across multiple regimes and countries.
+Compute impulse response functions (IRFs) for an estimated MRGVAR model at a
+specified state configuration.
 }
 \examples{
 \dontrun{

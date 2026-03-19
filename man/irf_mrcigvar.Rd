@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrcigvar}
 \alias{irf_mrcigvar}
-\title{Generate Impulse Response Functions for MRCIGVAR Models}
+\title{Compute MRCIGVAR impulse responses}
 \usage{
 irf_mrcigvar(
   res,
@@ -14,25 +14,29 @@ irf_mrcigvar(
 )
 }
 \arguments{
-\item{res}{a list of estimated MRCIGVAR as output of mrcigvar_estimate}
+\item{res}{A fitted MRCIGVAR object, typically returned by
+\code{mrcigvar_estimate()}.}
 
-\item{nstep}{the length of impulse response function}
+\item{nstep}{Integer scalar giving the number of IRF horizons.}
 
-\item{comb}{a vector specify the concerted action in policy-simulation impulse response function}
+\item{comb}{Numeric vector defining a combined or concerted-action shock.}
 
-\item{state}{an n vector specifying the specific state for each country}
+\item{state}{Integer vector of length \code{n} specifying the state assigned to
+each country.}
 
-\item{irf}{types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")}
+\item{irf}{Character string specifying the IRF type. Supported values are
+\code{"gen"}, \code{"chol"}, \code{"chol1"}, \code{"gen1"}, and \code{"comb1"}.}
 
-\item{sigmaNPDS}{the state-dependent covariance matrix}
+\item{sigmaNPDS}{Optional state-dependent covariance matrix. When \code{NA}, the
+matrix is computed from \code{res} and \code{state}.}
 }
 \value{
-an (mn,mn,nstep) array containing the IRF with columns representing the impulses and rows the responses
+A three-dimensional array of dimension \verb{(m * n, m * n, nstep)},
+indexed by responses, impulses, and horizons.
 }
 \description{
-This function computes the impulse response functions (IRFs) of an estimated MRCIGVAR model,
-allowing for various types of IRFs and handling different configurations of shocks and responses
-across multiple regimes and countries.
+Compute impulse response functions (IRFs) for an estimated MRCIGVAR model at
+a specified state configuration.
 }
 \examples{
 m = 2

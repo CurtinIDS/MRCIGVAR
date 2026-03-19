@@ -2,33 +2,28 @@
 % Please edit documentation in R/utils.R
 \name{absvar}
 \alias{absvar}
-\title{Estimate an AB-SVAR from the reduced-form covariance matrix}
+\title{Estimate an AB-SVAR from reduced-form covariance}
 \usage{
 absvar(x0, A0, B0, Sigma)
 }
 \arguments{
-\item{x0}{Initial values for the free parameters (vector).}
+\item{x0}{Numeric vector of initial values for the free parameters.}
 
-\item{A0}{A matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.}
+\item{A0}{Structural \code{A} template matrix with fixed entries coded as \code{0} or
+\code{1}.}
 
-\item{B0}{B matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.}
+\item{B0}{Structural \code{B} template matrix with fixed entries coded as \code{0} or
+\code{1}.}
 
-\item{Sigma}{Covariance matrix of the reduced form.}
+\item{Sigma}{Reduced-form covariance matrix.}
 }
 \value{
-A list with three components:
-\itemize{
-\item A: estimated structural matrix A
-\item B: estimated structural matrix B (element-wise absolute value applied)
-\item diff: minimised sum of squared errors
-}
+A list containing the estimated structural matrices \code{A} and \code{B}, and
+the minimized objective value \code{diff}.
 }
 \description{
-Solves an exactly identified AB-SVAR by fitting structural matrices \code{A} and \code{B}
-to a reduced-form covariance matrix \code{Sigma}. Free parameters are provided via
-an initial vector \code{x0}, while fixed entries in \code{A0} and \code{B0} are coded as \code{0} or \code{1}.
-Estimation is performed by minimising the sum of squared deviations between
-\eqn{A \Sigma A'} and \eqn{B B'} using \code{stats::nlm()}.
+Estimate exactly identified AB-SVAR structural matrices by minimizing the
+covariance-matching objective defined in \code{x_abf()}.
 }
 \examples{
 \dontrun{

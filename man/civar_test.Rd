@@ -2,58 +2,43 @@
 % Please edit documentation in R/constraints.R
 \name{civar_test}
 \alias{civar_test}
-\title{This function estimates constrained VECM using the iteration procedure proposed in Boswijk and Doornik (2003)}
+\title{Test linear restrictions in a CIVAR model}
 \usage{
 civar_test(res = res, H = H, h = h, phi = phi, G = G, Dxflag = 0)
 }
 \arguments{
-\item{res}{an estimated CIVAR object with without restrictions}
+\item{res}{Estimated CIVAR object to be tested.}
 
-\item{H}{the restriction matrix on beta}
+\item{H}{Restriction matrix for \code{beta}.}
 
-\item{h}{the restriction vector on beta ( free-varying parameters of beta )}
+\item{h}{Restriction vector for \code{beta} in \verb{vec(beta) = H phi + h}.}
 
-\item{phi}{the restriction vector on beta}
+\item{phi}{Initial or user-supplied free-parameter vector for \code{beta}.}
 
-\item{G}{the restriction matrix on alpha}
+\item{G}{Restriction matrix for \code{alpha}.}
 
-\item{Dxflag}{A flag that indicates whether X enters the cointegration space.}
+\item{Dxflag}{Numeric flag indicating whether exogenous variables enter the
+cointegration space.}
 }
 \value{
-a list containing (VECMRS, beter, alphae, LSKOEFR, LR and error)
+A list containing the restricted CIVAR results, including the
+restricted VECM object, restricted \code{alpha} and \code{beta}, short-run
+coefficients, likelihood-ratio statistic, and convergence error.
 }
 \description{
-This function estimates constrained VECM using the iteration procedure proposed in Boswijk and Doornik (2003)
+Applies likelihood-ratio testing for linear restrictions on the adjustment
+and cointegration matrices of an estimated CIVAR object and returns the
+restricted estimates.
 }
-\section{Details}{
+\details{
+The tested restriction system is
+\deqn{vec(\alpha') = G \psi, \quad vec(\beta) = H \phi + h.}
 
-This function runs a likelihood ratio test of linear restrictions on \eqn{\alpha} and \eqn{\beta} in a CIVAR model in the following form:
-\deqn{vec(\alpha') = G \psi,  vec(\beta) = H\phi + h}
-
-example 1 (restrictions on alpha) test of exogeneity: one weakly exogenous variable
-vec(alpha) is n\emph{crk x 1  vector
-G          is n}crk x (n-k)\emph{crk matrix  (k is the number of weakly exogenous)
-psi        (n-k)\emph{crk x 1 vector
-vec(beta)  is n}crk x 1 vector
-H          is n}crk x n\emph{crk identity matrix
-phi        n}crk x 1 vector
-h          n*crk x 1 zero matrix implying ver(beta) = phi.
-(H is identity and h is zero vector implies only restrictions on alpha)
-
-example 2 (restrictions on beta ) test of PPP
-vec(alpha) is n\emph{crk x 1 vector
-G          is n}crk x n\emph{crk identity matrix, implying no restriction on alpha
-psi        n}crk x 1 vector
-vec(beta)  n\emph{crk x 1 vector
-H          n}crk x 2 matrix that picks out the elements under restrictions
-two columns out of the identity matrix.
-ones in a row of H and zero in the corresponding h implies non-restricted beta.
-phi        2 x 1  vector
-h          n*crk x 1  non zero elements in this vector together with the zero elements in
-the corresponding row in H are the normalization conditions.
-(H is identity and h is zero vector implies only restrictions on alpha)
+When \code{Dxflag = 0}, the function works from the auxiliary objects produced by
+\code{civar_estimate()}. When \code{Dxflag = 1}, it routes the problem through
+\code{ab_l_rtest2()} for the specification in which exogenous variables enter the
+long-run relation.
 }
-
 \examples{
 X = matrix(stats::rnorm(2*207),207,2)
 colnames(X) = c("ex1","ex2")

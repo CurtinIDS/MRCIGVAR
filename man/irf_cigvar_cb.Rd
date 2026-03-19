@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_cigvar_cb}
 \alias{irf_cigvar_cb}
-\title{Generate Impulse Response Functions with Confidence Bands for CIGVAR Models}
+\title{Compute CIGVAR impulse responses with confidence bands}
 \usage{
 irf_cigvar_cb(
   res,
@@ -14,25 +14,30 @@ irf_cigvar_cb(
 )
 }
 \arguments{
-\item{res}{: a CIGVAR object of an output of CIGVARest.}
+\item{res}{A fitted CIGVAR object, typically returned by \code{cigvar_estimate()}.}
 
-\item{nstep}{: length of the impulse response functions}
+\item{nstep}{Integer scalar giving the number of IRF horizons.}
 
-\item{comb}{: an mn-vector specifying combined impulse such as global shocks, regional shocks, or concerted actions.}
+\item{comb}{Numeric vector of length \code{m * n} defining a combined shock, such
+as a global shock, regional shock, or concerted action.}
 
-\item{irf}{: types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse.}
+\item{irf}{Character string specifying the IRF type. Supported values are
+\code{"gen"}, \code{"chol"}, \code{"chol1"}, \code{"gen1"}, and \code{"comb1"}.}
 
-\item{runs}{: number of bootstrap runs to generate the confidence bands}
+\item{runs}{Integer scalar giving the number of bootstrap replications used
+to construct confidence bands.}
 
-\item{conf}{: a two component vector containing the tail probabilities of the bootstrap confidence interval}
+\item{conf}{Numeric vector of tail probabilities used to form the bootstrap
+confidence interval.}
 }
 \value{
-a matrix of (mn,mn,nstep,3) as the IRF columns representing the impulse rows the responses
+A four-dimensional array of dimension \verb{(m * n, m * n, nstep, length(conf) + 1)}. The first two dimensions index responses and impulses,
+the third indexes horizons, and the fourth contains the point estimate
+followed by the confidence bounds.
 }
 \description{
-This function computes the impulse response functions (IRFs) of an estimated CIGVAR model,
-providing confidence bands through bootstrap methods. It allows for various types of IRFs
-and can handle different configurations of shocks and responses.
+Compute impulse response functions (IRFs) for an estimated CIGVAR model and
+bootstrap confidence bands for the selected response specification.
 }
 \examples{
 

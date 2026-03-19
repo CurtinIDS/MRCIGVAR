@@ -2,33 +2,23 @@
 % Please edit documentation in R/utils.R
 \name{gw2_bo_ao}
 \alias{gw2_bo_ao}
-\title{Extract domestic and foreign coefficient arrays from a GVAR coefficient array}
+\title{Extract domestic and foreign blocks from a GVAR coefficient array}
 \usage{
 gw2_bo_ao(G, W)
 }
 \arguments{
-\item{G}{The GVAR coefficient array of dimension (mn, mn, p) (or (mn, mn) for p = 1).}
+\item{G}{Stacked GVAR coefficient array of dimension \verb{(m * n, m * n, p)}, or
+a matrix for \code{p = 1}.}
 
-\item{W}{The weighting matrix of the GVAR model (n x n).}
+\item{W}{GVAR weighting matrix of dimension \verb{(n, n)}.}
 }
 \value{
-A named list with two elements:
-\itemize{
-\item Bo: domestic coefficient arrays (m x m x p x n)
-\item Ao: foreign coefficient arrays (m x m x p x n)
-}
+A list with two elements: domestic coefficient arrays \code{Bo} and
+foreign coefficient arrays \code{Ao}.
 }
 \description{
-Decomposes a stacked GVAR coefficient array \code{G} (dimension mn x mn x p) into:
-\itemize{
-\item \code{Bo}: country-specific domestic coefficient arrays (m x m x p x n), taken from
-the diagonal blocks of \code{G}, and
-\item \code{Ao}: country-specific foreign coefficient arrays (m x m x p x n), recovered from
-the off-diagonal blocks of \code{G} by dividing by the corresponding weights \code{W[i, j]}.
-}
-}
-\details{
-If \code{G} is supplied without a third dimension, it is treated as a VAR(1) (p = 1).
+Decompose a stacked GVAR coefficient array into country-specific domestic and
+foreign coefficient arrays.
 }
 \examples{
 set.seed(1)

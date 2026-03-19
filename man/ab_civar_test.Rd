@@ -2,66 +2,58 @@
 % Please edit documentation in R/constraints.R
 \name{ab_civar_test}
 \alias{ab_civar_test}
-\title{This function estimates constrained VECM using the iteration procedure proposed in Boswijk and Doornik (2003)}
+\title{Estimate a restricted CIVAR model with Boswijk-Doornik iteration}
 \usage{
 ab_civar_test(R0, R1, G, H, h, alpha, beta, Omega, Y0, Z1, Z2)
 }
 \arguments{
-\item{R0}{: T x n matrix containing the residuals of the auxiliary regression of dy_t on Z2_t}
+\item{R0}{Numeric matrix of dimension \verb{T x n} containing residuals from the
+auxiliary regression of \code{dY_t} on \code{Z2_t}.}
 
-\item{R1}{: T x n matrix containing the residuals of the auxiliary regression of y_(t-1) on Z2_t}
+\item{R1}{Numeric matrix of dimension \verb{T x n} containing residuals from the
+auxiliary regression of \verb{Y_\{t-1\}} on \code{Z2_t}.}
 
-\item{G}{: The restriction matrix on alpha}
+\item{G}{Restriction matrix for \code{alpha}.}
 
-\item{H}{: The restriction matrix on beta}
+\item{H}{Restriction matrix for \code{beta}.}
 
-\item{h}{: The restriction vector on beta ( free-varying parameters of beta )}
+\item{h}{Restriction vector for \code{beta}, representing fixed components in the
+parametrization \verb{vec(beta) = H phi + h}.}
 
-\item{alpha}{: n x crk matrix containing initial values of the adjustment parameters}
+\item{alpha}{Numeric \verb{n x crk} matrix of initial values for the adjustment
+coefficients.}
 
-\item{beta}{: n x crk matrix containing initial values of the cointegration vectors}
+\item{beta}{Numeric \verb{n x crk} matrix of initial values for the cointegration
+vectors.}
 
-\item{Omega}{: n x n matrix containing initials of the covariance matrix}
+\item{Omega}{Numeric \verb{n x n} initial covariance matrix.}
 
-\item{Y0}{: T x n matrix of dY_t}
+\item{Y0}{Numeric matrix of dimension \verb{T x n} containing \code{dY_t}.}
 
-\item{Z1}{: T x n matrix containing the lagged cointegrated VAR process.}
+\item{Z1}{Numeric matrix containing lagged level regressors from the CIVAR
+representation.}
 
-\item{Z2}{: T x (n(p-1)+#det) matrix containing the lagged stationary regressors of the auxiliary regression}
+\item{Z2}{Numeric matrix containing lagged stationary regressors and
+deterministic terms from the auxiliary regression.}
 }
 \value{
-a list containing (VECMRS, beter, alphar, LSKOEFR, LR, and error)
+A list containing the restricted regression object \code{VECMR}, its
+summary \code{VECMRS}, the restricted cointegration vectors \code{betar}, the
+restricted adjustment coefficients \code{alphar}, unrestricted short-run
+coefficients \code{LSKOEFR}, the likelihood-ratio statistic \code{LR}, and the final
+convergence error \code{error}.
 }
 \description{
-This function estimates constrained VECM using the iteration procedure proposed in Boswijk and Doornik (2003)
+Solves for restricted adjustment and cointegration matrices in a CIVAR
+system under linear restrictions on \code{alpha} and \code{beta}, using the iterative
+procedure described by Boswijk and Doornik (2003).
 }
-\section{Details}{
+\details{
+The restriction system is written as
+\deqn{vec(\alpha') = G \psi, \quad vec(\beta) = H \phi + h.}
 
-This function runs a likelihood ratio test of linear restrictions on \eqn{\alpha} and \eqn{\beta} in a CIVAR model in the following form:
-\deqn{vec(\alpha') = G \psi,  vec(\beta) = H\phi + h}
-
-example 1 (restrictions on alpha) test of exogeneity: one weakly exogenous variable
-vec(alpha) is n\emph{crk x 1  vector
-G          is n}crk x (n-k)\emph{crk matrix  (k is the number of weakly exogenous)
-psi        (n-k)\emph{crk x 1 vector
-vec(beta)  is n}crk x 1 vector
-H          is n}crk x n\emph{crk identity matrix
-phi        n}crk x 1 vector
-h          n*crk x 1 zero matrix implying ver(beta) = phi.
-(H is identity and h is zero vector implies only restrictions on alpha)
-
-example 2 (restrictions on beta ) test of PPP
-vec(alpha) is n\emph{crk x 1 vector
-G          is n}crk x n\emph{crk identity matrix, implying no restriction on alpha
-psi        n}crk x 1 vector
-vec(beta)  n\emph{crk x 1 vector
-H          n}crk x 2 matrix that picks out the elements under restrictions
-two columns out of the identity matrix.
-ones in a row of H and zero in the corresponding h implies non-restricted beta.
-phi        2 x 1  vector
-h          n*crk x 1  non zero elements in this vector together with the zero elements in
-the corresponding row in H are the normalization conditions.
-(H is identity and h is zero vector implies only restrictions on alpha)
+The routine alternates between updates of the free parameters in \code{alpha} and
+\code{beta} and the innovation covariance matrix until the log-determinant of the
+covariance matrix converges.
 }
-
 \keyword{internal}

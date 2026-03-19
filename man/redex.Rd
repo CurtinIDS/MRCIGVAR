@@ -7,20 +7,18 @@
 redex(N1, N2, p)
 }
 \arguments{
-\item{N1}{Dimension of the endogenous variables.}
+\item{N1}{Integer scalar giving the number of endogenous variables.}
 
-\item{N2}{Dimension of the exogenous variables.}
+\item{N2}{Integer scalar giving the number of exogenous variables.}
 
-\item{p}{Lag length.}
+\item{p}{Integer scalar giving the lag length.}
 }
 \value{
-An integer vector giving the reordered index mapping.
+An integer vector defining the reordered index mapping.
 }
 \description{
-Creates a re-indexing vector that rearranges lagged terms so that all endogenous
-lag blocks (size \code{N1}) are placed first across lags, followed by all exogenous
-lag blocks (size \code{N2}) across lags. This is useful when reshaping or reordering
-coefficient vectors/matrices built from stacked lag terms.
+Create an index vector that moves endogenous lag blocks ahead of exogenous
+lag blocks in a stacked regressor layout.
 }
 \examples{
 # Example: N1 = 2 endogenous vars, N2 = 1 exogenous var, p = 3 lags

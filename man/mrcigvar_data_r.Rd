@@ -7,10 +7,10 @@
 mrcigvar_data_r(res)
 }
 \arguments{
-\item{res}{: an output of mrcigvar_estimate}
+\item{res}{Estimated \code{mrcigvar_estimate()} result.}
 }
 \value{
-: an MRCIGVAR object.
+A regenerated MRCIGVAR-style data object.
 }
 \description{
 Regenerates synthetic data from an estimated \code{mrcigvar_estimate()} result,

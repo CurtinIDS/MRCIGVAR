@@ -2,17 +2,19 @@
 % Please edit documentation in R/utils.R
 \name{summary_civar}
 \alias{summary_civar}
-\title{Summary of Conditional VAR Model}
+\title{Summarize a conditional VAR fit}
 \usage{
 summary_civar(lm1 = lm1, sname = "Z2\\\\[,4:9\\\\]")
 }
 \arguments{
-\item{lm1}{A fitted conditional VAR model object.}
+\item{lm1}{A fitted model, a \code{summary.lm} object, or a list of such objects.}
 
-\item{sname}{The elements in column names to be replaced.}
+\item{sname}{Character string giving the pattern to remove from coefficient
+row names.}
 }
 \description{
-This function provides a summary of a conditional VAR model, allowing for the replacement of specific elements in the column names of the output.
+Generate a summary for a conditional VAR fit and optionally clean the
+coefficient names by removing a user-specified pattern.
 }
 \examples{
 set.seed(1)

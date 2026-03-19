@@ -3,13 +3,16 @@
 
 
 
-#' CIGVAR Model Selection Function
+#' Select lag specifications for a CIGVAR model
 #'
-#' This function performs model selection for the CIGVAR (Cointegrated Global Vector Autoregression) framework by calculating AIC and BIC criteria for various lag specifications of domestic and foreign variables for multiple countries.
+#' Evaluate alternative domestic and foreign lag specifications for a fitted
+#' CIGVAR setup and return the corresponding information criteria.
 #'
-#' @param  res  : an object generated from CIGVARest.
-#' @param  L_V  : a 2 components vector containing the maxima of the domestic lag and the foreign lag, respectively.
-#' @return a matrix with different lag specifications and the corresponding information criteria.
+#' @param res A CIGVAR object, typically returned by `cigvar_estimate()`.
+#' @param L_V Numeric vector of length 2 giving the maximum domestic and
+#'   foreign lag orders considered in the search.
+#' @return A numeric matrix containing the lag specifications evaluated and the
+#'   associated information criteria returned by the estimator.
 #' @examples
 #'
 #' n = 5
@@ -57,14 +60,20 @@ return(Criteria)
 
 
 
-#' GVAR Model Selection Function
+#' Select lag specifications for a GVAR country equation
 #'
-#' This function performs model selection for the GVAR (Global Vector Autoregression) framework by calculating AIC and BIC criteria for various lag specifications of domestic and foreign variables for a specific country equation.
+#' Evaluate alternative domestic and foreign lag specifications for a selected
+#' country equation in a GVAR model and return the associated information
+#' criteria.
 #'
-#' @param res A GVAR object generated from gvar_data
-#' @param L_V A 2 components vector containing the maxima of the domestic lag and the foreign lag, respectively
-#' @param I Index of the country equation under investigation
-#' @return A matrix with different lag specifications and the corresponding information criteria (AIC and BIC)
+#' @param res A GVAR object, typically returned by `gvar_data()` or carrying the
+#'   same fields required by `gvar_select_()`.
+#' @param L_V Numeric vector of length 2 giving the maximum domestic and
+#'   foreign lag orders considered in the search.
+#' @param I Integer scalar identifying the country equation under
+#'   investigation.
+#' @return A numeric matrix with columns for domestic lags, foreign lags, AIC,
+#'   and BIC.
 #'
 #' @examples
 #' n = 4
@@ -126,14 +135,20 @@ return(Criteria)
 
 
 
-#' MRCIGVAR Model Selection Function
+#' Select lag and threshold specifications for an MRCIGVAR model
 #'
-#' This function performs model selection for the MRCIGVAR (Markov Regime-Switching Cointegrated GVAR) framework by calculating AIC, BIC, and other information criteria for various lag specifications and threshold values across regimes and countries.
+#' Evaluate alternative domestic lag, foreign lag, and threshold
+#' specifications for an MRCIGVAR model and return the resulting information
+#' criteria.
 #'
-#' @param  res  : an MRCIGVAR object generated from mrcigvar_data or estimated from mrcigvar_estimate.
-#' @param  L_V  : a 2 components vector containing the maxima of the domestic lag length and the foreign lag length respectively.
-#' @param  TH_V  : a vector containing possible threshold values.
-#' @return a matrix with different lag specifications, threshold values and the corresponding information criteria.
+#' @param res An MRCIGVAR object, typically returned by `mrcigvar_data()` or
+#'   `mrcigvar_estimate()`.
+#' @param L_V Numeric vector of length 2 giving the maximum domestic and
+#'   foreign lag orders considered in the search.
+#' @param TH_V Numeric vector of candidate threshold values.
+#' @return A numeric matrix containing the evaluated lag and threshold
+#'   specifications together with the information criteria returned by the
+#'   estimator.
 #'
 #' @examples
 #' m = 2                  ## m: number of variables, n: number of countries
@@ -188,77 +203,20 @@ mrcigvar_select_ = function(res,L_V=L_V,TH_V=TH_V)  {
 
 #' Select lag and threshold specifications for an MRCIVAR model
 #'
-#' Evaluates alternative Markov regime-switching cointegrated VAR (MRCIVAR)
-#' specifications over a grid of regime-specific lag orders and threshold values,
-#' and returns a table of information criteria for model comparison.
+#' Evaluate regime-specific lag orders and threshold values for an MRCIVAR
+#' model over a grid of candidate specifications and return the associated
+#' information criteria.
 #'
-#' The function repeatedly re-estimates the model for each combination of:
-#' \itemize{
-#'   \item lag order in regime 1,
-#'   \item lag order in regime 2,
-#'   \item threshold value.
-#' }
-#' For each specification, it extracts model selection criteria such as AIC and
-#' BIC from the estimation output. This helps identify a preferred MRCIVAR
-#' specification under competing lag and threshold settings.
+#' @param res An MRCIVAR object, typically returned by `mrcivar_data_m()` or
+#'   `mrcivar_estimatem1()`.
+#' @param L_V Numeric vector of length 2 giving the maximum lag orders searched
+#'   for regimes 1 and 2.
+#' @param TH_V Numeric vector of candidate threshold values.
+#' @return A numeric matrix with one row per evaluated specification and columns
+#'   for the regime-specific lag orders, threshold, and the information
+#'   criteria extracted from the estimator.
 #'
-#' @param res An MRCIVAR-related object containing the data and model setup,
-#'   typically the output of `mrcivar_data_m()` or an estimated object carrying
-#'   the same core fields required by `mrcivar_estimatem1()`. It must contain,
-#'   at minimum, the observed series, lag specification, number of variables,
-#'   number of regimes, threshold variable information, and deterministic
-#'   specification.
-#' @param L_V A numeric vector of length 2 giving the upper bounds for the lag
-#'   search in the two regimes. The function evaluates:
-#'   \describe{
-#'     \item{regime 1 lags}{from 2 to `L_V[1]`,}
-#'     \item{regime 2 lags}{from 2 to `L_V[2]`.}
-#'   }
-#'   These values define the search grid, not a single fixed lag choice.
-#' @param TH_V A numeric vector of candidate threshold values to be evaluated in
-#'   the model selection procedure.
-#'
-#' @details
-#' The function performs a grid search over all combinations of:
-#' \deqn{
-#' (l_d, l_f, TH),
-#' }
-#' where `l_d` is the lag order used for regime 1, `l_f` is the lag order used
-#' for regime 2, and `TH` is a candidate threshold value from `TH_V`.
-#'
-#' For each candidate model:
-#' \enumerate{
-#'   \item the lag orders in `res$p` are updated,
-#'   \item the threshold value in `res$TH` is replaced,
-#'   \item `mrcivar_estimatem1()` is called,
-#'   \item the corresponding information criteria are extracted.
-#' }
-#'
-#' The returned matrix includes standard likelihood-based information criteria
-#' (`AIC`, `BIC`) and additional criteria reported by the estimation routine
-#' (`LHH_AIC`, `LHH_BIC`, `ORAIC`, `ORBIC`).
-#'
-#' Note that the current implementation searches lag values starting from 2 in
-#' both regimes. Therefore, `L_V` should be chosen so that `L_V[1] >= 2` and
-#' `L_V[2] >= 2`.
-#'
-#' @return A numeric matrix with one row for each evaluated specification and
-#'   nine columns:
-#'   \describe{
-#'     \item{`Lag_regime1`}{lag order used for regime 1,}
-#'     \item{`Lag_regime2`}{lag order used for regime 2,}
-#'     \item{`threshold`}{threshold value used in that specification,}
-#'     \item{`AIC`}{Akaike Information Criterion,}
-#'     \item{`BIC`}{Bayesian Information Criterion,}
-#'     \item{`LHH_AIC`}{alternative AIC measure reported by the estimator,}
-#'     \item{`LHH_BIC`}{alternative BIC measure reported by the estimator,}
-#'     \item{`ORAIC`}{additional AIC-type criterion from the estimator,}
-#'     \item{`ORBIC`}{additional BIC-type criterion from the estimator.}
-#'   }
-#'
-#' @seealso
-#' \code{\link{mrcivar_data_m}},
-#' \code{\link{mrcivar_estimatem1}}
+#' @seealso [mrcivar_data_m()], [mrcivar_estimatem1()]
 #'
 #' @examples
 #' \dontrun{
@@ -321,16 +279,20 @@ mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
 
 
 
-#' MRGVAR Model Selection Function
+#' Select lag and threshold specifications for an MRGVAR equation
 #'
-#' This function performs model selection for the MRGVAR framework by calculating AIC, BIC, and other criteria for various lag specifications and threshold values across regimes.
+#' Evaluate candidate regime-specific domestic and foreign lag orders, together
+#' with threshold values, for a selected MRGVAR equation.
 #'
-#' @param res An object generated from mrgvar_data
-#' @param I Index of the equation under investigation
-#' @param L_V A vector of length 4 containing maximum lags for regime 1 domestic, regime 1 foreign, regime 2 domestic, and regime 2 foreign
-#' @param TH_V A vector containing possible threshold values
-#'
-#' @return A list containing two elements: a matrix with lag specifications and criteria values, and the estimation results
+#' @param res An MRGVAR object, typically returned by `mrgvar_data()`.
+#' @param I Integer scalar identifying the equation under investigation.
+#' @param L_V Numeric vector of length 4 giving the maximum lag orders for
+#'   regime 1 domestic, regime 1 foreign, regime 2 domestic, and regime 2
+#'   foreign variables.
+#' @param TH_V Numeric vector of candidate threshold values.
+#' @return A list with two elements: the first is a matrix of evaluated
+#'   specifications and criteria, and the second stores the last estimation
+#'   result obtained in the search.
 #'
 #' @examples
 #' p = (1:30)*0; dim(p) = c(5,3,2)
@@ -496,14 +458,15 @@ mrgvar_select_ <- function(res,I,L_V,TH_V) {
 
 
 
-#' Select Regime-Specific Covariance Matrix
+#' Select a regime-specific covariance matrix
 #'
-#' Extracts and ensures positive definiteness of the covariance matrix for selected regimes across countries from a GVAR model output.
+#' Extract the covariance blocks corresponding to the selected regimes and
+#' return a nearest positive-definite covariance matrix.
 #'
-#' @param res An estimated GVAR object
-#' @param StateT A vector of selected regimes of each country
-#'
-#' @return A positive definite covariance matrix of the selected states each country
+#' @param res An estimated model object containing `SigmaS`.
+#' @param StateT Integer vector giving the selected regime for each country.
+#' @return A positive-definite covariance matrix for the selected regime
+#'   configuration.
 #' @export
 #' @keywords internal
 #'
@@ -540,14 +503,19 @@ sigma_npd_select_r = function(res,StateT) {
 
 
 
-#' MRVAR Model Selection Function
+#' Select lag and threshold specifications for an MRVAR model
 #'
-#' This function performs model selection for the MRVAR (Markov Regime-Switching VAR) framework by calculating AIC, BIC, and other information criteria for various lag specifications and threshold values across regimes.
+#' Evaluate regime-specific lag orders and threshold values for an MRVAR model
+#' and return the associated model selection criteria.
 #'
-#' @param  res  : an MRVAR object generated from mrvar_data or estimated from mrvar_estimate.
-#' @param  L_V  : a 2 components vector containing the maxima lags in the two regimes, respectively.
-#' @param  TH_V  : a vector containing the possible threshold values over which the model selection criteria values will be calculated.
-#' @return a matrix with different lag specifications and threshold values as well as the corresponding information criterion values.
+#' @param res An MRVAR object, typically returned by `mrvar_data()` or
+#'   `mrvar_estimate()`.
+#' @param L_V Numeric vector of length 2 giving the maximum lag orders searched
+#'   in regimes 1 and 2.
+#' @param TH_V Numeric vector of candidate threshold values.
+#' @return A numeric matrix containing the evaluated lag and threshold
+#'   specifications together with the information criteria reported by the
+#'   estimator.
 #'
 #' @examples
 #' res_d = mrvar_data(n=4,p=matrix(c(2,1,2,2,0,0,0,0),4,2),T=800,S=2,SESVI=1)
@@ -602,16 +570,14 @@ mrvar_select_ <- function (res, L_V = L_V, TH_V = TH_V)
 
 
 
-#' Summarize MRVAR Model Selection Results
+#' Summarize MRVAR model selection results
 #'
-#' This function extracts the optimal models from MRVAR model selection results based on information criteria.
-#' It returns the models with the lowest BIC and AIC values, which are commonly used for model comparison.
+#' Extract the specifications that minimize BIC and AIC from the output of
+#' `mrvar_select_()`.
 #'
-#' @param Sel An output matrix from mrvar_select_
-#'
-#' @return A list with two elements: the first contains the optimal model by BIC criterion, 
-#'         the second contains the optimal model by AIC criterion. Each element includes 
-#'         lag specifications for both regimes, threshold value, and the criterion value.
+#' @param Sel Numeric matrix returned by `mrvar_select_()`.
+#' @return A list of length 2. The first element contains the specification
+#'   minimizing BIC, and the second contains the specification minimizing AIC.
 #' 
 #' @examples
 #' res_d = mrvar_data(n=4,p=matrix(c(2,1,2,2,0,0,0,0),4,2),T=800,S=2,SESVI=1)

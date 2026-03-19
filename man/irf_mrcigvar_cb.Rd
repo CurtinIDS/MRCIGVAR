@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrcigvar_cb}
 \alias{irf_mrcigvar_cb}
-\title{Generate Impulse Response Functions with Confidence Bands for MRCIGVAR Models}
+\title{Compute MRCIGVAR impulse responses with confidence bands}
 \usage{
 irf_mrcigvar_cb(
   res,
@@ -16,29 +16,35 @@ irf_mrcigvar_cb(
 )
 }
 \arguments{
-\item{res}{a MRCIGVAR object that can be an output of mrcigvar_data, mrcigvar_estimate, or MRCIGVARest.}
+\item{res}{A fitted MRCIGVAR object, typically returned by
+\code{mrcigvar_estimate()}.}
 
-\item{nstep}{the length of impulse response function}
+\item{nstep}{Integer scalar giving the number of IRF horizons.}
 
-\item{comb}{a vector specify the concerted action in policy-simulation impulse response function}
+\item{comb}{Numeric vector defining a combined or concerted-action shock.}
 
-\item{state}{an n-vector specifying the specific state for each country.}
+\item{state}{Integer vector of length \code{n} specifying the state assigned to
+each country.}
 
-\item{irf}{types of the impulse response function c("gen","chol","chol1","gen1","comb1")}
+\item{irf}{Character string specifying the IRF type. Supported values are
+\code{"gen"}, \code{"chol"}, \code{"chol1"}, \code{"gen1"}, and \code{"comb1"}.}
 
-\item{runs}{the number of bootstrapping runs}
+\item{runs}{Integer scalar giving the number of bootstrap replications.}
 
-\item{conf}{A vector specifying the confidence intervals}
+\item{conf}{Numeric vector of tail probabilities used to form the bootstrap
+confidence interval.}
 
-\item{NT}{The number of impulse response scenarios}
+\item{NT}{Integer scalar giving the number of simulated IRF scenarios.}
 }
 \value{
-a list of an (mn,mn,nstep,3,S) array of the impulse response functions and test statistics. In the impulse response array, columns representing the impulse and rows the responses.
+A list whose first element is a four-dimensional array of dimension
+\verb{(m * n, m * n, nstep, length(conf) + 1)} containing the point estimate and
+confidence bounds. The remaining elements store bootstrap draws of model
+quantities generated during the procedure.
 }
 \description{
-This function computes the impulse response functions (IRFs) of an estimated MRCIGVAR model,
-providing confidence bands through bootstrap methods. It allows for various types of IRFs
-and can handle different configurations of shocks and responses across multiple regimes.
+Compute impulse response functions (IRFs) for an estimated MRCIGVAR model and
+bootstrap confidence bands for a selected state configuration.
 }
 \examples{
 m = 2

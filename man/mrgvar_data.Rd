@@ -27,55 +27,49 @@ mrgvar_data(
 )
 }
 \arguments{
-\item{m}{: number of variables in a country/unit}
+\item{m}{Integer. Number of endogenous variables per unit.}
 
-\item{n}{: number of countries/units}
+\item{n}{Integer. Number of units.}
 
-\item{p}{: an (n, 3, S) array, each raw specifies the lag length of the domestic variables, the lag length of the foreign variables and the number of exogenous variables for the respective regime.}
+\item{p}{Numeric array of lag orders with dimension \verb{n x 3 x S}.}
 
-\item{T}{: number of observations.}
+\item{T}{Integer. Number of observations.}
 
-\item{S}{: number of regimes.}
+\item{S}{Integer. Number of regimes.}
 
-\item{W}{: an (n x n) weighting matrix. w_ij is the weight of country j in the foreign variables of i-th country diag(W)=0}
+\item{W}{Optional \verb{n x n} weighting matrix.}
 
-\item{SESVI}{: an n-vector of indices of the switching variables across n countries. Eg. SESVI = seq(1,m*n,m).}
+\item{SESVI}{Optional vector of switching-variable indices by unit.}
 
-\item{TH}{: an (n, S-1) matrix of threshold values}
+\item{TH}{Optional threshold matrix with dimension \verb{n x (S - 1)}.}
 
-\item{Go}{: an (mn,mn,p,S) array of the MRGVAR(m,n,p,S) coefficients. G is constructed from Bo, Ao and W.}
+\item{Go}{Optional stacked coefficient array for the full MRGVAR system.}
 
-\item{Ao}{: an (m, m, p, n, S) array collecting coefficients of foreign variables}
+\item{Ao}{Optional foreign-coefficient array with dimension \verb{m x m x p x n x S}.}
 
-\item{Bo}{: an (m, m, p, n, S) array collecting coefficients of domestic variables}
+\item{Bo}{Optional domestic-coefficient array with dimension \verb{m x m x p x n x S}.}
 
-\item{Sigmao}{: an (mn, mn, S) array of the covariance matrix of MRGVAR(m,n,p,S)}
+\item{Sigmao}{Optional covariance array with dimension \verb{(m*n) x (m*n) x S}.}
 
-\item{Uo}{: a (T, mn, S) array of the temporally independent innovation processes}
+\item{Uo}{Optional innovation array with dimension \verb{T x (m*n) x S}.}
 
-\item{SV}{: exogenous switching variables}
+\item{SV}{Optional exogenous switching variables.}
 
-\item{type}{: types of deterministic component "const", "none", "exog0", and  "exog1" are 4 options}
+\item{type}{Character string specifying the deterministic component.}
 
-\item{Co}{: an (m , k+1, n, S) array collecting the coefficients of the deterministic components of the n countries for every regime.}
+\item{Co}{Optional deterministic or exogenous coefficient array with
+dimension \verb{m x (k+1) x n x S}.}
 
-\item{X}{: a (T x k x n x S) matrix of exogenous variables.}
+\item{X}{Optional exogenous-variable array with dimension \verb{T x k x n x S}.}
 
-\item{Yo}{: Initial values}
+\item{Yo}{Optional initial values.}
 
-\item{d}{: the time lag between signal and switching}
+\item{d}{Optional delay between the signal and the realized regime.}
 }
 \value{
-an MRGVAR object containing the generated data, the used parameters and the exogenous variables.
-res_d = list(Y,X,Uo,resid,Go,GDC,Co,Sigmao,TH,St,SV,SESVI,Ao,Bo,check,type,m,n,p,S,W,SigmaS,Yo,d)
-\itemize{
-\item Y     : a (T x nm)  matrix of simulated data via of the MRGVAR(m,n,p,S)
-\item X     : a (T x k x n x S) matrix of exogenous variables.
-\item Uo    : a (T, mn,S) array of the simulated innovations of the MRGVAR(m,n,p,S)
-\item C     : an (nm, (k+1),S) array containing the coefficients of the deterministic components.
-\item St    : a (T x n) matrix of the simulated time path of states/regimes
-\item check : maximum of the data for checking the stationarity
-}
+A list containing the simulated MRGVAR data, exogenous variables,
+innovations, coefficient arrays, regime paths, thresholds, and simulation
+metadata.
 }
 \description{
 Simulates a multi-regime stationary GVAR process and returns the generated

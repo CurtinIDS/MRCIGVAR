@@ -2,39 +2,32 @@
 % Please edit documentation in R/utils.R
 \name{bo_ao_w2_g}
 \alias{bo_ao_w2_g}
-\title{Assemble GVAR coefficient array from domestic and foreign blocks and weights}
+\title{Assemble a GVAR coefficient array from domestic and foreign blocks}
 \usage{
 bo_ao_w2_g(Bo, Ao, W, m, n, p)
 }
 \arguments{
-\item{Bo}{Parameter array (or vectorised form) of domestic variables. Will be
-reshaped internally to (m, m, p, n).}
+\item{Bo}{Domestic coefficient array, reshaped internally to \verb{(m, m, p, n)}
+if needed.}
 
-\item{Ao}{Parameter array (or vectorised form) of foreign variables. Will be
-reshaped internally to (m, m, p, n).}
+\item{Ao}{Foreign coefficient array, reshaped internally to \verb{(m, m, p, n)}
+if needed.}
 
-\item{W}{Weighting matrix of the GVAR model (n x n).}
+\item{W}{GVAR weighting matrix of dimension \verb{(n, n)}.}
 
-\item{m}{Number of variables per country.}
+\item{m}{Integer scalar giving the number of variables per country.}
 
-\item{n}{Number of countries.}
+\item{n}{Integer scalar giving the number of countries.}
 
-\item{p}{Lag order.}
+\item{p}{Integer scalar giving the lag order.}
 }
 \value{
-An (mn, mn, p) array of GVAR(m, n, p) coefficients.
+A three-dimensional array of stacked GVAR coefficients with
+dimensions \verb{(m * n, m * n, p)}.
 }
 \description{
-Builds the stacked GVAR coefficient array \code{G} of dimension (mn, mn, p) by combining
-country-specific domestic VAR coefficient matrices (\code{Bo}) with weighted foreign
-coefficient matrices (\code{Ao}) using the GVAR weighting matrix \code{W}.
-}
-\details{
-The output \code{G[ , , L ]} contains the lag-\code{L} coefficient matrix of the global VAR,
-where each (m x m) block corresponds to the effect of country \code{j} variables on
-country \code{i} variables at lag \code{L}. Off-diagonal blocks are formed as
-\code{Ao[,,L,i] * W[i,j]}, and diagonal blocks are overwritten by the domestic block
-\code{Bo[,,L,i]}.
+Build the stacked GVAR coefficient array by combining domestic coefficient
+blocks, foreign coefficient blocks, and the weighting matrix.
 }
 \examples{
 # Example with n = 2 countries, m = 2 variables, p = 2 lags

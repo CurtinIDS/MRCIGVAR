@@ -3,15 +3,17 @@
 
 
 
-#' Compute Near Positive Definite Covariance Matrix for Selected States
+#' Compute a near-positive-definite covariance matrix for selected states
 #'
-#' Calculates the covariance matrix of residuals for selected states from a GVAR model
-#' and returns its nearest positive definite approximation.
+#' Builds a residual covariance matrix for the state configuration specified in
+#' `StateT` and returns its nearest positive-definite approximation.
 #'
-#' @param res An estimated GVAR object
-#' @param StateT A vector of selected states of each country
+#' @param res Estimated GVAR-style model object containing residual arrays and
+#'   model dimensions.
+#' @param StateT Integer vector giving the selected state for each unit.
 #'
-#' @return The covariance matrix of the selected states
+#' @return Numeric covariance matrix for the selected state configuration after
+#'   applying `Matrix::nearPD()`.
 #'
 #' @examples
 #' \dontrun{
@@ -43,4 +45,3 @@ sigma_npd = function(res, StateT) {
       sigmanpd = as.matrix(Matrix::nearPD(sigmaT, conv.tol = 1e-10)[[1]])
       return(sigmanpd)
 }
-

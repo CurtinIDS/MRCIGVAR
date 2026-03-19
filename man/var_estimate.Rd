@@ -2,18 +2,21 @@
 % Please edit documentation in R/estimation.R
 \name{var_estimate}
 \alias{var_estimate}
-\title{This function estimates parameters of a specified VAR(p) model based on provided data.}
+\title{Estimate a VAR model}
 \usage{
 var_estimate(res)
 }
 \arguments{
-\item{res}{:a VAR(p) object which is an output of var_data including at least: n, p, type, Y and optionally X and type.}
+\item{res}{VAR-style data object, typically the output of \code{var_data()},
+containing at least \code{n}, \code{p}, \code{type}, \code{Y}, and optionally \code{X}.}
 }
 \value{
-res  :a VAR(p) containing estimated parameter values, AIC, BIC and LH.
+The input VAR object augmented with estimated parameter values, AIC,
+BIC, log-likelihood measures, and fitted regression output.
 }
 \description{
-This function estimates parameters of a specified VAR(p) model based on provided data.
+Estimates the parameters of a VAR system from supplied data and returns the
+fitted model together with information criteria and log-likelihood values.
 }
 \examples{
 res_d = var_data(n=2,p=2,T=100,type="const")

@@ -25,46 +25,45 @@ mrvar_data(
 )
 }
 \arguments{
-\item{n}{: number of variables}
+\item{n}{Integer. Number of endogenous variables.}
 
-\item{p}{: an (S x 2) matrix. Each row of p specifies the lag length and the number of exogenous variables for the corresponding regime.}
+\item{p}{Numeric matrix with \code{S} rows and two columns giving the lag order
+and number of exogenous regressors for each regime.}
 
-\item{T}{: number of observations}
+\item{T}{Integer. Number of observations.}
 
-\item{S}{: number of regimes}
+\item{S}{Integer. Number of regimes.}
 
-\item{SESVI}{: index of the switching variable
+\item{SESVI}{Integer index of the switching variable.}
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{           (n,S,p,T,SESVI) must be provided.
-}\if{html}{\out{</div>}}}
+\item{TH}{Optional threshold vector of length \code{S - 1}.}
 
-\item{TH}{: an (S-1)-vector of threshold values}
+\item{Bo}{Optional coefficient array with dimension \verb{n x n x p x S}.}
 
-\item{Bo}{: an (n,n,p,S) array of the coefficients of the MRVAR(n,p,S) model. If Bo is not given it will be generated.}
+\item{Co}{Optional deterministic or exogenous coefficient array with
+dimension \verb{n x (k+1) x S}.}
 
-\item{Co}{: an (n,k+1,S) array of the coefficients of the deterministic components. For type="none" Co = O*(1:n,1:S), for "const" Co is an (1:n,1:S) array, for "exog0" Co is an (n,k+1,S) array with first column zero for each regime respectively,for "exog1" Co is an (n,1+k, S) array without zero restrictions.}
+\item{Sigmao}{Optional covariance array with dimension \verb{n x n x S}.}
 
-\item{Sigmao}{: an (n,n,S)   array containing S covariance matrices of residuals, each for one regime.}
+\item{Uo}{Optional innovation array.}
 
-\item{Uo}{: residuals, if it is not NA it will be used as input to generate data of the MRVAR(n,p,S) process.}
+\item{SV}{Optional exogenous switching variable.}
 
-\item{SV}{: exogenous switching variable}
+\item{type}{Character string specifying the deterministic component.}
 
-\item{type}{: type of the deterministic components type = c("none","const","exog0","exog1")}
+\item{X}{Optional exogenous-variable array with dimension \verb{T x k x S}.}
 
-\item{X}{: a (T x k x S) array of exogenous variables for each state. The second dimension can be filled with zeros to take into account that the the exogenous variables are not identical in each state.}
+\item{mu}{Optional \verb{n x S} matrix of regime-specific means.}
 
-\item{mu}{: an (n x S) matrix of the regime specific means of the variables}
+\item{Yo}{Optional initial-value array with dimension \verb{p x n x S}.}
 
-\item{Yo}{: a (p, n, S) array of initial values of the process}
+\item{Do}{Optional extra exogenous-component array with dimension \verb{T x n x S}.}
 
-\item{Do}{: a (T, n, S) array of extra exogenous components (not used with value zero)}
-
-\item{d}{: lag delays of the self-exiting switching variable.
-(TH,Bo,Co,Sigmao,Uo,SV,type) if not provided, they will be generated randomly.}
+\item{d}{Integer delay of the self-exciting switching variable.}
 }
 \value{
-an MRVAR(n,p,S) object that is a list containing the generated data, the used parameters and the exogenous variables.
+A list containing the simulated MRVAR data, coefficient arrays,
+regime path, innovations, and simulation metadata.
 }
 \description{
 Simulates a multi-regime stationary VAR process and returns the generated

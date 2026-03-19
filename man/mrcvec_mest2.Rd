@@ -2,7 +2,7 @@
 % Please edit documentation in R/estimation.R
 \name{mrcvec_mest2}
 \alias{mrcvec_mest2}
-\title{This function estimates the unknown parameters of a multi regime conditional VECM based on provided data.}
+\title{Estimate a conditional multi-regime VECM}
 \usage{
 mrcvec_mest2(
   y,
@@ -19,32 +19,44 @@ mrcvec_mest2(
 )
 }
 \arguments{
-\item{y}{: data matrix of the endogenous variable}
+\item{y}{Numeric matrix of endogenous variables.}
 
-\item{x}{: x data matrix of the conditioning variables. If x is missing, it will estimate a unconditional VECM.}
+\item{x}{Numeric matrix of conditioning variables. When absent or equal to
+zero, the function estimates an unconditional VECM.}
 
-\item{s}{: the series of state variable of value (0,1) for the two regime case. Missing s implies single regime VECM.}
+\item{s}{Optional regime-indicator series taking values \code{0} and \code{1}. If
+omitted, a single-regime specification is used.}
 
-\item{model}{: It assumes one of the values in c("I","II","III","IV","V") corresponding to the five cases in Johansen test.}
+\item{model}{Character string specifying the Johansen deterministic case.
+Supported values are \code{"I"}, \code{"II"}, \code{"III"}, \code{"IV"}, and \code{"V"}.}
 
-\item{type}{: c("eigen", "trace") corresponding to the trace test or the max eigenvalue test}
+\item{type}{Character string specifying the rank test: \code{"eigen"} or
+\code{"trace"}.}
 
-\item{crk}{: cointegration rank}
+\item{crk}{Integer cointegration rank.}
 
-\item{P}{: 2 x 2 matrix containing the lag of the cointegrated VAR process. The first row is the lag of the first regime and the number of exogenous variables. If the second row is zero, this is a one regime VECM.}
+\item{P}{Numeric \verb{2 x 2} matrix containing regime-specific lag orders and
+counts of conditioning variables.}
 
-\item{q}{: The significance level}
+\item{q}{Significance level used for Johansen critical values.}
 
-\item{Dxflag}{: A flag indicating if the conditioning variables enter the cointegration space}
+\item{Dxflag}{Numeric flag indicating whether conditioning variables enter
+the cointegration space.}
 
-\item{X}{: The conditioning variables}
+\item{X}{Optional exogenous stationary variables.}
 
-\item{CZ}{: Common factor variables in CIGVAR and MRCIGVAR}
+\item{CZ}{Optional common non-stationary factors used in CIGVAR and
+MRCIGVAR settings.}
 }
 \value{
-A list containing: the result of the Johansen test, VECM in regression format, lambda, beta, PI, GAMMA, model, P, s.
+A list containing the Johansen test results, fitted VECM object,
+eigenvalue statistics, cointegration matrix \code{beta}, long-run matrix \code{PI},
+short-run matrix \code{GAMMA}, the chosen model specification, lag structure
+\code{P}, and the regime indicator \code{s}.
 }
 \description{
-This function estimates the unknown parameters of a multi regime conditional VECM based on provided data.
+Fits a conditional VECM with one or two regimes, performs Johansen-style
+rank testing under the chosen deterministic specification, and returns the
+estimated cointegration objects and regression representation.
 }
 \keyword{internal}

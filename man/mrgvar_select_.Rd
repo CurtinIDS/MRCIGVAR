@@ -2,24 +2,29 @@
 % Please edit documentation in R/model_selection.R
 \name{mrgvar_select_}
 \alias{mrgvar_select_}
-\title{MRGVAR Model Selection Function}
+\title{Select lag and threshold specifications for an MRGVAR equation}
 \usage{
 mrgvar_select_(res, I, L_V, TH_V)
 }
 \arguments{
-\item{res}{An object generated from mrgvar_data}
+\item{res}{An MRGVAR object, typically returned by \code{mrgvar_data()}.}
 
-\item{I}{Index of the equation under investigation}
+\item{I}{Integer scalar identifying the equation under investigation.}
 
-\item{L_V}{A vector of length 4 containing maximum lags for regime 1 domestic, regime 1 foreign, regime 2 domestic, and regime 2 foreign}
+\item{L_V}{Numeric vector of length 4 giving the maximum lag orders for
+regime 1 domestic, regime 1 foreign, regime 2 domestic, and regime 2
+foreign variables.}
 
-\item{TH_V}{A vector containing possible threshold values}
+\item{TH_V}{Numeric vector of candidate threshold values.}
 }
 \value{
-A list containing two elements: a matrix with lag specifications and criteria values, and the estimation results
+A list with two elements: the first is a matrix of evaluated
+specifications and criteria, and the second stores the last estimation
+result obtained in the search.
 }
 \description{
-This function performs model selection for the MRGVAR framework by calculating AIC, BIC, and other criteria for various lag specifications and threshold values across regimes.
+Evaluate candidate regime-specific domestic and foreign lag orders, together
+with threshold values, for a selected MRGVAR equation.
 }
 \examples{
 p = (1:30)*0; dim(p) = c(5,3,2)

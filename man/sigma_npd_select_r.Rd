@@ -2,20 +2,22 @@
 % Please edit documentation in R/model_selection.R
 \name{sigma_npd_select_r}
 \alias{sigma_npd_select_r}
-\title{Select Regime-Specific Covariance Matrix}
+\title{Select a regime-specific covariance matrix}
 \usage{
 sigma_npd_select_r(res, StateT)
 }
 \arguments{
-\item{res}{An estimated GVAR object}
+\item{res}{An estimated model object containing \code{SigmaS}.}
 
-\item{StateT}{A vector of selected regimes of each country}
+\item{StateT}{Integer vector giving the selected regime for each country.}
 }
 \value{
-A positive definite covariance matrix of the selected states each country
+A positive-definite covariance matrix for the selected regime
+configuration.
 }
 \description{
-Extracts and ensures positive definiteness of the covariance matrix for selected regimes across countries from a GVAR model output.
+Extract the covariance blocks corresponding to the selected regimes and
+return a nearest positive-definite covariance matrix.
 }
 \examples{
 # Example with sample covariance structure

@@ -2,18 +2,24 @@
 % Please edit documentation in R/estimation.R
 \name{civar_estimate}
 \alias{civar_estimate}
-\title{This function estimates parameters of a specified CIVAR(p) model based on provided data.}
+\title{Estimate a CIVAR model}
 \usage{
 civar_estimate(res)
 }
 \arguments{
-\item{res}{:an object of CIVAR(p) containing the components which are the output of civar_data including at least: n, p, Y, crk, and optionally X and type.}
+\item{res}{CIVAR-style data object, typically the output of \code{civar_data()},
+containing at least \code{n}, \code{p}, \code{Y}, and \code{crk}, and optionally \code{X} and
+\code{type}.}
 }
 \value{
-res  an object of CIVAR(p) containing estimated parameter values, AIC, BIC, LH and the estimated VECM in regression format.
+The input CIVAR object augmented with estimated parameters, residual
+covariance matrix, VECM output, and summary statistics including AIC, BIC,
+and log-likelihood values.
 }
 \description{
-This function estimates parameters of a specified CIVAR(p) model based on provided data.
+Estimates the parameters of a CIVAR system from simulated or supplied data
+and returns the implied VECM fit together with the corresponding VAR
+coefficients and information criteria.
 }
 \examples{
 p = 3

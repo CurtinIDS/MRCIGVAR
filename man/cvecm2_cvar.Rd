@@ -2,41 +2,29 @@
 % Please edit documentation in R/utils.R
 \name{cvecm2_cvar}
 \alias{cvecm2_cvar}
-\title{Convert conditional VECM parameters to conditional VAR coefficient arrays}
+\title{Convert conditional VECM parameters to conditional VAR arrays}
 \usage{
 cvecm2_cvar(param, beta, p = c(1, 2, 2, 2, 2), s = NA, N2)
 }
 \arguments{
-\item{param}{Estimated parameters of a conditional VECM.}
+\item{param}{Matrix of estimated conditional VECM parameters.}
 
-\item{beta}{The estimated cointegration vectors.}
+\item{beta}{Cointegration matrix.}
 
-\item{p}{A vector specifying different types of conditional VECM. Its interpretation
-depends on the model regime setting.}
+\item{p}{Integer vector describing the conditional VECM specification.}
 
-\item{s}{Indicator variable of different regimes. If \code{NA}, a single-regime model is assumed.}
+\item{s}{Optional regime indicator. Use \code{NA} for a single-regime model.}
 
-\item{N2}{Dimension of the conditioning (foreign) variables.}
+\item{N2}{Integer scalar giving the number of conditioning variables.}
 }
 \value{
-A list with components \code{A}, \code{B}, and \code{C}, where:
-\itemize{
-\item B: conditional VAR coefficient array (domestic block)
-\item A: coefficient array of conditioning/foreign variables for CIGVAR (or \code{NA} if absent)
-\item C: parameters of deterministic components (or \code{NA} if absent)
-}
+A list containing domestic coefficient arrays \code{B}, conditioning
+coefficient arrays \code{A}, and deterministic coefficients \code{C}.
 }
 \description{
-Converts estimated parameters from a conditional VECM into coefficient arrays for
-the corresponding conditional VAR in levels. It returns domestic coefficients (B),
-foreign/conditioning coefficients (A, when present), and deterministic components (C).
-}
-\details{
-This helper supports both:
-\itemize{
-\item a single-regime conditional VECM (when \code{s} is \code{NA}), and
-\item multi-regime specifications used in MRCIGVAR / MRCIVAR (when \code{s} is provided).
-}
+Transform conditional VECM parameter estimates into domestic, conditioning,
+and deterministic coefficient arrays for the associated conditional VAR in
+levels.
 }
 \examples{
 # Minimal illustrative example (fabricated inputs)

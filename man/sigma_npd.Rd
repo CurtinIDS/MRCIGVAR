@@ -2,21 +2,23 @@
 % Please edit documentation in R/diagnostics.R
 \name{sigma_npd}
 \alias{sigma_npd}
-\title{Compute Near Positive Definite Covariance Matrix for Selected States}
+\title{Compute a near-positive-definite covariance matrix for selected states}
 \usage{
 sigma_npd(res, StateT)
 }
 \arguments{
-\item{res}{An estimated GVAR object}
+\item{res}{Estimated GVAR-style model object containing residual arrays and
+model dimensions.}
 
-\item{StateT}{A vector of selected states of each country}
+\item{StateT}{Integer vector giving the selected state for each unit.}
 }
 \value{
-The covariance matrix of the selected states
+Numeric covariance matrix for the selected state configuration after
+applying \code{Matrix::nearPD()}.
 }
 \description{
-Calculates the covariance matrix of residuals for selected states from a GVAR model
-and returns its nearest positive definite approximation.
+Builds a residual covariance matrix for the state configuration specified in
+\code{StateT} and returns its nearest positive-definite approximation.
 }
 \examples{
 \dontrun{

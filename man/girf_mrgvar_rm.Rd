@@ -2,40 +2,39 @@
 % Please edit documentation in R/irf.R
 \name{girf_mrgvar_rm}
 \alias{girf_mrgvar_rm}
-\title{Generate Generalized Impulse Response Functions for MRGVAR Models}
+\title{Compute generalized impulse responses for MRGVAR models}
 \usage{
 girf_mrgvar_rm(res, shock, R, nstep, Omega_hist, resid_method)
 }
 \arguments{
-\item{res}{: an MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.}
+\item{res}{A fitted MRGVAR object, typically returned by \code{mrgvar_estimate()}.}
 
-\item{shock}{: an mn-vector containing the shocks as impulse.}
+\item{shock}{Numeric vector of length \code{m * n} defining the impulse.}
 
-\item{R}{: the number of runs to integrate out the random effects in order to obtain the means.}
+\item{R}{Integer scalar giving the number of simulation runs used to average
+over random effects.}
 
-\item{nstep}{: the length of the responses.}
+\item{nstep}{Integer scalar giving the number of response horizons.}
 
-\item{Omega_hist}{: the initial values from which the simulation runs start. For Omega_hist=NA
-the most recent values are taken as the initial values. For Omega_hist=0,
-the initial values are zeros.}
+\item{Omega_hist}{Matrix of initial values used to start the simulation. If
+\code{NA}, the most recent observations are used; if \code{0}, zero initial values
+are used.}
 
-\item{resid_method}{: resid_method = c("resid", "parametric"). It generates the random residuals
-from residuals bootstrap or parametric bootstrap.}
+\item{resid_method}{Character string specifying how residual draws are
+generated. Supported values are \code{"resid"} and \code{"parametric"}.}
 }
 \value{
-a list containing three elements: (1) an (mn x mn x nstep+1) array of impulse response
-functions, (2) the shocked responses, and (3) the baseline responses. The rows represent
-response and the columns represent impulses.
+A list with three elements: the GIRF array of dimension \verb{(m * n, m * n, nstep + 1)}, the shocked simulated paths, and the baseline simulated
+paths.
 }
 \description{
-This function calculates the generalized impulse response functions (GIRF) of an estimated
-MRGVAR model for a given shock vector and initial values. The GIRF is computed as the
-difference between mean responses with and without the shock, integrating out random effects
-across multiple simulation runs.
+Compute generalized impulse response functions (GIRFs) for an estimated
+MRGVAR model by comparing average simulated paths with and without an
+imposed shock across repeated simulation runs.
 }
 \details{
-For a given shock vector SHCK:
-GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+For a shock vector \code{SHCK}, the GIRF is defined as
+\code{mean(Y(SHCK)) - mean(Y(resid))}.
 
 See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate
 models, Economics Letters, 58(1) p. 17-29.

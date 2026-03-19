@@ -2,22 +2,28 @@
 % Please edit documentation in R/model_selection.R
 \name{gvar_select_}
 \alias{gvar_select_}
-\title{GVAR Model Selection Function}
+\title{Select lag specifications for a GVAR country equation}
 \usage{
 gvar_select_(res = res, L_V = L_V, I = I)
 }
 \arguments{
-\item{res}{A GVAR object generated from gvar_data}
+\item{res}{A GVAR object, typically returned by \code{gvar_data()} or carrying the
+same fields required by \code{gvar_select_()}.}
 
-\item{L_V}{A 2 components vector containing the maxima of the domestic lag and the foreign lag, respectively}
+\item{L_V}{Numeric vector of length 2 giving the maximum domestic and
+foreign lag orders considered in the search.}
 
-\item{I}{Index of the country equation under investigation}
+\item{I}{Integer scalar identifying the country equation under
+investigation.}
 }
 \value{
-A matrix with different lag specifications and the corresponding information criteria (AIC and BIC)
+A numeric matrix with columns for domestic lags, foreign lags, AIC,
+and BIC.
 }
 \description{
-This function performs model selection for the GVAR (Global Vector Autoregression) framework by calculating AIC and BIC criteria for various lag specifications of domestic and foreign variables for a specific country equation.
+Evaluate alternative domestic and foreign lag specifications for a selected
+country equation in a GVAR model and return the associated information
+criteria.
 }
 \examples{
 n = 4

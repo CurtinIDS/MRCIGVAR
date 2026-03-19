@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{girf_mrgvar_rm_cb}
 \alias{girf_mrgvar_rm_cb}
-\title{Generate Generalized Impulse Response Functions with Confidence Bands for MRGVAR Models}
+\title{Compute MRGVAR generalized impulse responses with confidence bands}
 \usage{
 girf_mrgvar_rm_cb(
   res,
@@ -16,37 +16,36 @@ girf_mrgvar_rm_cb(
 )
 }
 \arguments{
-\item{res}{: an MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.}
+\item{res}{A fitted MRGVAR object, typically returned by \code{mrgvar_estimate()}.}
 
-\item{shock}{: an mn-vector containing the shocks as impulse.}
+\item{shock}{Numeric vector of length \code{m * n} defining the impulse.}
 
-\item{R}{: the number of runs to integrate out the random effects in order to obtain the means.}
+\item{R}{Integer scalar giving the number of simulation runs used to average
+over random effects.}
 
-\item{nstep}{: the length of the responses.}
+\item{nstep}{Integer scalar giving the number of response horizons.}
 
-\item{Omega_hist}{: the initial values from which the simulation runs of impulse and response functions start.
-For Omega_hist=NA the most recent values are taken as the initial values.}
+\item{Omega_hist}{Matrix of initial values used to start the simulation. If
+\code{NA}, the most recent observations are used.}
 
-\item{resid_method}{: resid_method = c("resid", "parametric"). It generates random residuals
-either from residuals bootstrap or parametric bootstrap.}
+\item{resid_method}{Character string specifying how residual draws are
+generated. Supported values are \code{"resid"} and \code{"parametric"}.}
 
-\item{conf}{: a two component vector containing the tail probabilities of the bootstrap confidence interval.}
+\item{conf}{Numeric vector of tail probabilities used to form the bootstrap
+confidence interval.}
 
-\item{N}{: number of bootstrapping runs.}
+\item{N}{Integer scalar giving the number of bootstrap replications.}
 }
 \value{
-an (mn x mn x nstep+1 x 3) array containing impulse response functions with lower and upper
-confidence bands. The rows represent response and the columns represent impulses.
+A four-dimensional array of dimension \verb{(m * n, m * n, nstep + 1, length(conf) + 1)} containing the point estimate and confidence bounds.
 }
 \description{
-This function calculates the generalized impulse response functions (GIRF) of an estimated
-MRGVAR model for a given shock vector and initial values. The GIRF is computed as the
-difference between mean responses with and without the shock, integrating out random effects
-across multiple simulation runs. It also generates bootstrapped confidence intervals.
+Compute generalized impulse response functions (GIRFs) for an estimated
+MRGVAR model and bootstrap confidence bands for a user-specified shock.
 }
 \details{
-For a given shock vector SHCK:
-GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+For a shock vector \code{SHCK}, the GIRF is defined as
+\code{mean(Y(SHCK)) - mean(Y(resid))}.
 
 See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate
 models, Economics Letters, 58(1) p. 17-29.

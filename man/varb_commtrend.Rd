@@ -2,32 +2,34 @@
 % Please edit documentation in R/utils.R
 \name{varb_commtrend}
 \alias{varb_commtrend}
-\title{Generate Independent Common Stochastic Trends and Idiosyncratic Trends for VAR Models}
+\title{Generate VAR coefficients with common and idiosyncratic trends}
 \usage{
 varb_commtrend(m, p, T, r_npo, Ncommtrend, n)
 }
 \arguments{
-\item{m}{number of variables}
+\item{m}{Integer scalar giving the number of variables per country.}
 
-\item{p}{lags}
+\item{p}{Lag-order specification.}
 
-\item{T}{number of observations}
+\item{T}{Integer scalar giving the number of observations used when building
+auxiliary VAR objects.}
 
-\item{r_npo}{roots of the characteristic polynomial}
+\item{r_npo}{Array of characteristic roots used to generate the VAR
+coefficients.}
 
-\item{Ncommtrend}{number of common trends}
+\item{Ncommtrend}{Integer scalar giving the number of common stochastic
+trends. Use \code{NA} or \code{0} to omit common trends.}
 
-\item{n}{number of countries}
+\item{n}{Integer scalar giving the number of countries.}
 }
 \value{
-A list containing the parameter matrix of the domestic variables,
-the cointegration vectors, and the adjustment vectors
+A list with three elements: domestic coefficient arrays \code{Bo},
+adjustment matrices \code{alpha}, and cointegration matrices \code{beta}.
 }
 \description{
-This function creates independent common stochastic trends and idiosyncratic trends
-for a given number of variables, lags, and observations. It also computes the
-parameter matrix of domestic variables, cointegration vectors, and adjustment vectors
-based on the specified roots of the characteristic polynomial.
+Construct domestic VAR coefficient arrays together with implied
+cointegration and adjustment matrices under user-specified characteristic
+roots and an optional number of common stochastic trends.
 }
 \examples{
 \dontrun{

@@ -34,70 +34,74 @@ mrcigvar_data(
 )
 }
 \arguments{
-\item{m}{: number of variables in each country/unit}
+\item{m}{Integer. Number of endogenous variables in each unit.}
 
-\item{n}{: number of countries/units}
+\item{n}{Integer. Number of units.}
 
-\item{p}{: an (n, 3, S) array, each raw contains the lag length of the domestic variables, the lag length of the foreign variables, and the number of the exogenous variables of the corresponding country in the respective regimes.}
+\item{p}{Numeric array of lag orders with dimension \verb{n x 3 x S}. For each
+unit and regime, the three entries give the domestic lag order, the
+foreign lag order, and the number of exogenous regressors.}
 
-\item{T}{: number of observations.}
+\item{T}{Integer. Number of observations.}
 
-\item{S}{: number of regimes}
+\item{S}{Integer. Number of regimes.}
 
-\item{W}{: an (n x n) weighting matrix. w_ij is the weight of country j in the foreign variables of i-th country diag(W)=0}
+\item{W}{Optional \verb{n x n} weighting matrix for foreign aggregates.}
 
-\item{SESVI}{: an n-vector of indices of the switching variables across n countries. E.g. SESVI = seq(1,m*n,m).}
+\item{SESVI}{Optional vector of indices identifying the switching variable
+for each unit.}
 
-\item{TH}{: an (n x S-1) matrix of threshold values}
+\item{TH}{Optional threshold matrix of dimension \verb{n x (S - 1)}.}
 
-\item{Go}{: an (mn,mn,p,S) array containing coefficients of MRCIGVAR. Go is constructed from Bo, Ao and W.}
+\item{Go}{Optional stacked coefficient array for the full MRCIGVAR system.}
 
-\item{Ao}{: an (m, m, p, n, S) array containing the coefficients of foreign variables}
+\item{Ao}{Optional foreign-coefficient array with dimension \verb{m x m x Pmax x n x S}.}
 
-\item{Bo}{: an (m, m, p, n, S) array containing the coefficients of domestic variables.}
+\item{Bo}{Optional domestic-coefficient array with dimension \verb{m x m x Pmax x n x S}.}
 
-\item{Sigmao}{: an (mn, mn, S) array of the covariance matrix of MRCIGVAR(m,n,p,S)}
+\item{Sigmao}{Optional innovation covariance array with dimension
+\verb{(m*n) x (m*n) x S}.}
 
-\item{Uo}{: a (T, mn, S) array of the temporally independent innovations}
+\item{Uo}{Optional innovation array with dimension \verb{T x (m*n) x S}.}
 
-\item{SV}{: exogenous switching variables}
+\item{SV}{Optional exogenous switching variables.}
 
-\item{type}{: types of the deterministic component. "const", "none", "exog0", and "exog1" are 4 options}
+\item{type}{Character string specifying the deterministic specification.
+Supported values are \code{"const"}, \code{"none"}, \code{"exog0"}, and \code{"exog1"}.}
 
-\item{Co}{: an (m , k+1, n, S) array containing the coefficients of the deterministic components of the n countries.}
+\item{Co}{Optional deterministic or exogenous coefficient array with
+dimension \verb{m x (k+1) x n x S}.}
 
-\item{X}{: a (T x k x n x S) array of exogenous stationary variables.}
+\item{X}{Optional array of stationary exogenous variables with dimension
+\verb{T x k x n x S}.}
 
-\item{Yo}{: initial values}
+\item{Yo}{Optional initial values for the simulated process.}
 
-\item{d}{: the time lag between signal and regime-switching}
+\item{d}{Optional delay between the switching signal and the realized regime.}
 
-\item{r}{: an n-vector containing the number of unit root process in each country}
+\item{r}{Optional length-\code{n} vector giving the number of unit roots per
+unit.}
 
-\item{r_np}{: an (m, Pmax, n, S) array containing the roots of the characteristic polynomials of each country.}
+\item{r_np}{Optional array of characteristic roots with dimension
+\verb{m x Pmax x n x S}.}
 
-\item{Ncommtrend}{: number of common stochastic trends in the MRCIGVAR.}
+\item{Ncommtrend}{Integer. Number of common stochastic trends.}
 
-\item{DFYflag}{: indicator whether the foreign variables enter the cointegration space.}
+\item{DFYflag}{Numeric flag indicating whether foreign variables enter the
+cointegration space.}
 
-\item{A}{: transformation matrix for common exogenous non-stationary stochastic factors.}
+\item{A}{Optional transformation matrix for common non-stationary factors.}
 
-\item{Ncommfakt}{: number of the common exogenous non-stationary stochastic factors.}
+\item{Ncommfakt}{Integer. Number of common non-stationary factors.}
 
-\item{uz}{: innovations of the common exogenous non-stationary stochastic factors.}
+\item{uz}{Optional innovations for the common non-stationary factors.}
 }
 \value{
-\if{html}{\out{<div class="sourceCode">}}\preformatted{ an MRGVAR object containing the generated data, the used parameters and the exogenous variables.
-}\if{html}{\out{</div>}}
-
-\itemize{
-\item Y     : a (T x mn)  matrix of simulated data
-\item X     : a (T x k x n x S) array of exogenous variables
-\item Uo    : a (T, mn,S) array of the simulated innovations of the MRGVAR(m,n,p,S)
-\item C     : an (nm, (k+1),S) array containing the coefficients of the deterministic components.
-\item St    : a (T x n) matrix of the simulated time path of states/regimes
-\item check : maximum of the data for checking the stationarity
-}
+A list containing the simulated data and model components, including
+the generated series \code{Y}, exogenous variables \code{X}, innovations \code{Uo},
+coefficient arrays such as \code{Go}, \code{Ao}, \code{Bo}, \code{Co}, and \code{Sigmao}, the
+threshold and regime-path objects, and the simulation metadata used to
+construct the MRCIGVAR system.
 }
 \description{
 Simulates a multi-regime cointegrated GVAR process and returns the generated
@@ -107,7 +111,7 @@ MRCIGVAR system.
 \examples{
 m = 3
 n = 5
- p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0); dim(p) = c(5,3,2)
+p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0); dim(p) = c(5,3,2)
 p = p[1:n,,]; p[,1,] = 3; p[,2,] = 2
 
 p[2,2,] = 3

@@ -4,19 +4,25 @@
 
 
 #'
-#' Generate Impulse Response Functions with Confidence Bands for CIGVAR Models
+#' Compute CIGVAR impulse responses with confidence bands
 #'
-#' This function computes the impulse response functions (IRFs) of an estimated CIGVAR model, 
-#' providing confidence bands through bootstrap methods. It allows for various types of IRFs 
-#' and can handle different configurations of shocks and responses.
+#' Compute impulse response functions (IRFs) for an estimated CIGVAR model and
+#' bootstrap confidence bands for the selected response specification.
 #'
-#' @param  res  : a CIGVAR object of an output of CIGVARest.
-#' @param  nstep : length of the impulse response functions
-#' @param  comb : an mn-vector specifying combined impulse such as global shocks, regional shocks, or concerted actions.
-#' @param  irf  : types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse.
-#' @param  runs : number of bootstrap runs to generate the confidence bands
-#' @param  conf : a two component vector containing the tail probabilities of the bootstrap confidence interval
-#' @return a matrix of (mn,mn,nstep,3) as the IRF columns representing the impulse rows the responses
+#' @param res A fitted CIGVAR object, typically returned by `cigvar_estimate()`.
+#' @param nstep Integer scalar giving the number of IRF horizons.
+#' @param comb Numeric vector of length `m * n` defining a combined shock, such
+#'   as a global shock, regional shock, or concerted action.
+#' @param irf Character string specifying the IRF type. Supported values are
+#'   `"gen"`, `"chol"`, `"chol1"`, `"gen1"`, and `"comb1"`.
+#' @param runs Integer scalar giving the number of bootstrap replications used
+#'   to construct confidence bands.
+#' @param conf Numeric vector of tail probabilities used to form the bootstrap
+#'   confidence interval.
+#' @return A four-dimensional array of dimension `(m * n, m * n, nstep,
+#'   length(conf) + 1)`. The first two dimensions index responses and impulses,
+#'   the third indexes horizons, and the fourth contains the point estimate
+#'   followed by the confidence bounds.
 #' @examples
 #'
 #' n = 5
@@ -91,26 +97,34 @@ irf_cigvar_cb <- function (res, nstep, comb, irf = c("gen", "chol", "chol1", "ge
 
 
 #'
-#' Generate Impulse Response Functions with Confidence Bands for CIVAR Models
+#' Compute CIVAR impulse responses with confidence bands
 #'
-#' This function computes the impulse response functions (IRFs) of an estimated CIVAR model,
-#' providing confidence bands through bootstrap methods. It allows for various types of IRFs
-#' and can handle different configurations of shocks and responses, including permanent-transitory
-#' decompositions and exogenous shocks.
+#' Compute impulse response functions (IRFs) for an estimated CIVAR model and
+#' bootstrap confidence bands for alternative identification schemes, including
+#' permanent-transitory decompositions and exogenous-shock responses.
 #'
-#' @param res a CIVAR object such as an output of civar_estimate
-#' @param nstep the length of the impulse response functions
-#' @param comb a weighting matrix specifying the weights used in the impulse response functions of a global VAR. Its default value is NA for CIVAR(p)
-#' @param irf types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1","PTdecomp","ABSVAR","irfX")
-#' @param G the transformation matrix for PTdecomp
-#' @param A0 the transformation matrix for AB identification
-#' @param B0 the transformation matrix for AB identification
-#' @param Xshks the number of selected exogenous shocks
-#' @param runs number of runs used in the calculation of the bootstrap confidence interval
-#' @param conf a two component vector containing the tail probabilities of the bootstrap confidence interval
-#' @return an (n, n, nstep, 3) array containing the impulse response functions with confidence bands. 
-#'         The first dimension represents responses, second represents impulses, third represents time steps,
-#'         and fourth represents point estimate and confidence bounds.
+#' @param res A fitted CIVAR object, typically returned by `civar_estimate()`.
+#' @param nstep Integer scalar giving the number of IRF horizons.
+#' @param comb Optional weighting matrix used for combined shocks. Use `NA` for
+#'   standard CIVAR models without combined impulses.
+#' @param irf Character string specifying the IRF type. Supported values are
+#'   `"gen"`, `"chol"`, `"chol1"`, `"gen1"`, `"comb1"`, `"PTdecomp"`,
+#'   `"ABSVAR"`, and `"irfX"`.
+#' @param G Optional transformation matrix used for permanent-transitory
+#'   decomposition.
+#' @param A0 Optional identification matrix used for AB-structural
+#'   identification.
+#' @param B0 Optional identification matrix used for AB-structural
+#'   identification.
+#' @param Xshks Integer vector identifying the exogenous shocks used when
+#'   `irf = "irfX"`.
+#' @param runs Integer scalar giving the number of bootstrap replications used
+#'   to construct confidence bands.
+#' @param conf Numeric vector of tail probabilities used to form the bootstrap
+#'   confidence interval.
+#' @return A four-dimensional array of dimension `(n, n, nstep, length(conf) +
+#'   1)`. The dimensions correspond to responses, impulses, horizons, and the
+#'   point estimate plus confidence bounds.
 #'
 #' @examples
 #' res_d = civar_data(n=4,p=2,T=84,Co=matrix(c(1,1,1,1),4,1)*0,type="none",crk=1)
@@ -218,16 +232,19 @@ irf_civar_cb <- function(res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1
 
 
 #'
-#' Generate Impulse Response Functions for GVAR Models
+#' Compute GVAR impulse responses
 #'
-#' This function computes the impulse response functions (IRFs) of an estimated GVAR model, 
-#' allowing for various types of IRFs and handling different configurations of shocks and responses.
+#' Compute impulse response functions (IRFs) for an estimated GVAR model under
+#' alternative identification schemes and combined-shock specifications.
 #'
-#' @param  res  : an output of gvar_estimate
-#' @param  nstep : length of the impulse response functions
-#' @param  comb : an mn vector specifying combined impulse such as global shocks, regional shocks, or concerted actions.
-#' @param  irf  : types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse.
-#' @return an (mn,mn,nstep) array containing the IRF with columns representing the impulses rows representing the responses.
+#' @param res A fitted GVAR object, typically returned by `gvar_estimate()`.
+#' @param nstep Integer scalar giving the number of IRF horizons.
+#' @param comb Numeric vector of length `m * n` defining a combined shock, such
+#'   as a global shock, regional shock, or concerted action.
+#' @param irf Character string specifying the IRF type. Supported values are
+#'   `"gen"`, `"chol"`, `"chol1"`, `"gen1"`, and `"comb1"`.
+#' @return A three-dimensional array of dimension `(m * n, m * n, nstep)`,
+#'   indexed by responses, impulses, and horizons.
 #' @examples
 #'
 #' X1 = matrix(1,200,1)
@@ -262,19 +279,25 @@ irf_gvar = function(res,nstep,comb,irf=c("gen","chol","chol1","gen1","comb1")) {
 
 
 #'
-#' Generate Impulse Response Functions with Confidence Bands for GVAR Models
+#' Compute GVAR impulse responses with confidence bands
 #'
-#' This function computes the impulse response functions (IRFs) of an estimated GVAR model, 
-#' providing confidence bands through bootstrap methods. It allows for various types of IRFs 
-#' and can handle different configurations of shocks and responses.
+#' Compute impulse response functions (IRFs) for an estimated GVAR model and
+#' bootstrap confidence bands for the selected identification scheme.
 #'
-#' @param  res  : an object of GVAR that is a list of the output of gvar_estimate
-#' @param  nstep : length of the impulse response functions
-#' @param  comb : an mn vector specifying combined impulse such as global shocks, regional shocks, or concerted actions.
-#' @param  irf  : types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse.
-#' @param  runs : number of bootstrap runs to generate the confidence bands
-#' @param  conf : a two components vector of the tail probabilities of the confidence interval.
-#' @return An (mn,mn,nstep,3) array of IRF with columns representing the impulse rows the responses.
+#' @param res A fitted GVAR object, typically returned by `gvar_estimate()`.
+#' @param nstep Integer scalar giving the number of IRF horizons.
+#' @param comb Numeric vector of length `m * n` defining a combined shock, such
+#'   as a global shock, regional shock, or concerted action.
+#' @param irf Character string specifying the IRF type. Supported values are
+#'   `"gen"`, `"chol"`, `"chol1"`, `"gen1"`, and `"comb1"`.
+#' @param runs Integer scalar giving the number of bootstrap replications used
+#'   to construct confidence bands.
+#' @param conf Numeric vector of tail probabilities used to form the bootstrap
+#'   confidence interval.
+#' @return A four-dimensional array of dimension `(m * n, m * n, nstep,
+#'   length(conf) + 1)`. The first two dimensions index responses and impulses,
+#'   the third indexes horizons, and the fourth contains the point estimate
+#'   followed by the confidence bounds.
 #' @examples
 #' n = 5
 #' p = (1:15)*0; dim(p) = c(5,3)
@@ -337,21 +360,27 @@ irf_gvar_cb = function(res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1",
 
 
 #'
-#' Generate Impulse Response Functions with Confidence Bands for MRCIGVAR Models
+#' Compute MRCIGVAR impulse responses with confidence bands
 #'
-#' This function computes the impulse response functions (IRFs) of an estimated MRCIGVAR model,
-#' providing confidence bands through bootstrap methods. It allows for various types of IRFs
-#' and can handle different configurations of shocks and responses across multiple regimes.
+#' Compute impulse response functions (IRFs) for an estimated MRCIGVAR model and
+#' bootstrap confidence bands for a selected state configuration.
 #'
-#' @param res a MRCIGVAR object that can be an output of mrcigvar_data, mrcigvar_estimate, or MRCIGVARest.
-#' @param nstep the length of impulse response function
-#' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param state an n-vector specifying the specific state for each country.
-#' @param irf types of the impulse response function c("gen","chol","chol1","gen1","comb1")
-#' @param runs the number of bootstrapping runs
-#' @param conf A vector specifying the confidence intervals
-#' @param NT The number of impulse response scenarios
-#' @return a list of an (mn,mn,nstep,3,S) array of the impulse response functions and test statistics. In the impulse response array, columns representing the impulse and rows the responses.
+#' @param res A fitted MRCIGVAR object, typically returned by
+#'   `mrcigvar_estimate()`.
+#' @param nstep Integer scalar giving the number of IRF horizons.
+#' @param comb Numeric vector defining a combined or concerted-action shock.
+#' @param state Integer vector of length `n` specifying the state assigned to
+#'   each country.
+#' @param irf Character string specifying the IRF type. Supported values are
+#'   `"gen"`, `"chol"`, `"chol1"`, `"gen1"`, and `"comb1"`.
+#' @param runs Integer scalar giving the number of bootstrap replications.
+#' @param conf Numeric vector of tail probabilities used to form the bootstrap
+#'   confidence interval.
+#' @param NT Integer scalar giving the number of simulated IRF scenarios.
+#' @return A list whose first element is a four-dimensional array of dimension
+#'   `(m * n, m * n, nstep, length(conf) + 1)` containing the point estimate and
+#'   confidence bounds. The remaining elements store bootstrap draws of model
+#'   quantities generated during the procedure.
 #'
 #' @examples
 #' m = 2
@@ -455,20 +484,23 @@ irf_mrcigvar_cb <- function (res, nstep, comb, state = c(2, 1), irf = c("gen", "
 
 
 #'
-#' Generate Impulse Response Functions for MRCIGVAR Models
+#' Compute MRCIGVAR impulse responses
 #'
-#' This function computes the impulse response functions (IRFs) of an estimated MRCIGVAR model,
-#' allowing for various types of IRFs and handling different configurations of shocks and responses
-#' across multiple regimes and countries.
+#' Compute impulse response functions (IRFs) for an estimated MRCIGVAR model at
+#' a specified state configuration.
 #'
-#' @param res a list of estimated MRCIGVAR as output of mrcigvar_estimate
-#' @param nstep the length of impulse response function
-#' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param state an n vector specifying the specific state for each country
-#' @param irf types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
-#' @param sigmaNPDS the state-dependent covariance matrix
-#'
-#' @return an (mn,mn,nstep) array containing the IRF with columns representing the impulses and rows the responses
+#' @param res A fitted MRCIGVAR object, typically returned by
+#'   `mrcigvar_estimate()`.
+#' @param nstep Integer scalar giving the number of IRF horizons.
+#' @param comb Numeric vector defining a combined or concerted-action shock.
+#' @param state Integer vector of length `n` specifying the state assigned to
+#'   each country.
+#' @param irf Character string specifying the IRF type. Supported values are
+#'   `"gen"`, `"chol"`, `"chol1"`, `"gen1"`, and `"comb1"`.
+#' @param sigmaNPDS Optional state-dependent covariance matrix. When `NA`, the
+#'   matrix is computed from `res` and `state`.
+#' @return A three-dimensional array of dimension `(m * n, m * n, nstep)`,
+#'   indexed by responses, impulses, and horizons.
 #'
 #' @examples
 #' m = 2
@@ -515,30 +547,31 @@ irf_mrcigvar <- function(res, nstep, comb, state = state, irf = c("gen", "chol",
 
 
 #'
-#' Generate Generalized Impulse Response Functions for MRCIGVAR Models
+#' Compute generalized impulse responses for MRCIGVAR models
 #'
-#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
-#' MRCIGVAR model for a given shock vector and initial values. The GIRF is computed as the 
-#' difference between mean responses with and without the shock, integrating out random effects 
-#' across multiple simulation runs.
+#' Compute generalized impulse response functions (GIRFs) for an estimated
+#' MRCIGVAR model by comparing average simulated paths with and without an
+#' imposed shock across repeated simulation runs.
 #'
-#' For a given shock vector SHCK:
-#' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#' For a shock vector `SHCK`, the GIRF is defined as
+#' `mean(Y(SHCK)) - mean(Y(resid))`.
 #'
 #' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
 #' models, Economics Letters, 58(1) p. 17-29.
 #'
-#' @param  res   : an MRCIGVAR object containing the components of an output of MRCIGVARest.
-#' @param  shock : an mn-vector containing the shocks as impulse.
-#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
-#' @param  nstep : the length of the responses
-#' @param  Omega_hist : the initial values from which the simulation runs start. For Omega_hist=NA 
-#'                      the most recent values are taken as the initial values. For Omega_hist=0, 
-#'                      the initial values are zeros.
-#' @param  resid_method : resid_method = c("resid", "parametric"). It generates the random residuals 
-#'                        from residuals bootstrap or parametric bootstrap.
-#' @return an (mn x mn x nstep+1) array of impulse response functions. The rows represent response 
-#'         and the columns represent impulses.
+#' @param res A fitted MRCIGVAR object, typically returned by
+#'   `mrcigvar_estimate()`.
+#' @param shock Numeric vector of length `m * n` defining the impulse.
+#' @param R Integer scalar giving the number of simulation runs used to average
+#'   over random effects.
+#' @param nstep Integer scalar giving the number of response horizons.
+#' @param Omega_hist Matrix of initial values used to start the simulation. If
+#'   `NA`, the most recent observations are used; if `0`, zero initial values
+#'   are used.
+#' @param resid_method Character string specifying how residual draws are
+#'   generated. Supported values are `"resid"` and `"parametric"`.
+#' @return A three-dimensional array of dimension `(m * n, m * n, nstep + 1)`,
+#'   indexed by responses, impulses, and horizons.
 #'
 #' @examples
 #' \dontrun{
@@ -679,28 +712,31 @@ girf_mrcigvar_rm <- function(res, shock, R, nstep, Omega_hist=NA, resid_method) 
 
 
 #'
-#' Generate Generalized Impulse Response Functions with Confidence Bands for MRCIGVAR Models
+#' Compute MRCIGVAR generalized impulse responses with confidence bands
 #'
-#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
-#' MRCIGVAR model for a given shock vector and initial values. The GIRF is computed as the 
-#' difference between mean responses with and without the shock, integrating out random effects 
-#' across multiple simulation runs. It also generates bootstrapped confidence intervals.
+#' Compute generalized impulse response functions (GIRFs) for an estimated
+#' MRCIGVAR model and bootstrap confidence bands for a user-specified shock.
 #'
-#' For a given shock vector SHCK:
-#' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#' For a shock vector `SHCK`, the GIRF is defined as
+#' `mean(Y(SHCK)) - mean(Y(resid))`.
 #'
 #' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
 #' models, Economics Letters, 58(1) p. 17-29.
 #'
-#' @param  res   : a MRCIGVAR object containing the components of an output of MRCIGVARest.
-#' @param  shock : an mn-vector containing the shocks as impulse.
-#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means (see equation above).
-#' @param  nstep : the length of the responses
-#' @param  Omega_hist : the initial values from which the simulation runs of impulse and response functions start
-#' @param  resid_method : resid_method = c("resid", "parametric"), It generate random residuals either from residuals bootstrap or parametric bootstrap.
-#' @param  conf  : a two component vector containing the tail probabilities of the bootstrap confidence interval.
-#' @param  N     : number of bootstrapping runs
-#' @return an (mn x mn x nstep+1 x 3) array containing impulse response functions with lower and upper confidence bands. The rows represent response and the columns represent impulses.
+#' @param res A fitted MRCIGVAR object, typically returned by
+#'   `mrcigvar_estimate()`.
+#' @param shock Numeric vector of length `m * n` defining the impulse.
+#' @param R Integer scalar giving the number of simulation runs used to average
+#'   over random effects.
+#' @param nstep Integer scalar giving the number of response horizons.
+#' @param Omega_hist Matrix of initial values used to start the simulation.
+#' @param resid_method Character string specifying how residual draws are
+#'   generated. Supported values are `"resid"` and `"parametric"`.
+#' @param conf Numeric vector of tail probabilities used to form the bootstrap
+#'   confidence interval.
+#' @param N Integer scalar giving the number of bootstrap replications.
+#' @return A four-dimensional array of dimension `(m * n, m * n, nstep + 1,
+#'   length(conf) + 1)` containing the point estimate and confidence bounds.
 #'
 #' @examples
 #' m = 2
@@ -790,22 +826,26 @@ girf_mrcigvar_rm_cb <- function(res, shock, R, nstep, Omega_hist=NA, resid_metho
 
 
 #'
-#' Generate Impulse Response Functions with Confidence Bands for MRCIVAR Models
+#' Compute MRCIVAR impulse responses with confidence bands
 #'
-#' This function computes the impulse response functions (IRFs) of an estimated MRCIVAR model,
-#' providing confidence bands through bootstrap methods. It allows for various types of IRFs
-#' and can handle different configurations of shocks and responses across multiple regimes.
+#' Compute impulse response functions (IRFs) for an estimated MRCIVAR model and
+#' bootstrap confidence bands for each regime.
 #'
-#' @param res_e an object of MRCIVAR as output of mrcivar_estimatem1
-#' @param nstep the length of impulse response function
-#' @param irf types of the impulse response function c("gen","chol","chol1","gen1","comb1"), gen for GIRF, gen1 for GIRF with unit impulse, chol Cholezky decomposition, chol1 Cholezky decomposition with unit impulse, comb1 concerted action with a one unit impulse.
-#' @param runs number of bootstrap runs to generate the confidence bands
-#' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param G the matrix used in the permanent and transitory decomposition
-#' @param smat an explicit decomposition matrix that defines a structural shock
-#' @param conf a vector of the tail probabilities of the confidence interval
-#'
-#' @return a list containing impulse response functions with confidence bands for both regimes and the bootstrap parameters
+#' @param res_e A fitted MRCIVAR object, typically returned by
+#'   `mrcivar_estimatem1()`.
+#' @param nstep Integer scalar giving the number of IRF horizons.
+#' @param irf Character string specifying the IRF type. Supported values are
+#'   `"gen"`, `"chol"`, `"chol1"`, `"gen1"`, and `"comb1"`.
+#' @param runs Integer scalar giving the number of bootstrap replications.
+#' @param comb Numeric vector defining a combined or concerted-action shock.
+#' @param G Optional transformation matrix used in permanent-transitory
+#'   decompositions.
+#' @param smat Optional explicit shock-decomposition matrix.
+#' @param conf Numeric vector of tail probabilities used to form the bootstrap
+#'   confidence interval.
+#' @return A list whose first two elements are four-dimensional arrays
+#'   containing the point estimate and confidence bounds for regimes 1 and 2.
+#'   Remaining elements store bootstrap draws of model quantities.
 #'
 #' @examples
 #' n = 10
@@ -888,32 +928,32 @@ irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"), runs = 100
 
 
 #'
-#' Generate Generalized Impulse Response Functions for MRCIVAR Models
+#' Compute generalized impulse responses for MRCIVAR models
 #'
-#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
-#' MRCIVAR model for a given shock vector and initial values. The GIRF is computed as the 
-#' difference between mean responses with and without the shock, integrating out random effects 
-#' across multiple simulation runs.
+#' Compute generalized impulse response functions (GIRFs) for an estimated
+#' MRCIVAR model by comparing average simulated paths with and without an
+#' imposed shock across repeated simulation runs.
 #'
-#' For a given shock vector SHCK:
-#' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#' For a shock vector `SHCK`, the GIRF is defined as
+#' `mean(Y(SHCK)) - mean(Y(resid))`.
 #'
 #' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
 #' models, Economics Letters, 58(1) p. 17-29.
 #' and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear 
 #' multivariate models, Journal of Econometrics, 74 (1996) 119-74.
 #'
-#' @param  res   : an MRCIVAR object containing the components of an output of mrcivar_estimatem1.
-#' @param  shock : an n-vector containing the shocks as impulse.
-#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
-#' @param  nstep : the length of the responses.
-#' @param  Omega_hist : a (P x n) matrix of initial values from which the impulse response functions start. 
-#'                      For Omega_hist=NA, the impulse response functions will start from the most recent observations.
-#' @param  resid_method : resid_method = c("resid", "parametric"). It generates random residuals 
-#'                        from residuals bootstrap or parametric bootstrap.
-#'
-#' @return an (n x n x nstep+1) array of impulse response functions. The rows represent response 
-#'         and the columns represent impulses.
+#' @param res A fitted MRCIVAR object, typically returned by
+#'   `mrcivar_estimatem1()`.
+#' @param shock Numeric vector of length `n` defining the impulse.
+#' @param R Integer scalar giving the number of simulation runs used to average
+#'   over random effects.
+#' @param nstep Integer scalar giving the number of response horizons.
+#' @param Omega_hist Matrix of initial values used to start the simulation. If
+#'   `NA`, the most recent observations are used.
+#' @param resid_method Character string specifying how residual draws are
+#'   generated. Supported values are `"resid"` and `"parametric"`.
+#' @return A three-dimensional array of dimension `(n, n, nstep + 1)`, indexed
+#'   by responses, impulses, and horizons.
 #'
 #' @examples
 #' n <- 4
@@ -1046,33 +1086,35 @@ girf_mrcivar_rm <- function(res, shock, R, nstep, Omega_hist=NA, resid_method) {
 
 
 #'
-#' Generate Generalized Impulse Response Functions with Confidence Bands for MRCIVAR Models
+#' Compute MRCIVAR generalized impulse responses with confidence bands
 #'
-#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
-#' MRCIVAR model for a given shock vector and initial values. The GIRF is computed as the 
-#' difference between mean responses with and without the shock, integrating out random effects 
-#' across multiple simulation runs. It also generates bootstrapped confidence intervals.
+#' Compute generalized impulse response functions (GIRFs) for an estimated
+#' MRCIVAR model and bootstrap confidence bands for a user-specified shock.
 #'
-#' For a given shock vector SHCK:
-#' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#' For a shock vector `SHCK`, the GIRF is defined as
+#' `mean(Y(SHCK)) - mean(Y(resid))`.
 #'
 #' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
 #' models, Economics Letters, 58(1) p. 17-29.
 #' and G. Koop, M. H. Pesaran, and S. M. Potter (1996), Impulse response analysis in nonlinear 
 #' multivariate models, Journal of Econometrics, 74 (1996) 119-74.
 #'
-#' @param  res   : an MRCIVAR object containing the components of an output of mrcivar_estimatem1.
-#' @param  shock : an n-vector containing the shocks as impulse.
-#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
-#' @param  nstep : the length of the responses.
-#' @param  Omega_hist : a (P x n) matrix of initial values from which the impulse response functions start. 
-#'                      For Omega_hist=NA, the impulse response functions will start from the most recent observations.
-#' @param  resid_method : resid_method = c("resid", "parametric"). It generates random residuals 
-#'                        from residuals bootstrap or parametric bootstrap.
-#' @param  conf_level : a vector containing the tail probabilities of the bootstrap confidence interval.
-#' @param  N : number of bootstrapping runs.
-#' @return an (n x n x nstep+1 x 3) array containing impulse response functions with lower and upper 
-#'         confidence bands. The rows represent response and the columns represent impulses.
+#' @param res A fitted MRCIVAR object, typically returned by
+#'   `mrcivar_estimatem1()`.
+#' @param shock Numeric vector of length `n` defining the impulse.
+#' @param R Integer scalar giving the number of simulation runs used to average
+#'   over random effects.
+#' @param nstep Integer scalar giving the number of response horizons.
+#' @param Omega_hist Matrix of initial values used to start the simulation. If
+#'   `NA`, the most recent observations are used.
+#' @param resid_method Character string specifying how residual draws are
+#'   generated. Supported values are `"resid"` and `"parametric"`.
+#' @param conf_level Numeric vector of tail probabilities used to form the
+#'   bootstrap confidence interval.
+#' @param N Integer scalar giving the number of bootstrap replications.
+#' @return A four-dimensional array of dimension `(n, n, nstep + 1,
+#'   length(conf_level) + 1)` containing the point estimate and confidence
+#'   bounds.
 #'
 #' @examples
 #' n <- 4
@@ -1142,21 +1184,26 @@ girf_mrcivar_rm_cb <- function (res, shock, R, nstep, Omega_hist=NA, resid_metho
 
 
 #'
-#' Generate Impulse Response Functions for MRGVAR Models
+#' Compute MRGVAR impulse responses
 #'
-#' This function computes the impulse response functions (IRFs) of an estimated MRGVAR model,
-#' allowing for various types of IRFs and handling different configurations of shocks and responses
-#' across multiple regimes and countries.
+#' Compute impulse response functions (IRFs) for an estimated MRGVAR model at a
+#' specified state configuration.
 #'
-#' @param res a list of estimated MRGVAR as output of mrgvar_estimate
-#' @param state an n vector specifying the specific state for each country
-#' @param nstep the length of impulse response function
-#' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param irf types of the impulse response irf=c("gen","chol","chol1","gen1","genN1","comb1","smat")
-#' @param G For permanent and transitory decomposition
-#' @param smat For explicit structural decomposition of the correlated shocks
-#' @param sigmaNPDS the state-dependent covariance matrix
-#' @return an (mn,mn,nstep) array containing the IRF with columns representing the impulses and rows the responses
+#' @param res A fitted MRGVAR object, typically returned by `mrgvar_estimate()`.
+#' @param state Integer vector of length `n` specifying the state assigned to
+#'   each country.
+#' @param nstep Integer scalar giving the number of IRF horizons.
+#' @param comb Numeric vector defining a combined or concerted-action shock.
+#' @param irf Character string specifying the IRF type. Supported values are
+#'   `"gen"`, `"chol"`, `"chol1"`, `"gen1"`, `"genN1"`, `"comb1"`, and
+#'   `"smat"`.
+#' @param G Optional transformation matrix used in permanent-transitory
+#'   decompositions.
+#' @param smat Optional explicit shock-decomposition matrix.
+#' @param sigmaNPDS Optional state-dependent covariance matrix. When `NA`, the
+#'   matrix is computed from `res` and `state`.
+#' @return A three-dimensional array of dimension `(m * n, m * n, nstep)`,
+#'   indexed by responses, impulses, and horizons.
 #'
 #' @examples
 #' \dontrun{
@@ -1210,31 +1257,31 @@ irf_mrgvar = function(res=res, state=state, nstep=nstep, comb=comb, irf = c("gen
 
 
 #'
-#' Generate Generalized Impulse Response Functions for MRGVAR Models
+#' Compute generalized impulse responses for MRGVAR models
 #'
-#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
-#' MRGVAR model for a given shock vector and initial values. The GIRF is computed as the 
-#' difference between mean responses with and without the shock, integrating out random effects 
-#' across multiple simulation runs.
+#' Compute generalized impulse response functions (GIRFs) for an estimated
+#' MRGVAR model by comparing average simulated paths with and without an
+#' imposed shock across repeated simulation runs.
 #'
-#' For a given shock vector SHCK:
-#' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#' For a shock vector `SHCK`, the GIRF is defined as
+#' `mean(Y(SHCK)) - mean(Y(resid))`.
 #'
 #' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
 #' models, Economics Letters, 58(1) p. 17-29.
 #'
-#' @param  res   : an MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.
-#' @param  shock : an mn-vector containing the shocks as impulse.
-#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
-#' @param  nstep : the length of the responses.
-#' @param  Omega_hist : the initial values from which the simulation runs start. For Omega_hist=NA 
-#'                      the most recent values are taken as the initial values. For Omega_hist=0, 
-#'                      the initial values are zeros.
-#' @param  resid_method : resid_method = c("resid", "parametric"). It generates the random residuals 
-#'                        from residuals bootstrap or parametric bootstrap.
-#' @return a list containing three elements: (1) an (mn x mn x nstep+1) array of impulse response 
-#'         functions, (2) the shocked responses, and (3) the baseline responses. The rows represent 
-#'         response and the columns represent impulses.
+#' @param res A fitted MRGVAR object, typically returned by `mrgvar_estimate()`.
+#' @param shock Numeric vector of length `m * n` defining the impulse.
+#' @param R Integer scalar giving the number of simulation runs used to average
+#'   over random effects.
+#' @param nstep Integer scalar giving the number of response horizons.
+#' @param Omega_hist Matrix of initial values used to start the simulation. If
+#'   `NA`, the most recent observations are used; if `0`, zero initial values
+#'   are used.
+#' @param resid_method Character string specifying how residual draws are
+#'   generated. Supported values are `"resid"` and `"parametric"`.
+#' @return A list with three elements: the GIRF array of dimension `(m * n,
+#'   m * n, nstep + 1)`, the shocked simulated paths, and the baseline simulated
+#'   paths.
 #'
 #' @examples
 #' ## Minimal, quick example (safe to run in checks)
@@ -1375,31 +1422,31 @@ girf_mrgvar_rm <- function(res, shock, R, nstep, Omega_hist, resid_method) {
 
 
 #'
-#' Generate Generalized Impulse Response Functions with Confidence Bands for MRGVAR Models
+#' Compute MRGVAR generalized impulse responses with confidence bands
 #'
-#' This function calculates the generalized impulse response functions (GIRF) of an estimated 
-#' MRGVAR model for a given shock vector and initial values. The GIRF is computed as the 
-#' difference between mean responses with and without the shock, integrating out random effects 
-#' across multiple simulation runs. It also generates bootstrapped confidence intervals.
+#' Compute generalized impulse response functions (GIRFs) for an estimated
+#' MRGVAR model and bootstrap confidence bands for a user-specified shock.
 #'
-#' For a given shock vector SHCK:
-#' GIRF(shock=SHCK) = mean(Y(resid)) - mean(Y(SHCK))
+#' For a shock vector `SHCK`, the GIRF is defined as
+#' `mean(Y(SHCK)) - mean(Y(resid))`.
 #'
 #' See H.H. Pesaran and Y. Shin (1998) Generalized impulse response analysis in linear multivariate 
 #' models, Economics Letters, 58(1) p. 17-29.
 #'
-#' @param  res   : an MRGVAR object containing the components of the output of mrgvar_data or MRGVARest.
-#' @param  shock : an mn-vector containing the shocks as impulse.
-#' @param  R     : the number of runs to integrate out the random effects in order to obtain the means.
-#' @param  nstep : the length of the responses.
-#' @param  Omega_hist : the initial values from which the simulation runs of impulse and response functions start. 
-#'                      For Omega_hist=NA the most recent values are taken as the initial values.
-#' @param  resid_method : resid_method = c("resid", "parametric"). It generates random residuals 
-#'                        either from residuals bootstrap or parametric bootstrap.
-#' @param  conf  : a two component vector containing the tail probabilities of the bootstrap confidence interval.
-#' @param  N     : number of bootstrapping runs.
-#' @return an (mn x mn x nstep+1 x 3) array containing impulse response functions with lower and upper 
-#'         confidence bands. The rows represent response and the columns represent impulses.
+#' @param res A fitted MRGVAR object, typically returned by `mrgvar_estimate()`.
+#' @param shock Numeric vector of length `m * n` defining the impulse.
+#' @param R Integer scalar giving the number of simulation runs used to average
+#'   over random effects.
+#' @param nstep Integer scalar giving the number of response horizons.
+#' @param Omega_hist Matrix of initial values used to start the simulation. If
+#'   `NA`, the most recent observations are used.
+#' @param resid_method Character string specifying how residual draws are
+#'   generated. Supported values are `"resid"` and `"parametric"`.
+#' @param conf Numeric vector of tail probabilities used to form the bootstrap
+#'   confidence interval.
+#' @param N Integer scalar giving the number of bootstrap replications.
+#' @return A four-dimensional array of dimension `(m * n, m * n, nstep + 1,
+#'   length(conf) + 1)` containing the point estimate and confidence bounds.
 #'
 #' @examples
 #' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
@@ -1481,24 +1528,30 @@ girf_mrgvar_rm_cb <- function(res, shock, R, nstep, Omega_hist = NA,
 
 
 #'
-#' Calculate Regime Specific Impulse Response Functions for MRGVAR Models
+#' Compute regime-specific MRGVAR impulse responses with confidence bands
 #'
-#' This function calculates the regime specific impulse response functions of an estimated MRGVAR(n,p,S).
-#' Using the estimated G\[,,,s\] and Sigma\[,,s\] matrices of the MRGVAR, this function calculates the regime specific impulse response functions.
+#' Compute regime-specific impulse response functions for an estimated MRGVAR
+#' model and bootstrap confidence bands for a selected state configuration.
 #'
-#' @param res a list of estimated MRGVAR as output of mrgvar_estimate
-#' @param state an n vector specifying the specific state for each country.
-#' @param nstep the length of impulse response function
-#' @param comb a vector specify the concerted action in policy-simulation impulse response function
-#' @param irf types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
-#' "gen" for generalized impulse response with one standard deviation impulses, "gen1" for GIRF with one unit impulses, "chol" Cholezky decomposition, "chol1" Cholezky decomposition with unit impulses, "comb1" concerted action with unit impulse.
-#' @param G For permanent and transitory decomposition
-#' @param smat For an explicit structural decomposition of the correlated shocks
-#' @param sigmaNPDS the state-dependent covariance matrix
-#' @param runs number of bootstrapping runs
-#' @param conf A vector containing confidence levels
-#' @param NT number of impulse response scenarios in a simulation run
-#' @return a list of bootstrap result. The first component contains the impulse response functions with confidence bands. It is an (mn,mn,nstep,3) array where the IRF columns represent the impulse and rows represent the responses.
+#' @param res A fitted MRGVAR object, typically returned by `mrgvar_estimate()`.
+#' @param state Integer vector of length `n` specifying the state assigned to
+#'   each country.
+#' @param nstep Integer scalar giving the number of IRF horizons.
+#' @param comb Numeric vector defining a combined or concerted-action shock.
+#' @param irf Character string specifying the IRF type. Supported values are
+#'   `"gen"`, `"chol"`, `"chol1"`, `"gen1"`, and `"comb1"`.
+#' @param G Optional transformation matrix used in permanent-transitory
+#'   decompositions.
+#' @param smat Optional explicit shock-decomposition matrix.
+#' @param sigmaNPDS Optional state-dependent covariance matrix. When `NA`, the
+#'   matrix is computed from `res` and `state`.
+#' @param runs Integer scalar giving the number of bootstrap replications.
+#' @param conf Numeric vector of tail probabilities used to form the bootstrap
+#'   confidence interval.
+#' @param NT Integer scalar giving the number of simulated IRF scenarios.
+#' @return A list of bootstrap results. Its first element is a
+#'   four-dimensional array containing the point estimate and confidence bounds,
+#'   indexed by responses, impulses, horizons, and interval component.
 #' @examples
 #' \dontrun{
 #' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
@@ -2345,20 +2398,20 @@ irf_from_params <- function (B, sigma, nstep, comb, irf = c("gen", "chol",
 
 
 #'
-#' Plot Impulse Response Functions with Confidence Bands
+#' Plot impulse responses with confidence bands
 #'
-#' This function generates a list of ggplot objects for visualizing impulse response functions 
-#' along with their confidence bands. It allows for customization of variable names and impulse 
-#' indices for better clarity in the plots.
+#' Create a grid of `ggplot2` impulse response plots from an IRF array with
+#' confidence bands.
 #'
-#' @param IRF_CB An (n x n x L x 3) array of impulse response function with confidence bands
-#' @param Names An n-vector of strings of the variable names
-#' @param INames An n-vector of string of the impulse names
-#' @param response A vector of impulse indices
-#' @param impulse A vector of response indices
-#' @param ncol Number of columns of impulse response functions in the plot
-#'
-#' @return An ggplot object of impulse response functions
+#' @param IRF_CB Four-dimensional IRF array, typically with dimensions `(n, n,
+#'   horizon, band)`.
+#' @param Names Character vector of response-variable names.
+#' @param INames Character vector of impulse names.
+#' @param response Integer vector selecting the response indices to plot.
+#' @param impulse Integer vector selecting the impulse indices to plot.
+#' @param ncol Integer scalar giving the number of columns in the plot layout.
+#' @return A list of `ggplot2` objects, invisibly arranged into a grid as a side
+#'   effect.
 #' @export
 #' @keywords internal
 plot_irf <- function(IRF_CB = IRF_CB, Names = NA, INames = NA, response = c(1:n), impulse = c(1:n), ncol = n) {
@@ -2393,4 +2446,3 @@ plot_irf <- function(IRF_CB = IRF_CB, Names = NA, INames = NA, response = c(1:n)
   do.call(gridExtra::grid.arrange, c(IRF_list, ncol = ncol))
   return(IRF_list)
 }
-

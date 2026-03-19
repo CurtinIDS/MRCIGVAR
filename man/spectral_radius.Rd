@@ -2,21 +2,19 @@
 % Please edit documentation in R/utils.R
 \name{spectral_radius}
 \alias{spectral_radius}
-\title{Compute characteristic roots (eigenvalues) of a VAR(p) companion matrix}
+\title{Compute characteristic roots of a VAR companion matrix}
 \usage{
 spectral_radius(G)
 }
 \arguments{
-\item{G}{A coefficient array of dimension (m, m, p) for a VAR(p) object, where the
-third dimension indexes lags.}
+\item{G}{Three-dimensional array of VAR coefficients with dimensions \verb{(m, m, p)}.}
 }
 \value{
-A complex vector of eigenvalues (roots of the characteristic polynomial).
+A complex vector of characteristic roots.
 }
 \description{
-Builds the companion matrix for a VAR(p) coefficient array and returns the roots
-(eigenvalues) of the associated characteristic polynomial. These roots are often
-used to assess VAR stability (all moduli strictly less than 1 implies stability).
+Build the companion matrix implied by a VAR coefficient array and return its
+eigenvalues.
 }
 \examples{
 # Example: VAR(2) with m = 2 variables

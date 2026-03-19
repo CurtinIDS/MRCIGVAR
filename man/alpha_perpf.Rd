@@ -2,21 +2,20 @@
 % Please edit documentation in R/utils.R
 \name{alpha_perpf}
 \alias{alpha_perpf}
-\title{Compute an orthogonal complement of a full-column-rank matrix}
+\title{Compute an orthogonal complement of a matrix}
 \usage{
 alpha_perpf(alpha = (alpha))
 }
 \arguments{
-\item{alpha}{A matrix with linearly independent (full-rank) columns.}
+\item{alpha}{Matrix with full-column rank.}
 }
 \value{
-A matrix whose columns form an orthogonal complementary basis to the
-columns of \code{alpha}.
+A matrix whose columns form a basis for the orthogonal complement of
+\code{alpha}.
 }
 \description{
-Constructs a matrix whose columns span the orthogonal complement of the column
-space of \code{alpha} (that is, a basis for the subspace orthogonal to \code{alpha}).
-The input \code{alpha} is assumed to have linearly independent columns.
+Construct a matrix whose columns span the orthogonal complement of the
+column space of \code{alpha}.
 }
 \examples{
 set.seed(1)

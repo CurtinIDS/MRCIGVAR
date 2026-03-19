@@ -2,32 +2,32 @@
 % Please edit documentation in R/utils.R
 \name{vecm2_var}
 \alias{vecm2_var}
-\title{Convert VECM Parameters to VAR Parameters for CIGVAR}
+\title{Convert VECM parameters to VAR coefficient arrays}
 \usage{
 vecm2_var(param, beta, q = c(1, 2, 2, 2, 2), s = NA, kz = 0, Dxflag = 0)
 }
 \arguments{
-\item{param}{The parameter of an estimated VECM}
+\item{param}{Matrix of estimated VECM parameters.}
 
-\item{beta}{The cointegration vectors}
+\item{beta}{Cointegration matrix.}
 
-\item{q}{A vector specifying different types of VECMs}
+\item{q}{Integer vector describing the VECM specification.}
 
-\item{s}{The indicator of multi regime VECMs}
+\item{s}{Optional regime indicator. Use \code{NA} for a single-regime model.}
 
-\item{kz}{The number of exogenous common factors}
+\item{kz}{Integer scalar giving the number of exogenous common factors.}
 
-\item{Dxflag}{Indicator whether the foreign variables enter the cointegration space}
+\item{Dxflag}{Integer flag indicating whether foreign variables enter the
+cointegration space.}
 }
 \value{
-A list of (A, B, C) with B the auto regression parameter matrix,
-C the parameter of the deterministic components, and A the parameter
-matrix of foreign variables for CIGVAR.
+A list containing domestic coefficient arrays \code{B}, foreign
+coefficient arrays \code{A}, deterministic parameters \code{C}, and common-factor
+parameters \code{D}.
 }
 \description{
-This function transforms the estimated parameters of a Vector Error Correction Model (VECM)
-into the corresponding parameters for a Conditional VAR (CIGVAR) model. It handles different
-types of VECMs and allows for the inclusion of foreign variables and common factors.
+Transform estimated VECM parameters into the corresponding VAR coefficient
+arrays for single-regime and multi-regime conditional specifications.
 }
 \examples{
 # Example usage of vecm2_var function

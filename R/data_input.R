@@ -1261,47 +1261,54 @@ gvar_data <- function (m, n, p, T, W = NA, r_npo = NA, Ao = NA, Bo = NA, Co = NA
 #' data together with the regime-specific model components used to construct the
 #' MRCIGVAR system.
 #'
-#' @param m     : number of variables in each country/unit
-#' @param n     : number of countries/units
-#' @param S     : number of regimes
-#' @param p     : an (n, 3, S) array, each raw contains the lag length of the domestic variables, the lag length of the foreign variables, and the number of the exogenous variables of the corresponding country in the respective regimes.
-#' @param T     : number of observations.
-#' @param W     : an (n x n) weighting matrix. w_ij is the weight of country j in the foreign variables of i-th country diag(W)=0
-#' @param SESVI : an n-vector of indices of the switching variables across n countries. E.g. SESVI = seq(1,m*n,m).
-#' @param TH    : an (n x S-1) matrix of threshold values
-#' @param Go    : an (mn,mn,p,S) array containing coefficients of MRCIGVAR. Go is constructed from Bo, Ao and W.
-#' @param Ao    : an (m, m, p, n, S) array containing the coefficients of foreign variables
-#' @param Bo    : an (m, m, p, n, S) array containing the coefficients of domestic variables.
-#' @param Co    : an (m , k+1, n, S) array containing the coefficients of the deterministic components of the n countries.
-#' @param Uo    : a (T, mn, S) array of the temporally independent innovations
-#' @param Sigmao : an (mn, mn, S) array of the covariance matrix of MRCIGVAR(m,n,p,S)
-#' @param SV    : exogenous switching variables
-#' @param type	: types of the deterministic component. "const", "none", "exog0", and "exog1" are 4 options
-#' @param X	    : a (T x k x n x S) array of exogenous stationary variables.
-#' @param Yo    : initial values
-#' @param d     : the time lag between signal and regime-switching
-#' @param r     : an n-vector containing the number of unit root process in each country
-#' @param r_np  : an (m, Pmax, n, S) array containing the roots of the characteristic polynomials of each country.
-#' @param Ncommtrend : number of common stochastic trends in the MRCIGVAR.
-#' @param DFYflag : indicator whether the foreign variables enter the cointegration space.
-#' @param A       : transformation matrix for common exogenous non-stationary stochastic factors.
-#' @param Ncommfakt : number of the common exogenous non-stationary stochastic factors.
-#' @param uz      : innovations of the common exogenous non-stationary stochastic factors.
-#' @return      an MRGVAR object containing the generated data, the used parameters and the exogenous variables.
-#' \itemize{
-#'    \item Y     : a (T x mn)  matrix of simulated data
-#'    \item X     : a (T x k x n x S) array of exogenous variables
-#'    \item Uo    : a (T, mn,S) array of the simulated innovations of the MRGVAR(m,n,p,S)
-#'    \item C     : an (nm, (k+1),S) array containing the coefficients of the deterministic components.
-#'    \item St    : a (T x n) matrix of the simulated time path of states/regimes
-#'    \item check : maximum of the data for checking the stationarity
-#' }
+#' @param m Integer. Number of endogenous variables in each unit.
+#' @param n Integer. Number of units.
+#' @param p Numeric array of lag orders with dimension `n x 3 x S`. For each
+#'   unit and regime, the three entries give the domestic lag order, the
+#'   foreign lag order, and the number of exogenous regressors.
+#' @param T Integer. Number of observations.
+#' @param S Integer. Number of regimes.
+#' @param W Optional `n x n` weighting matrix for foreign aggregates.
+#' @param SESVI Optional vector of indices identifying the switching variable
+#'   for each unit.
+#' @param TH Optional threshold matrix of dimension `n x (S - 1)`.
+#' @param Go Optional stacked coefficient array for the full MRCIGVAR system.
+#' @param Ao Optional foreign-coefficient array with dimension `m x m x Pmax x n x S`.
+#' @param Bo Optional domestic-coefficient array with dimension `m x m x Pmax x n x S`.
+#' @param Sigmao Optional innovation covariance array with dimension
+#'   `(m*n) x (m*n) x S`.
+#' @param Uo Optional innovation array with dimension `T x (m*n) x S`.
+#' @param SV Optional exogenous switching variables.
+#' @param type Character string specifying the deterministic specification.
+#'   Supported values are `"const"`, `"none"`, `"exog0"`, and `"exog1"`.
+#' @param Co Optional deterministic or exogenous coefficient array with
+#'   dimension `m x (k+1) x n x S`.
+#' @param X Optional array of stationary exogenous variables with dimension
+#'   `T x k x n x S`.
+#' @param Yo Optional initial values for the simulated process.
+#' @param d Optional delay between the switching signal and the realized regime.
+#' @param r Optional length-`n` vector giving the number of unit roots per
+#'   unit.
+#' @param r_np Optional array of characteristic roots with dimension
+#'   `m x Pmax x n x S`.
+#' @param Ncommtrend Integer. Number of common stochastic trends.
+#' @param DFYflag Numeric flag indicating whether foreign variables enter the
+#'   cointegration space.
+#' @param A Optional transformation matrix for common non-stationary factors.
+#' @param Ncommfakt Integer. Number of common non-stationary factors.
+#' @param uz Optional innovations for the common non-stationary factors.
+#'
+#' @return A list containing the simulated data and model components, including
+#'   the generated series `Y`, exogenous variables `X`, innovations `Uo`,
+#'   coefficient arrays such as `Go`, `Ao`, `Bo`, `Co`, and `Sigmao`, the
+#'   threshold and regime-path objects, and the simulation metadata used to
+#'   construct the MRCIGVAR system.
 #'
 #'
 #' @examples
 #' m = 3
 #' n = 5
-#'  p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0); dim(p) = c(5,3,2)
+#' p = c(2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0); dim(p) = c(5,3,2)
 #' p = p[1:n,,]; p[,1,] = 3; p[,2,] = 2
 #'
 #' p[2,2,] = 3
@@ -1671,8 +1678,9 @@ mrcigvar_data <- function(m,n,p,T,S,W=NA,SESVI=NA,TH=NA,Go=NA,Ao=NA,Bo=NA,Sigmao
 #' typically to obtain a sample large enough for downstream estimation or
 #' bootstrap-style procedures.
 #'
-#' @param res     : an output of mrcigvar_estimate
-#' @return	: an MRCIGVAR object.
+#' @param res Estimated `mrcigvar_estimate()` result.
+#'
+#' @return A regenerated MRCIGVAR-style data object.
 #'
 #' @export
 #' @keywords internal
@@ -1724,29 +1732,32 @@ mrcigvar_data_r <- function(res) {
 #' cointegration relations and regime-specific adjustment dynamics, and returns
 #' the generated data together with the model inputs.
 #'
-#' @param n     : number of variables
-#' @param S     : number of regimes
-#' @param p     : an (S x 2) matrix. Each row of p contains the lag length for the corresponding regime and the number of exogenous variables for the regime.
-#' @param T     : number of observations
-#' @param SESVI : index of the switching variable, switching sv_t = Y\[t-1,SESVI\] > Y\[t-2,SESVI\]
+#' @param n Integer. Number of endogenous variables.
+#' @param S Integer. Number of regimes.
+#' @param p Numeric matrix with `S` rows and two columns. Each row gives the
+#'   lag order and number of exogenous regressors for the corresponding regime.
+#' @param T Integer. Number of observations.
+#' @param SESVI Integer index of the switching variable.
+#' @param TH Optional length-`S - 1` vector of threshold values.
+#' @param Bo Optional coefficient array with dimension `n x n x p x S`.
+#' @param Co Optional deterministic or exogenous coefficient array with
+#'   dimension `n x (k+1) x S`.
+#' @param Sigmao Optional covariance array with dimension `n x n x S`.
+#' @param Uo Optional innovation array used directly when supplied.
+#' @param SV Optional exogenous switching variable.
+#' @param type Character string specifying the deterministic component. Supported
+#'   values are `"none"`, `"const"`, `"exog0"`, and `"exog1"`.
+#' @param X Optional exogenous-variable array with dimension `T x k x S`.
+#' @param mu Optional `n x S` matrix of regime-specific means.
+#' @param Yo Optional initial-value array with dimension `p x n x S`.
+#' @param Do Optional extra exogenous-component array with dimension `T x n x S`.
+#' @param d Integer delay of the self-exciting switching mechanism.
+#' @param r Integer number of unit roots in the system. The cointegration rank
+#'   is `n - r`.
 #'
-#'                (n,S,p,T,SESVI) are parameters that have to be provided.
-#' @param TH    : an (S-1) vector of threshold values
-#' @param Bo    : an (n,n,p,S) array of the coefficients  of MRVAR(n,p,S). If not given it will be generated.
-#' @param Co    : an (n,k+1,S) array of the coefficients of the deterministic components. For type="none" Co = O*(1:n,1:S), for "const" Co is an n-vector for each regime, "exog0" Co is a (n,k+1,S) array with first column of zeros for each regime respectively,for "exog1" Co is an (n,1+k, S) array without zero restrictions.
-#' @param Sigmao : an (n,n,S) array containing S covariance matrices of the residuals
-#' @param Uo    : residuals, if it is not NA it will be used as input to generate the MRVAR(n,p,S) for each regime.
-#' @param SV    : exogenous switching variable
-#' @param type  : type of the deterministic components type = ("none","const","exog0","exog1")
-#' @param X     : a (T x k x S) matrix of exogenous variables for each state. The second dimension can be filled with zeros to take into account that the the exogenous variables are not identical in each state.
-#' @param mu    : an (n x S) matrix of the regime specific mean of the variables
-#' @param Yo    : a (p, n, S) array of initial values of the process
-#' @param Do    : a (T, n, S) array of extra exogenous components (not used with value zero)
-#' @param d     : lag delay of the self-exiting switching
-#' @param r     : number of unit roots in the system. (n - r) is then the cointegration rank.
-#'
-#'               (TH,Bo,Sigmao,Uo,SV) if not provided, they will be generated randomly.
-#' @return An MRCIVAR object containing the generated data, the used parameters, and the exogenous variables.
+#' @return A list containing the simulated MRCIVAR data, regime indicators,
+#'   innovations, coefficient arrays, and the metadata used to generate the
+#'   multi-regime cointegrated VAR system.
 #'
 #' @examples
 #' Sigma = 1:(4*4*2)
@@ -2026,35 +2037,30 @@ mrcivar_data_m = function(n=2,p=matrix(2,2,2),T=100,S=2,SESVI,TH,Bo,Co,Sigmao,Uo
 #' series together with the regime-specific parameters used in the MRGVAR
 #' system.
 #'
-#' @param m     : number of variables in a country/unit
-#' @param n     : number of countries/units
-#' @param p     : an (n, 3, S) array, each raw specifies the lag length of the domestic variables, the lag length of the foreign variables and the number of exogenous variables for the respective regime.
-#' @param T     : number of observations.
-#' @param S     : number of regimes.
-#' @param W     : an (n x n) weighting matrix. w_ij is the weight of country j in the foreign variables of i-th country diag(W)=0
-#' @param SESVI : an n-vector of indices of the switching variables across n countries. Eg. SESVI = seq(1,m*n,m).
-#' @param TH    : an (n, S-1) matrix of threshold values
-#' @param Go    : an (mn,mn,p,S) array of the MRGVAR(m,n,p,S) coefficients. G is constructed from Bo, Ao and W.
-#' @param Ao    : an (m, m, p, n, S) array collecting coefficients of foreign variables
-#' @param Bo    : an (m, m, p, n, S) array collecting coefficients of domestic variables
-#' @param Uo    : a (T, mn, S) array of the temporally independent innovation processes
-#' @param Sigmao : an (mn, mn, S) array of the covariance matrix of MRGVAR(m,n,p,S)
-#' @param SV    : exogenous switching variables
-#' @param type	: types of deterministic component "const", "none", "exog0", and  "exog1" are 4 options
-#' @param Co    : an (m , k+1, n, S) array collecting the coefficients of the deterministic components of the n countries for every regime.
-#' @param X	    : a (T x k x n x S) matrix of exogenous variables.
-#' @param Yo    : Initial values
-#' @param d     : the time lag between signal and switching
-#' @return an MRGVAR object containing the generated data, the used parameters and the exogenous variables.
-#' res_d = list(Y,X,Uo,resid,Go,GDC,Co,Sigmao,TH,St,SV,SESVI,Ao,Bo,check,type,m,n,p,S,W,SigmaS,Yo,d)
-#' \itemize{
-#'    \item Y     : a (T x nm)  matrix of simulated data via of the MRGVAR(m,n,p,S)
-#'    \item X     : a (T x k x n x S) matrix of exogenous variables.
-#'    \item Uo    : a (T, mn,S) array of the simulated innovations of the MRGVAR(m,n,p,S)
-#'    \item C     : an (nm, (k+1),S) array containing the coefficients of the deterministic components.
-#'    \item St    : a (T x n) matrix of the simulated time path of states/regimes
-#'    \item check : maximum of the data for checking the stationarity
-#' }
+#' @param m Integer. Number of endogenous variables per unit.
+#' @param n Integer. Number of units.
+#' @param p Numeric array of lag orders with dimension `n x 3 x S`.
+#' @param T Integer. Number of observations.
+#' @param S Integer. Number of regimes.
+#' @param W Optional `n x n` weighting matrix.
+#' @param SESVI Optional vector of switching-variable indices by unit.
+#' @param TH Optional threshold matrix with dimension `n x (S - 1)`.
+#' @param Go Optional stacked coefficient array for the full MRGVAR system.
+#' @param Ao Optional foreign-coefficient array with dimension `m x m x p x n x S`.
+#' @param Bo Optional domestic-coefficient array with dimension `m x m x p x n x S`.
+#' @param Sigmao Optional covariance array with dimension `(m*n) x (m*n) x S`.
+#' @param Uo Optional innovation array with dimension `T x (m*n) x S`.
+#' @param SV Optional exogenous switching variables.
+#' @param type Character string specifying the deterministic component.
+#' @param Co Optional deterministic or exogenous coefficient array with
+#'   dimension `m x (k+1) x n x S`.
+#' @param X Optional exogenous-variable array with dimension `T x k x n x S`.
+#' @param Yo Optional initial values.
+#' @param d Optional delay between the signal and the realized regime.
+#'
+#' @return A list containing the simulated MRGVAR data, exogenous variables,
+#'   innovations, coefficient arrays, regime paths, thresholds, and simulation
+#'   metadata.
 #'
 #' @examples
 #' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
@@ -2338,8 +2344,9 @@ mrgvar_data=function(m,n,p,T,S,W=NA,SESVI=NA,TH=NA,Go=NA,Ao=NA,Bo=NA,Sigmao=NA,U
 #' typically to produce a sample large enough for estimation or resampling
 #' procedures.
 #'
-#' @param res     : an output of mrgvar_estimate
-#' @return an MRGVAR object.
+#' @param res Estimated `mrgvar_estimate()` result.
+#'
+#' @return A regenerated MRGVAR-style data object.
 #'
 #' @export
 #' @keywords internal
@@ -2389,27 +2396,28 @@ mrgvar_data_r=function(res) {
 #' Simulates a multi-regime stationary VAR process and returns the generated
 #' data together with the regime-specific parameters used in the MRVAR system.
 #'
-#' @param n     : number of variables
-#' @param S     : number of regimes
-#' @param p     : an (S x 2) matrix. Each row of p specifies the lag length and the number of exogenous variables for the corresponding regime.
-#' @param T     : number of observations
-#' @param SESVI : index of the switching variable
+#' @param n Integer. Number of endogenous variables.
+#' @param S Integer. Number of regimes.
+#' @param p Numeric matrix with `S` rows and two columns giving the lag order
+#'   and number of exogenous regressors for each regime.
+#' @param T Integer. Number of observations.
+#' @param SESVI Integer index of the switching variable.
+#' @param TH Optional threshold vector of length `S - 1`.
+#' @param Bo Optional coefficient array with dimension `n x n x p x S`.
+#' @param Co Optional deterministic or exogenous coefficient array with
+#'   dimension `n x (k+1) x S`.
+#' @param Sigmao Optional covariance array with dimension `n x n x S`.
+#' @param Uo Optional innovation array.
+#' @param SV Optional exogenous switching variable.
+#' @param type Character string specifying the deterministic component.
+#' @param X Optional exogenous-variable array with dimension `T x k x S`.
+#' @param mu Optional `n x S` matrix of regime-specific means.
+#' @param Yo Optional initial-value array with dimension `p x n x S`.
+#' @param Do Optional extra exogenous-component array with dimension `T x n x S`.
+#' @param d Integer delay of the self-exciting switching variable.
 #'
-#'                (n,S,p,T,SESVI) must be provided.
-#' @param TH    : an (S-1)-vector of threshold values
-#' @param Bo    : an (n,n,p,S) array of the coefficients of the MRVAR(n,p,S) model. If Bo is not given it will be generated.
-#' @param Co    : an (n,k+1,S) array of the coefficients of the deterministic components. For type="none" Co = O*(1:n,1:S), for "const" Co is an (1:n,1:S) array, for "exog0" Co is an (n,k+1,S) array with first column zero for each regime respectively,for "exog1" Co is an (n,1+k, S) array without zero restrictions.
-#' @param Sigmao : an (n,n,S)   array containing S covariance matrices of residuals, each for one regime.
-#' @param Uo    : residuals, if it is not NA it will be used as input to generate data of the MRVAR(n,p,S) process.
-#' @param SV    : exogenous switching variable
-#' @param type  : type of the deterministic components type = c("none","const","exog0","exog1")
-#' @param X     : a (T x k x S) array of exogenous variables for each state. The second dimension can be filled with zeros to take into account that the the exogenous variables are not identical in each state.
-#' @param mu    : an (n x S) matrix of the regime specific means of the variables
-#' @param Yo    : a (p, n, S) array of initial values of the process
-#' @param Do    : a (T, n, S) array of extra exogenous components (not used with value zero)
-#' @param d     : lag delays of the self-exiting switching variable.
-#'              (TH,Bo,Co,Sigmao,Uo,SV,type) if not provided, they will be generated randomly.
-#' @return an MRVAR(n,p,S) object that is a list containing the generated data, the used parameters and the exogenous variables.
+#' @return A list containing the simulated MRVAR data, coefficient arrays,
+#'   regime path, innovations, and simulation metadata.
 #'
 #' @examples
 #' p = matrix(c(3,3,0,0),2,2)
@@ -2648,20 +2656,29 @@ mrvar_data = function(n,p,T,S,SESVI,TH,Bo,Co,Sigmao,Uo,SV,type,X,mu,Yo,Do,d) {
 #' Simulates a stationary VAR process and returns the generated data together
 #' with the parameters used to construct the VAR system.
 #'
-#' @param n     : number of variables
-#' @param p     : lag length
-#' @param T     : number of observations
-#' @param r_np  : an n x p matrix of roots of the characteristic polynomials of n independent AR(p)-processes. If not provided, it will be generated randomly.
-#' @param A     : an n x n full rank matrix of transformation to generate correlated VAR(p) from the n independent AR(p)
-#' @param B     : (n,n,p) array of the coefficients of the VAR(p) process. If B is not given, it will be calculated out of r_np and A.
-#' @param Co    : (n,k+1) matrix of the coefficients of deterministic components in a VAR(p) process. For type="none" Co = 0*(1:n), for type="const" Co is an n vector, for type="exog0" Co is an (n,k) matrix, and for type="exog1" Co is an (n,1+k) matrix.
-#' @param U     : residuals, if it is not NA it will be used as input to generate the VAR(p) process.
-#' @param Sigma : an n x n covariance matrix of the VAR(p) residuals.
-#' @param type  : types of deterministic components. "none", "const" "exog0" and "exog1" are four options
-#' @param X     : a (T x k) matrix of exogenous variables.
-#' @param mu    : an n vector of the expected mean of the VAR(p) process
-#' @param Yo    : a p x n matrix of initial values of the VAR(p) process
-#' @return An object of VAR(p) containing the generated data, the used parameters and the exogenous variables. res = list(n,p,type,r_np,Phi,A,B,Co,Sigma,Y,X,resid,U,Y1,Yo,check)
+#' @param n Integer. Number of endogenous variables.
+#' @param p Integer. Lag order.
+#' @param T Integer. Number of observations.
+#' @param r_np Optional `n x p` matrix of characteristic roots for the
+#'   underlying independent AR processes.
+#' @param A Optional full-rank `n x n` transformation matrix.
+#' @param B Optional coefficient array with dimension `n x n x p`.
+#' @param Co Optional coefficient matrix for deterministic terms or exogenous
+#'   regressors.
+#' @param U Optional innovation matrix used directly when supplied.
+#' @param Sigma Optional `n x n` innovation covariance matrix.
+#' @param type Character string specifying the deterministic component.
+#'   Supported values are `"none"`, `"const"`, `"exog0"`, and `"exog1"`.
+#' @param X Optional `T x k` matrix of exogenous variables.
+#' @param mu Optional expected-mean vector for the VAR process.
+#' @param Yo Optional `p x n` matrix of initial values.
+#'
+#' @return A list containing the simulated VAR data and model inputs, including
+#'   dimensions `n` and `p`, specification `type`, roots `r_np`, autoregressive
+#'   coefficients `Phi` and `B`, transformation matrix `A`, deterministic terms
+#'   `Co`, covariance matrix `Sigma`, generated series `Y`, exogenous variables
+#'   `X`, residuals `resid`, innovations `U`, latent series `Y1`, initial
+#'   values `Yo`, and diagnostic value `check`.
 #' @examples
 #' res_d = var_data(n=2,p=2,T=100,type="const")
 #' res_d = var_data(n=2,p=2,T=10,Co=c(1:2)*0,type="none")

@@ -2,25 +2,28 @@
 % Please edit documentation in R/irf.R
 \name{irf_gvar}
 \alias{irf_gvar}
-\title{Generate Impulse Response Functions for GVAR Models}
+\title{Compute GVAR impulse responses}
 \usage{
 irf_gvar(res, nstep, comb, irf = c("gen", "chol", "chol1", "gen1", "comb1"))
 }
 \arguments{
-\item{res}{: an output of gvar_estimate}
+\item{res}{A fitted GVAR object, typically returned by \code{gvar_estimate()}.}
 
-\item{nstep}{: length of the impulse response functions}
+\item{nstep}{Integer scalar giving the number of IRF horizons.}
 
-\item{comb}{: an mn vector specifying combined impulse such as global shocks, regional shocks, or concerted actions.}
+\item{comb}{Numeric vector of length \code{m * n} defining a combined shock, such
+as a global shock, regional shock, or concerted action.}
 
-\item{irf}{: types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1"), gen for generalized IRF with one standard deviation shocks, gen1 for generalized IRF with one unit impulse, chol for IRF with Cholezky decomposition of the covariance matrix, chol1 for Cholezky decomposition with one unit impulse, comb1 for concerted action with one unit impulse.}
+\item{irf}{Character string specifying the IRF type. Supported values are
+\code{"gen"}, \code{"chol"}, \code{"chol1"}, \code{"gen1"}, and \code{"comb1"}.}
 }
 \value{
-an (mn,mn,nstep) array containing the IRF with columns representing the impulses rows representing the responses.
+A three-dimensional array of dimension \verb{(m * n, m * n, nstep)},
+indexed by responses, impulses, and horizons.
 }
 \description{
-This function computes the impulse response functions (IRFs) of an estimated GVAR model,
-allowing for various types of IRFs and handling different configurations of shocks and responses.
+Compute impulse response functions (IRFs) for an estimated GVAR model under
+alternative identification schemes and combined-shock specifications.
 }
 \examples{
 

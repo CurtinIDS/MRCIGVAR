@@ -2,18 +2,22 @@
 % Please edit documentation in R/estimation.R
 \name{cciva_rest}
 \alias{cciva_rest}
-\title{This function estimates parameters of a specified conditional cointegrated VAR based on provided data.}
+\title{Estimate a conditional cointegrated VAR model}
 \usage{
 cciva_rest(res)
 }
 \arguments{
-\item{res}{a CCIVAR object that can be an output of ccivar_data containing at least n1,n2, Y, X, and crk.}
+\item{res}{CCIVAR-style data object, typically the output of \code{ccivar_data()},
+containing at least \code{n1}, \code{n2}, \code{Y}, \code{X}, and \code{crk}.}
 }
 \value{
-a CCIVAR object with estimated parameter values, AIC, BIC, conditional VECM in a regression format.
+The input CCIVAR object augmented with estimated parameters,
+information criteria, and the fitted conditional VECM representation.
 }
 \description{
-This function estimates parameters of a specified conditional cointegrated VAR based on provided data.
+Estimates the parameters of a conditional CIVAR system from a CCIVAR-style
+data object and returns the fitted conditional VECM representation together
+with the corresponding summary statistics.
 }
 \examples{
 T = 100

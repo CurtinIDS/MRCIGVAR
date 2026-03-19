@@ -2,20 +2,23 @@
 % Please edit documentation in R/model_selection.R
 \name{cigvar_select_}
 \alias{cigvar_select_}
-\title{CIGVAR Model Selection Function}
+\title{Select lag specifications for a CIGVAR model}
 \usage{
 cigvar_select_(res, L_V = L_V)
 }
 \arguments{
-\item{res}{: an object generated from CIGVARest.}
+\item{res}{A CIGVAR object, typically returned by \code{cigvar_estimate()}.}
 
-\item{L_V}{: a 2 components vector containing the maxima of the domestic lag and the foreign lag, respectively.}
+\item{L_V}{Numeric vector of length 2 giving the maximum domestic and
+foreign lag orders considered in the search.}
 }
 \value{
-a matrix with different lag specifications and the corresponding information criteria.
+A numeric matrix containing the lag specifications evaluated and the
+associated information criteria returned by the estimator.
 }
 \description{
-This function performs model selection for the CIGVAR (Cointegrated Global Vector Autoregression) framework by calculating AIC and BIC criteria for various lag specifications of domestic and foreign variables for multiple countries.
+Evaluate alternative domestic and foreign lag specifications for a fitted
+CIGVAR setup and return the corresponding information criteria.
 }
 \examples{
 

@@ -3,11 +3,19 @@
 
 
 
+#' Estimate a cointegrated GVAR model
 #'
-#' This function estimates the parameters of a CIGVAR(m,n,p) object based on provided data.
-#' It runs a VECM estimation country/unit by country/unit under a given cointegration rank and pieces the results together to obtain a CIGVAR.
-#' @param  res  a CIGVAR object of an output of cigvar_data including at least values of m,n,p,type,Y,crk and optionally X.
-#' @return a CIGVAR object with estimated parameter values, AIC, BIC and LH
+#' Estimates the parameters of a CIGVAR object by fitting country-specific
+#' VECM representations under the supplied cointegration ranks and combining the
+#' results into a stacked cointegrated GVAR system.
+#'
+#' @param res CIGVAR-style data object, typically the output of `cigvar_data()`,
+#'   containing at least `m`, `n`, `p`, `type`, `Y`, and `crk`, and optionally
+#'   exogenous variables and common-factor objects.
+#'
+#' @return The input CIGVAR object augmented with estimated coefficient arrays,
+#'   residual covariance matrix, country-specific VECM fits, and summary
+#'   statistics such as AIC, BIC, and log-likelihood values.
 #' @examples
 #'
 #' n = 5
@@ -173,11 +181,19 @@ cigvar_estimate <- function (res)  {
 
 
 
+#' Estimate a CIVAR model
 #'
-#' This function estimates parameters of a specified CIVAR(p) model based on provided data.
+#' Estimates the parameters of a CIVAR system from simulated or supplied data
+#' and returns the implied VECM fit together with the corresponding VAR
+#' coefficients and information criteria.
 #'
-#' @param  res  :an object of CIVAR(p) containing the components which are the output of civar_data including at least: n, p, Y, crk, and optionally X and type.
-#' @return res  an object of CIVAR(p) containing estimated parameter values, AIC, BIC, LH and the estimated VECM in regression format.
+#' @param res CIVAR-style data object, typically the output of `civar_data()`,
+#'   containing at least `n`, `p`, `Y`, and `crk`, and optionally `X` and
+#'   `type`.
+#'
+#' @return The input CIVAR object augmented with estimated parameters, residual
+#'   covariance matrix, VECM output, and summary statistics including AIC, BIC,
+#'   and log-likelihood values.
 #' @examples
 #' p = 3
 #' n = 4
@@ -272,21 +288,35 @@ civar_estimate <- function (res)
 
 
 
+#' Estimate a conditional multi-regime VECM
 #'
-#' This function estimates the unknown parameters of a multi regime conditional VECM based on provided data.
+#' Fits a conditional VECM with one or two regimes, performs Johansen-style
+#' rank testing under the chosen deterministic specification, and returns the
+#' estimated cointegration objects and regression representation.
 #'
-#' @param y	: data matrix of the endogenous variable
-#' @param x	: x data matrix of the conditioning variables. If x is missing, it will estimate a unconditional VECM.
-#' @param s     : the series of state variable of value (0,1) for the two regime case. Missing s implies single regime VECM.
-#' @param model : It assumes one of the values in c("I","II","III","IV","V") corresponding to the five cases in Johansen test.
-#' @param type  : c("eigen", "trace") corresponding to the trace test or the max eigenvalue test
-#' @param crk   : cointegration rank
-#' @param P     : 2 x 2 matrix containing the lag of the cointegrated VAR process. The first row is the lag of the first regime and the number of exogenous variables. If the second row is zero, this is a one regime VECM.
-#' @param q     : The significance level
-#' @param Dxflag : A flag indicating if the conditioning variables enter the cointegration space
-#' @param X     : The conditioning variables
-#' @param CZ    : Common factor variables in CIGVAR and MRCIGVAR
-#' @return A list containing: the result of the Johansen test, VECM in regression format, lambda, beta, PI, GAMMA, model, P, s.
+#' @param y Numeric matrix of endogenous variables.
+#' @param x Numeric matrix of conditioning variables. When absent or equal to
+#'   zero, the function estimates an unconditional VECM.
+#' @param s Optional regime-indicator series taking values `0` and `1`. If
+#'   omitted, a single-regime specification is used.
+#' @param model Character string specifying the Johansen deterministic case.
+#'   Supported values are `"I"`, `"II"`, `"III"`, `"IV"`, and `"V"`.
+#' @param type Character string specifying the rank test: `"eigen"` or
+#'   `"trace"`.
+#' @param crk Integer cointegration rank.
+#' @param P Numeric `2 x 2` matrix containing regime-specific lag orders and
+#'   counts of conditioning variables.
+#' @param q Significance level used for Johansen critical values.
+#' @param Dxflag Numeric flag indicating whether conditioning variables enter
+#'   the cointegration space.
+#' @param X Optional exogenous stationary variables.
+#' @param CZ Optional common non-stationary factors used in CIGVAR and
+#'   MRCIGVAR settings.
+#'
+#' @return A list containing the Johansen test results, fitted VECM object,
+#'   eigenvalue statistics, cointegration matrix `beta`, long-run matrix `PI`,
+#'   short-run matrix `GAMMA`, the chosen model specification, lag structure
+#'   `P`, and the regime indicator `s`.
 #'
 #' @export
 #' @keywords internal
@@ -631,21 +661,33 @@ mrcvec_mest2 <- function (y, x, s, model = c("I", "II", "III","IV", "V"), type =
 
 
 
+#' Estimate a two-regime conditional VECM with common cointegration vectors
 #'
-#' This function estimates the unknown parameters of a two regime conditional VECM based on provided data. The cointegrating vectors are identical in the two regimes but the adjustment speeds are different in the two regimes.
+#' Fits a two-regime conditional VECM in which the cointegration vectors are
+#' shared across regimes while the adjustment coefficients are allowed to differ
+#' by regime.
 #'
-#' @param y	: data matrix of the endogenous variables
-#' @param x	: data matrix of the conditioning variables. If x is missing, it will estimate an unconditional VECM.
-#' @param s     : the series of state variable with values (0,1) for the two regimes. Missing s implies single regime VECM.
-#' @param model : It assumes one of the values in c("I","II","III","IV","V") corresponding to the five cases in the Johansen test.
-#' @param type  : c("eigen", "trace") corresponding to the trace test or the max eigenvalue test
-#' @param crk   : cointegration rank
-#' @param P     : a (2 x 2) matrix containing the lag of the cointegrated VAR process. The first row is the lag of the first regime and the number of exogenous variables. If the second row is zero, this is a one regime VECM.
-#' @param q     : The significance level used
-#' @param Dxflag : a flag indicating if the conditioning variables enter the cointegration space
-#' @param X     : the exogenous stationary variables
-#' @param CZ    : the exogenous non-stationary common factors
-#' @return a list containing: the result of JH test, VECM in regression format, lambda, beta, PI, GAMMA, model, P, s
+#' @param y Numeric matrix of endogenous variables.
+#' @param x Numeric matrix of conditioning variables. When absent or equal to
+#'   zero, the function estimates an unconditional VECM.
+#' @param s Optional regime-indicator series taking values `0` and `1`. If
+#'   omitted, a single-regime specification is used.
+#' @param model Character string specifying the Johansen deterministic case.
+#' @param type Character string specifying the rank test: `"eigen"` or
+#'   `"trace"`.
+#' @param crk Integer cointegration rank.
+#' @param P Numeric `2 x 2` matrix of regime-specific lag orders and counts of
+#'   conditioning variables.
+#' @param q Significance level used for Johansen critical values.
+#' @param Dxflag Numeric flag indicating whether conditioning variables enter
+#'   the cointegration space.
+#' @param X Optional exogenous stationary variables.
+#' @param CZ Optional common non-stationary factors.
+#'
+#' @return A list containing the Johansen test output, fitted VECM objects,
+#'   eigenvalue statistics, common cointegration matrix `beta`, long-run matrix
+#'   `PI`, short-run matrix `GAMMA`, the selected model specification, lag
+#'   structure `P`, and the regime indicator `s`.
 #' @export
 #' @keywords internal
 #'
@@ -997,12 +1039,17 @@ mrcvec_mestm <- function (y, x, s, model = c("I", "II", "III", "IV", "V"), type 
 
 
 
+#' Estimate a conditional cointegrated VAR model
 #'
-#' This function estimates parameters of a specified conditional cointegrated VAR based on provided data.
+#' Estimates the parameters of a conditional CIVAR system from a CCIVAR-style
+#' data object and returns the fitted conditional VECM representation together
+#' with the corresponding summary statistics.
 #'
-#' @param res a CCIVAR object that can be an output of ccivar_data containing at least n1,n2, Y, X, and crk.
+#' @param res CCIVAR-style data object, typically the output of `ccivar_data()`,
+#'   containing at least `n1`, `n2`, `Y`, `X`, and `crk`.
 #'
-#' @return a CCIVAR object with estimated parameter values, AIC, BIC, conditional VECM in a regression format.
+#' @return The input CCIVAR object augmented with estimated parameters,
+#'   information criteria, and the fitted conditional VECM representation.
 #'
 #' @examples
 #' T = 100
@@ -1075,14 +1122,19 @@ cciva_rest <- function (res)
 
 
 
-#' Estimate a Global VAR(p) Model
+#' Estimate a GVAR model
 #'
-#' This function estimates the parameters of a GVAR(m,n,p) model based on provided data.
-#' It runs a VAR estimation country by country and pieces the results together to obtain a GVAR.
+#' Estimates a GVAR system by fitting country-specific VAR models and
+#' assembling the resulting domestic and foreign coefficients into the stacked
+#' global representation.
 #'
-#' @param res a GVAR object that is an output of gvar_data including at least values of m, n, p, type, Y, W, and optionally X.
+#' @param res GVAR-style data object, typically the output of `gvar_data()`,
+#'   containing at least `m`, `n`, `p`, `type`, `Y`, and `W`, and optionally
+#'   exogenous variables.
 #'
-#' @return a GVAR object with estimated parameter values, AIC, BIC, LH, and the estimated VAR models for each country.
+#' @return The input GVAR object augmented with estimated parameter arrays,
+#'   country-specific VAR fits, residual covariance matrix, and summary
+#'   statistics such as AIC, BIC, and log-likelihood values.
 #'
 #' @examples
 #' \dontrun{
@@ -1235,11 +1287,17 @@ gvar_estimate <- function (res)  {
 
 
 
+#' Estimate a multi-regime cointegrated GVAR model
 #'
-#' This function estimates parameters of a multi regime cointegrated global VAR(p) model. The adjustment speeds to the cointegration relations are assumed to be different in different regimes.
+#' Estimates a multi-regime cointegrated GVAR in which adjustment to the common
+#' long-run relations may differ across regimes, and returns the fitted model
+#' together with regime-specific test output and summary statistics.
 #'
-#' @param res   : an MRCIVAR object of the output of mrcigvar_data
-#' @return      : an MRCIVAR object with estimated parameters and test statistics.
+#' @param res MRCIGVAR-style data object, typically the output of
+#'   `mrcigvar_data()`.
+#'
+#' @return The input MRCIGVAR object augmented with estimated parameters,
+#'   regime-specific VECM output, and summary statistics.
 #' @examples
 #' m = 2
 #' n = 3
@@ -1523,11 +1581,17 @@ mrcigvar_estimate <- function(res) {
 
 
 
+#' Estimate a multi-regime CIVAR model
 #'
-#'This function executes a Johansen test of cointegration ranks and estimates the parameters of a MRCIVAR(n,p,S) model.
-#' @param res an MRCIVAR object of the output of mrcivar_data_m
+#' Runs Johansen rank testing and parameter estimation for a multi-regime
+#' cointegrated VAR model and returns the fitted MRCIVAR object with associated
+#' test results.
 #'
-#' @return an estimated MRCIVAR object containing estimated parameters and test results
+#' @param res MRCIVAR-style data object, typically the output of
+#'   `mrcivar_data_m()`.
+#'
+#' @return The input MRCIVAR object augmented with estimated parameters and test
+#'   results.
 #' @export
 #'
 #' @examples
@@ -1959,11 +2023,16 @@ abc_mrciva_restm <- function(res=res,H=H,h=h,phi=phi,G=G,psi=psi) {
 
 
 
+#' Estimate a multi-regime GVAR model
 #'
-#' This function estimates the parameters of a specified MRGVAR(m,n,p,S) model based on provided data.
+#' Estimates the parameters of an MRGVAR system from supplied data and returns
+#' the fitted multi-regime global VAR together with summary statistics and
+#' regime-specific outputs.
 #'
-#' @param  res  : an MRGVAR object which is an output of MRGVARData.
-#' @return res  : an MRGVAR object with estimated parameters and test statistics.
+#' @param res MRGVAR-style data object, typically the output of `mrgvar_data()`.
+#'
+#' @return The input MRGVAR object augmented with estimated parameters and test
+#'   statistics.
 #' @examples
 #' \dontrun{
 #' ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries
@@ -2151,11 +2220,17 @@ mrgvar_estimate <- function (res)
 
 
 
+#' Estimate a multi-regime VAR model
 #'
-#' This function estimates the parameters of a specified MRVAR(n,p,S) based on provided data.
+#' Estimates the parameters of an MRVAR system from supplied data and returns
+#' the fitted regime-specific VAR objects together with summary statistics.
 #'
-#' @param  res  :an object of MRVAR that is an output of mrvar_data including at least: n, S, p, type, Y, SESVI, TH, d, and optionally X.
-#' @return an MRVAR object that is a list containing estimated parameters and some test statistics.
+#' @param res MRVAR-style data object, typically the output of `mrvar_data()`,
+#'   containing at least `n`, `S`, `p`, `type`, `Y`, `SESVI`, `TH`, and `d`,
+#'   and optionally `X`.
+#'
+#' @return The input MRVAR object augmented with estimated parameters and test
+#'   statistics.
 #'
 #' @examples
 #' p = matrix(c(3,3,0,0),2,2)
@@ -2379,11 +2454,16 @@ mrvar_estimate <- function (res)
 
 
 
+#' Estimate a VAR model
 #'
-#' This function estimates parameters of a specified VAR(p) model based on provided data.
+#' Estimates the parameters of a VAR system from supplied data and returns the
+#' fitted model together with information criteria and log-likelihood values.
 #'
-#' @param  res  :a VAR(p) object which is an output of var_data including at least: n, p, type, Y and optionally X and type.
-#' @return res  :a VAR(p) containing estimated parameter values, AIC, BIC and LH.
+#' @param res VAR-style data object, typically the output of `var_data()`,
+#'   containing at least `n`, `p`, `type`, `Y`, and optionally `X`.
+#'
+#' @return The input VAR object augmented with estimated parameter values, AIC,
+#'   BIC, log-likelihood measures, and fitted regression output.
 #' @examples
 #' res_d = var_data(n=2,p=2,T=100,type="const")
 #' res_e = var_estimate(res=res_d);
@@ -2485,4 +2565,3 @@ var_estimate <- function (res)
 
   return(res)
 }
-

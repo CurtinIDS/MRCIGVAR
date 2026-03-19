@@ -2,25 +2,20 @@
 % Please edit documentation in R/utils.R
 \name{cib2_b}
 \alias{cib2_b}
-\title{Convert CIGVAR estimation output into coefficient matrices (B, A, C)}
+\title{Convert CIGVAR estimates to coefficient arrays}
 \usage{
 cib2_b(tst)
 }
 \arguments{
-\item{tst}{An output object returned by \code{cigvar_estimate}.}
+\item{tst}{Object returned by \code{cigvar_estimate()}.}
 }
 \value{
-A list containing three components:
-\itemize{
-\item B: the coefficient matrices of the domestic variables (m x m x \code{P[1]})
-\item A: the coefficient matrices of the foreign variables (m x mx x \code{P[2]})
-\item C: the coefficient matrices of the deterministic components (m x 1)
-}
+A list containing domestic coefficient arrays \code{B}, foreign
+coefficient arrays \code{A}, and deterministic coefficients \code{C}.
 }
 \description{
-Constructs the domestic (B), foreign (A), and deterministic (C) coefficient
-matrices from a \code{cigvar_estimate} output object. The matrices are returned in
-lag-stacked array form, where the third dimension indexes lags.
+Extract domestic, foreign, and deterministic coefficient arrays from a
+\code{cigvar_estimate()} result.
 }
 \examples{
 # NOTE: This is a minimal, illustrative example. It fabricates a `tst` object

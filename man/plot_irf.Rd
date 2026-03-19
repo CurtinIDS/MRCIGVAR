@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{plot_irf}
 \alias{plot_irf}
-\title{Plot Impulse Response Functions with Confidence Bands}
+\title{Plot impulse responses with confidence bands}
 \usage{
 plot_irf(
   IRF_CB = IRF_CB,
@@ -14,24 +14,24 @@ plot_irf(
 )
 }
 \arguments{
-\item{IRF_CB}{An (n x n x L x 3) array of impulse response function with confidence bands}
+\item{IRF_CB}{Four-dimensional IRF array, typically with dimensions \verb{(n, n, horizon, band)}.}
 
-\item{Names}{An n-vector of strings of the variable names}
+\item{Names}{Character vector of response-variable names.}
 
-\item{INames}{An n-vector of string of the impulse names}
+\item{INames}{Character vector of impulse names.}
 
-\item{response}{A vector of impulse indices}
+\item{response}{Integer vector selecting the response indices to plot.}
 
-\item{impulse}{A vector of response indices}
+\item{impulse}{Integer vector selecting the impulse indices to plot.}
 
-\item{ncol}{Number of columns of impulse response functions in the plot}
+\item{ncol}{Integer scalar giving the number of columns in the plot layout.}
 }
 \value{
-An ggplot object of impulse response functions
+A list of \code{ggplot2} objects, invisibly arranged into a grid as a side
+effect.
 }
 \description{
-This function generates a list of ggplot objects for visualizing impulse response functions
-along with their confidence bands. It allows for customization of variable names and impulse
-indices for better clarity in the plots.
+Create a grid of \code{ggplot2} impulse response plots from an IRF array with
+confidence bands.
 }
 \keyword{internal}

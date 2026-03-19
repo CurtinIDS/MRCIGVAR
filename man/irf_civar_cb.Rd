@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_civar_cb}
 \alias{irf_civar_cb}
-\title{Generate Impulse Response Functions with Confidence Bands for CIVAR Models}
+\title{Compute CIVAR impulse responses with confidence bands}
 \usage{
 irf_civar_cb(
   res,
@@ -18,36 +18,43 @@ irf_civar_cb(
 )
 }
 \arguments{
-\item{res}{a CIVAR object such as an output of civar_estimate}
+\item{res}{A fitted CIVAR object, typically returned by \code{civar_estimate()}.}
 
-\item{nstep}{the length of the impulse response functions}
+\item{nstep}{Integer scalar giving the number of IRF horizons.}
 
-\item{comb}{a weighting matrix specifying the weights used in the impulse response functions of a global VAR. Its default value is NA for CIVAR(p)}
+\item{comb}{Optional weighting matrix used for combined shocks. Use \code{NA} for
+standard CIVAR models without combined impulses.}
 
-\item{irf}{types of the impulse response functions. irf=c("gen","chol","chol1","gen1","comb1","PTdecomp","ABSVAR","irfX")}
+\item{irf}{Character string specifying the IRF type. Supported values are
+\code{"gen"}, \code{"chol"}, \code{"chol1"}, \code{"gen1"}, \code{"comb1"}, \code{"PTdecomp"},
+\code{"ABSVAR"}, and \code{"irfX"}.}
 
-\item{G}{the transformation matrix for PTdecomp}
+\item{G}{Optional transformation matrix used for permanent-transitory
+decomposition.}
 
-\item{A0}{the transformation matrix for AB identification}
+\item{A0}{Optional identification matrix used for AB-structural
+identification.}
 
-\item{B0}{the transformation matrix for AB identification}
+\item{B0}{Optional identification matrix used for AB-structural
+identification.}
 
-\item{Xshks}{the number of selected exogenous shocks}
+\item{Xshks}{Integer vector identifying the exogenous shocks used when
+\code{irf = "irfX"}.}
 
-\item{runs}{number of runs used in the calculation of the bootstrap confidence interval}
+\item{runs}{Integer scalar giving the number of bootstrap replications used
+to construct confidence bands.}
 
-\item{conf}{a two component vector containing the tail probabilities of the bootstrap confidence interval}
+\item{conf}{Numeric vector of tail probabilities used to form the bootstrap
+confidence interval.}
 }
 \value{
-an (n, n, nstep, 3) array containing the impulse response functions with confidence bands.
-The first dimension represents responses, second represents impulses, third represents time steps,
-and fourth represents point estimate and confidence bounds.
+A four-dimensional array of dimension \verb{(n, n, nstep, length(conf) + 1)}. The dimensions correspond to responses, impulses, horizons, and the
+point estimate plus confidence bounds.
 }
 \description{
-This function computes the impulse response functions (IRFs) of an estimated CIVAR model,
-providing confidence bands through bootstrap methods. It allows for various types of IRFs
-and can handle different configurations of shocks and responses, including permanent-transitory
-decompositions and exogenous shocks.
+Compute impulse response functions (IRFs) for an estimated CIVAR model and
+bootstrap confidence bands for alternative identification schemes, including
+permanent-transitory decompositions and exogenous-shock responses.
 }
 \examples{
 res_d = civar_data(n=4,p=2,T=84,Co=matrix(c(1,1,1,1),4,1)*0,type="none",crk=1)

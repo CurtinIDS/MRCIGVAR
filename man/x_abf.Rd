@@ -2,31 +2,28 @@
 % Please edit documentation in R/utils.R
 \name{x_abf}
 \alias{x_abf}
-\title{Objective function for fitting an AB-SVAR from reduced-form covariance}
+\title{Evaluate the AB-SVAR covariance objective}
 \usage{
 x_abf(x, A0, B0, Sigma)
 }
 \arguments{
-\item{x}{Difference between the reduced form and the AB form, supplied as a vector
-of the free parameters.}
+\item{x}{Numeric vector of free structural parameters.}
 
-\item{A0}{A matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.}
+\item{A0}{Structural \code{A} template matrix with fixed entries coded as \code{0} or
+\code{1}.}
 
-\item{B0}{B matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.}
+\item{B0}{Structural \code{B} template matrix with fixed entries coded as \code{0} or
+\code{1}.}
 
-\item{Sigma}{Covariance matrix of the reduced form.}
+\item{Sigma}{Reduced-form covariance matrix.}
 }
 \value{
-A single numeric value: the sum of squared residuals
-\eqn{\sum (A \Sigma A' - B B')^2}. Returns a character message if the system is
-not exactly identified or if \code{x} has incorrect length.
+A single numeric objective value, or a character message if the
+identification or parameter dimensions are invalid.
 }
 \description{
-Computes the sum of squared deviations between the implied structural covariance
-in an AB-SVAR model and the reduced-form covariance matrix \code{Sigma}. The free
-(non-fixed) elements of \code{A0} and \code{B0} are supplied via the parameter vector \code{x},
-while fixed elements are coded as \code{0} or \code{1} in \code{A0}/\code{B0}. The function is intended
-for use inside numerical optimisation routines.
+Compute the sum of squared deviations between the structural covariance
+implied by \code{A0} and \code{B0} and the reduced-form covariance matrix \code{Sigma}.
 }
 \examples{
 # Minimal illustrative example (fabricated matrices)

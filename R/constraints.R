@@ -3,50 +3,44 @@
 
 
 
+#' Estimate a restricted CIVAR model with Boswijk-Doornik iteration
 #'
-#' This function estimates constrained VECM using the iteration procedure proposed in Boswijk and Doornik (2003)
+#' Solves for restricted adjustment and cointegration matrices in a CIVAR
+#' system under linear restrictions on `alpha` and `beta`, using the iterative
+#' procedure described by Boswijk and Doornik (2003).
 #'
-#' @param R0    : T x n matrix containing the residuals of the auxiliary regression of dy_t on Z2_t
-#' @param R1    : T x n matrix containing the residuals of the auxiliary regression of y_(t-1) on Z2_t
-#' @param G     : The restriction matrix on alpha
-#' @param H     : The restriction matrix on beta
-#' @param h     : The restriction vector on beta ( free-varying parameters of beta )
-#' @param alpha : n x crk matrix containing initial values of the adjustment parameters
-#' @param beta  : n x crk matrix containing initial values of the cointegration vectors
-#' @param Omega : n x n matrix containing initials of the covariance matrix
-#' @param Y0    : T x n matrix of dY_t
-#' @param Z2    : T x (n(p-1)+#det) matrix containing the lagged stationary regressors of the auxiliary regression
-#' @param Z1    : T x n matrix containing the lagged cointegrated VAR process.
+#' @param R0 Numeric matrix of dimension `T x n` containing residuals from the
+#'   auxiliary regression of `dY_t` on `Z2_t`.
+#' @param R1 Numeric matrix of dimension `T x n` containing residuals from the
+#'   auxiliary regression of `Y_{t-1}` on `Z2_t`.
+#' @param G Restriction matrix for `alpha`.
+#' @param H Restriction matrix for `beta`.
+#' @param h Restriction vector for `beta`, representing fixed components in the
+#'   parametrization `vec(beta) = H phi + h`.
+#' @param alpha Numeric `n x crk` matrix of initial values for the adjustment
+#'   coefficients.
+#' @param beta Numeric `n x crk` matrix of initial values for the cointegration
+#'   vectors.
+#' @param Omega Numeric `n x n` initial covariance matrix.
+#' @param Y0 Numeric matrix of dimension `T x n` containing `dY_t`.
+#' @param Z1 Numeric matrix containing lagged level regressors from the CIVAR
+#'   representation.
+#' @param Z2 Numeric matrix containing lagged stationary regressors and
+#'   deterministic terms from the auxiliary regression.
 #'
+#' @details
+#' The restriction system is written as
+#' \deqn{vec(\alpha') = G \psi, \quad vec(\beta) = H \phi + h.}
 #'
-#' @section Details:
-#' This function runs a likelihood ratio test of linear restrictions on \eqn{\alpha} and \eqn{\beta} in a CIVAR model in the following form:
-#'		\deqn{vec(\alpha') = G \psi,  vec(\beta) = H\phi + h}
+#' The routine alternates between updates of the free parameters in `alpha` and
+#' `beta` and the innovation covariance matrix until the log-determinant of the
+#' covariance matrix converges.
 #'
-#' example 1 (restrictions on alpha) test of exogeneity: one weakly exogenous variable
-#'     vec(alpha) is n*crk x 1  vector
-#'     G          is n*crk x (n-k)*crk matrix  (k is the number of weakly exogenous)
-#'     psi        (n-k)*crk x 1 vector
-#'     vec(beta)  is n*crk x 1 vector
-#'     H          is n*crk x n*crk identity matrix
-#'     phi        n*crk x 1 vector
-#'     h          n*crk x 1 zero matrix implying ver(beta) = phi.
-#'                (H is identity and h is zero vector implies only restrictions on alpha)
-#'
-#' example 2 (restrictions on beta ) test of PPP
-#'     vec(alpha) is n*crk x 1 vector
-#'     G          is n*crk x n*crk identity matrix, implying no restriction on alpha
-#'     psi        n*crk x 1 vector
-#'     vec(beta)  n*crk x 1 vector
-#'     H          n*crk x 2 matrix that picks out the elements under restrictions
-#'                two columns out of the identity matrix.
-#'                ones in a row of H and zero in the corresponding h implies non-restricted beta.
-#'     phi        2 x 1  vector
-#'     h          n*crk x 1  non zero elements in this vector together with the zero elements in
-#'                the corresponding row in H are the normalization conditions.
-#'                (H is identity and h is zero vector implies only restrictions on alpha)
-#'
-#' @return a list containing (VECMRS, beter, alphar, LSKOEFR, LR, and error)
+#' @return A list containing the restricted regression object `VECMR`, its
+#'   summary `VECMRS`, the restricted cointegration vectors `betar`, the
+#'   restricted adjustment coefficients `alphar`, unrestricted short-run
+#'   coefficients `LSKOEFR`, the likelihood-ratio statistic `LR`, and the final
+#'   convergence error `error`.
 #'
 #' @export
 #' @keywords internal
@@ -147,44 +141,32 @@ ab_civar_test <- function(R0,R1,G,H,h,alpha,beta,Omega,Y0,Z1,Z2) {
 
 
 
+#' Test linear restrictions in a CIVAR model
 #'
-#' This function estimates constrained VECM using the iteration procedure proposed in Boswijk and Doornik (2003)
+#' Applies likelihood-ratio testing for linear restrictions on the adjustment
+#' and cointegration matrices of an estimated CIVAR object and returns the
+#' restricted estimates.
 #'
-#' @param res an estimated CIVAR object with without restrictions
-#' @param H the restriction matrix on beta
-#' @param h the restriction vector on beta ( free-varying parameters of beta )
-#' @param phi the restriction vector on beta
-#' @param G the restriction matrix on alpha
-#' @param Dxflag A flag that indicates whether X enters the cointegration space.
+#' @param res Estimated CIVAR object to be tested.
+#' @param H Restriction matrix for `beta`.
+#' @param h Restriction vector for `beta` in `vec(beta) = H phi + h`.
+#' @param phi Initial or user-supplied free-parameter vector for `beta`.
+#' @param G Restriction matrix for `alpha`.
+#' @param Dxflag Numeric flag indicating whether exogenous variables enter the
+#'   cointegration space.
 #'
-#' @section Details:
-#' This function runs a likelihood ratio test of linear restrictions on \eqn{\alpha} and \eqn{\beta} in a CIVAR model in the following form:
-#'		\deqn{vec(\alpha') = G \psi,  vec(\beta) = H\phi + h}
+#' @details
+#' The tested restriction system is
+#' \deqn{vec(\alpha') = G \psi, \quad vec(\beta) = H \phi + h.}
 #'
-#' example 1 (restrictions on alpha) test of exogeneity: one weakly exogenous variable
-#'     vec(alpha) is n*crk x 1  vector
-#'     G          is n*crk x (n-k)*crk matrix  (k is the number of weakly exogenous)
-#'     psi        (n-k)*crk x 1 vector
-#'     vec(beta)  is n*crk x 1 vector
-#'     H          is n*crk x n*crk identity matrix
-#'     phi        n*crk x 1 vector
-#'     h          n*crk x 1 zero matrix implying ver(beta) = phi.
-#'                (H is identity and h is zero vector implies only restrictions on alpha)
+#' When `Dxflag = 0`, the function works from the auxiliary objects produced by
+#' `civar_estimate()`. When `Dxflag = 1`, it routes the problem through
+#' `ab_l_rtest2()` for the specification in which exogenous variables enter the
+#' long-run relation.
 #'
-#' example 2 (restrictions on beta ) test of PPP
-#'     vec(alpha) is n*crk x 1 vector
-#'     G          is n*crk x n*crk identity matrix, implying no restriction on alpha
-#'     psi        n*crk x 1 vector
-#'     vec(beta)  n*crk x 1 vector
-#'     H          n*crk x 2 matrix that picks out the elements under restrictions
-#'                two columns out of the identity matrix.
-#'                ones in a row of H and zero in the corresponding h implies non-restricted beta.
-#'     phi        2 x 1  vector
-#'     h          n*crk x 1  non zero elements in this vector together with the zero elements in
-#'                the corresponding row in H are the normalization conditions.
-#'                (H is identity and h is zero vector implies only restrictions on alpha)
-#'
-#' @return a list containing (VECMRS, beter, alphae, LSKOEFR, LR and error)
+#' @return A list containing the restricted CIVAR results, including the
+#'   restricted VECM object, restricted `alpha` and `beta`, short-run
+#'   coefficients, likelihood-ratio statistic, and convergence error.
 #' @examples
 #' X = matrix(stats::rnorm(2*207),207,2)
 #' colnames(X) = c("ex1","ex2")
@@ -294,20 +276,40 @@ return(test)
 
 
 
+#' Run restricted Johansen testing with linear constraints
 #'
-#' This function runs a test in cointegration space and provides an estimation of restricted alpha and beta.
+#' Performs Johansen-style cointegration testing and estimation under linear
+#' restrictions on the cointegration vectors and adjustment coefficients, and
+#' returns both unrestricted and restricted CIVAR quantities.
 #'
-#' @param y the endogenous variables
-#' @param x the exogenous variables
-#' @param model Types of the deterministic specification
-#' @param bnorm normalization of the cointegration vectors
-#' @param type types of returns
-#' @param p Lags of the CIVAR model
-#' @param r the cointegration rank
-#' @param q the significance level
-#' @param H restriction matrix of beta
-#' @param h restriction vector of beta
-#' @param G restriction matrix of alpha
+#' @param y Numeric matrix of endogenous variables.
+#' @param x Optional matrix of exogenous variables.
+#' @param model Character string describing the deterministic specification.
+#'   Supported values are `"I"`, `"II"`, `"III"`, `"IV"`, and `"V"`.
+#' @param bnorm Character string specifying the normalization rule for the
+#'   cointegration vectors. Supported values are `"1"` and `"2"`.
+#' @param type Character string specifying whether the Johansen output is based
+#'   on `"eigen"` or `"trace"` statistics.
+#' @param p Integer lag order of the CIVAR model.
+#' @param r Integer cointegration rank.
+#' @param q Significance level used for the Johansen critical values. Supported
+#'   values are `0.9`, `0.95`, and `0.99`.
+#' @param H Restriction matrix for `beta`.
+#' @param h Restriction vector for `beta`.
+#' @param G Restriction matrix for `alpha`.
+#'
+#' @details
+#' The restriction system is
+#' \deqn{vec(\alpha') = G \psi, \quad vec(\beta) = H \phi + h.}
+#'
+#' The function first builds the Johansen regression objects implied by the
+#' deterministic specification, computes the unrestricted cointegration
+#' quantities, and then iterates to obtain restricted maximum-likelihood
+#' estimates of `alpha` and `beta`.
+#'
+#' @return A list containing the Johansen test output, unrestricted VECM fit,
+#'   restricted `alpha` and `beta`, short-run coefficients, likelihood-ratio
+#'   statistic, and convergence error.
 #' @export
 #' @keywords internal
 #'
@@ -699,21 +701,26 @@ ab_l_rtest2 =function (y,x,model = c("I","II","III","IV","V"), bnorm = c("1","2"
 
 
 
-#' Estimate Separate Regime-Specific VECM Models
+#' Estimate separate regime-specific VECM models
 #'
-#' This function estimates separate Vector Error Correction Models (VECM) for two regimes
-#' based on a regime indicator series. It performs eigenvalue decomposition and extracts
-#' cointegration vectors and adjustment coefficients for each regime separately.
+#' Splits the sample into two regimes using the indicator `St`, estimates one
+#' VECM per regime, and returns regime-specific cointegration vectors,
+#' adjustment coefficients, model fits, and covariance matrices.
 #'
-#' @param R0 I(0) residuals of the auxiliary regression
-#' @param R1 I(0) residuals of the auxiliary regression
-#' @param Y0 The first difference series of the endogenous I(1) variables
-#' @param Z2 The first difference series with lags
-#' @param Z1 The level series
-#' @param St The regime indicator series
-#' @param crk The cointegration rank
+#' @param R0 Residual matrix for the differenced variables from the auxiliary
+#'   regression.
+#' @param R1 Residual matrix for the lagged levels from the auxiliary
+#'   regression.
+#' @param Y0 Matrix of differenced endogenous variables.
+#' @param Z2 Matrix of stationary regressors and lagged differences.
+#' @param Z1 Matrix of lagged level variables.
+#' @param St Regime indicator vector for the first regime.
+#' @param crk Integer cointegration rank.
 #'
-#' @return A list containing estimated constrained parameters as initial values for further iterations
+#' @return A named list containing regime-specific cointegration vectors
+#'   `beta1` and `beta2`, adjustment matrices `alpha1` and `alpha2`, fitted VECM
+#'   objects and summaries for both regimes, and residual covariance matrices
+#'   `Omega1` and `Omega2`.
 #'
 #' @examples
 #' # Example usage with simulated data
@@ -825,30 +832,37 @@ rz_st2_vecm <- function(R0,R1,Y0,Z2,Z1,St,crk) {
 
 
 
-#' Objective Function for Constrained Regime-Specific VECM Estimation
+#' Compute the constrained objective for regime-specific VECM estimation
 #'
-#' This function computes the objective function (determinant of residual sum of squares)
-#' for constrained maximum likelihood estimation of regime-specific VECM models with
-#' linear restrictions on cointegration vectors (beta) and adjustment coefficients (alpha).
+#' Evaluates the determinant of the residual sum-of-squares matrix for a
+#' two-regime VECM under linear restrictions on the regime-specific adjustment
+#' matrices and the common cointegration vectors.
 #'
-#' The function incorporates restrictions in the form:
-#' \deqn{vec(\alpha'_1) = G_1 \psi_1, \quad vec(\alpha'_2) = G_2 \psi_2, \quad vec(\beta) = H\phi + h}
+#' @param x Numeric vector of optimization variables, stacking `phi`, `psi_1`,
+#'   and `psi_2`.
+#' @param beta Numeric `n x crk` matrix used for reshaping the restricted
+#'   cointegration parameters.
+#' @param alpha Numeric `n x crk` matrix used for reshaping the restricted
+#'   adjustment parameters.
+#' @param G List of two restriction matrices for the regime-specific adjustment
+#'   coefficients.
+#' @param H Restriction matrix for `beta`.
+#' @param h Restriction vector for `beta`.
+#' @param phi Free-parameter vector for `beta`.
+#' @param psi List of free-parameter vectors for the two regime-specific
+#'   adjustment matrices.
+#' @param Z1 Matrix of lagged level variables.
+#' @param St Regime-1 indicator vector.
+#' @param NSt Regime-2 indicator vector.
+#' @param Y0 Matrix of differenced endogenous variables.
+#' @param Z2 Matrix of stationary regressors.
 #'
-#' @param x Optimization variables (stacked vector of phi, psi_1, and psi_2)
-#' @param beta Cointegration vectors (n x crk matrix)
-#' @param alpha Adjustment vectors (n x crk matrix)
-#' @param G List of two restriction matrices on alpha for each regime
-#' @param H Restriction matrix on beta
-#' @param h Restriction vector on beta
-#' @param phi Freely varying parameters in beta
-#' @param psi List of two freely varying parameter vectors for alpha in each regime
-#' @param Z1 I(1) data matrix (T x n)
-#' @param St Regime 1 indicator series (T x 1)
-#' @param NSt Regime 2 indicator series (T x 1)
-#' @param Y0 I(0) data matrix (T x n)
-#' @param Z2 I(0) data matrix (T x k)
+#' @details
+#' The constrained parametrization is
+#' \deqn{vec(\alpha'_1) = G_1 \psi_1, \quad vec(\alpha'_2) = G_2 \psi_2, \quad vec(\beta) = H \phi + h.}
 #'
-#' @return Determinant of the residual sum of squares matrix
+#' @return Numeric scalar equal to the determinant of the residual
+#'   sum-of-squares matrix implied by the restricted model.
 #'
 #' @examples
 #' # Example with simulated data
@@ -919,4 +933,3 @@ f_constrained <- function(x, beta = beta, alpha = alpha, G = G, H = H, phi = phi
 
   return(SSR)
 }
-

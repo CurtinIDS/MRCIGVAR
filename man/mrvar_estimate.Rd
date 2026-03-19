@@ -2,18 +2,22 @@
 % Please edit documentation in R/estimation.R
 \name{mrvar_estimate}
 \alias{mrvar_estimate}
-\title{This function estimates the parameters of a specified MRVAR(n,p,S) based on provided data.}
+\title{Estimate a multi-regime VAR model}
 \usage{
 mrvar_estimate(res)
 }
 \arguments{
-\item{res}{:an object of MRVAR that is an output of mrvar_data including at least: n, S, p, type, Y, SESVI, TH, d, and optionally X.}
+\item{res}{MRVAR-style data object, typically the output of \code{mrvar_data()},
+containing at least \code{n}, \code{S}, \code{p}, \code{type}, \code{Y}, \code{SESVI}, \code{TH}, and \code{d},
+and optionally \code{X}.}
 }
 \value{
-an MRVAR object that is a list containing estimated parameters and some test statistics.
+The input MRVAR object augmented with estimated parameters and test
+statistics.
 }
 \description{
-This function estimates the parameters of a specified MRVAR(n,p,S) based on provided data.
+Estimates the parameters of an MRVAR system from supplied data and returns
+the fitted regime-specific VAR objects together with summary statistics.
 }
 \examples{
 p = matrix(c(3,3,0,0),2,2)

@@ -2,21 +2,20 @@
 % Please edit documentation in R/model_selection.R
 \name{mrvar_select__summary}
 \alias{mrvar_select__summary}
-\title{Summarize MRVAR Model Selection Results}
+\title{Summarize MRVAR model selection results}
 \usage{
 mrvar_select__summary(Sel)
 }
 \arguments{
-\item{Sel}{An output matrix from mrvar_select_}
+\item{Sel}{Numeric matrix returned by \code{mrvar_select_()}.}
 }
 \value{
-A list with two elements: the first contains the optimal model by BIC criterion,
-the second contains the optimal model by AIC criterion. Each element includes
-lag specifications for both regimes, threshold value, and the criterion value.
+A list of length 2. The first element contains the specification
+minimizing BIC, and the second contains the specification minimizing AIC.
 }
 \description{
-This function extracts the optimal models from MRVAR model selection results based on information criteria.
-It returns the models with the lowest BIC and AIC values, which are commonly used for model comparison.
+Extract the specifications that minimize BIC and AIC from the output of
+\code{mrvar_select_()}.
 }
 \examples{
 res_d = mrvar_data(n=4,p=matrix(c(2,1,2,2,0,0,0,0),4,2),T=800,S=2,SESVI=1)

@@ -2,21 +2,19 @@
 % Please edit documentation in R/utils.R
 \name{cia2_a}
 \alias{cia2_a}
-\title{Convert VECM coefficient arrays to VAR coefficient arrays in levels (foreign block)}
+\title{Convert foreign-block VECM coefficients to VAR levels form}
 \usage{
 cia2_a(CIA)
 }
 \arguments{
-\item{CIA}{A coefficient array of a VECM (m x m x L).}
+\item{CIA}{Three-dimensional array of VECM coefficients.}
 }
 \value{
-An (m, m, L) array containing the coefficient matrices of the corresponding
-VAR in levels.
+A three-dimensional array of VAR coefficients.
 }
 \description{
-Transforms an array of VECM coefficient matrices into the corresponding VAR
-coefficient matrices in levels. Both input and output are 3D arrays, where the
-third dimension indexes lags.
+Transform an array of foreign-block VECM coefficients into the corresponding
+VAR coefficient arrays in levels.
 }
 \examples{
 # Example with m = 2 variables and L = 3 lags in the array

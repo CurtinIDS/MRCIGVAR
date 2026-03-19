@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrgvar_cb}
 \alias{irf_mrgvar_cb}
-\title{Calculate Regime Specific Impulse Response Functions for MRGVAR Models}
+\title{Compute regime-specific MRGVAR impulse responses with confidence bands}
 \usage{
 irf_mrgvar_cb(
   res,
@@ -19,35 +19,41 @@ irf_mrgvar_cb(
 )
 }
 \arguments{
-\item{res}{a list of estimated MRGVAR as output of mrgvar_estimate}
+\item{res}{A fitted MRGVAR object, typically returned by \code{mrgvar_estimate()}.}
 
-\item{state}{an n vector specifying the specific state for each country.}
+\item{state}{Integer vector of length \code{n} specifying the state assigned to
+each country.}
 
-\item{nstep}{the length of impulse response function}
+\item{nstep}{Integer scalar giving the number of IRF horizons.}
 
-\item{comb}{a vector specify the concerted action in policy-simulation impulse response function}
+\item{comb}{Numeric vector defining a combined or concerted-action shock.}
 
-\item{irf}{types of the impulse response irf=c("gen","chol","chol1","gen1","comb1")
-"gen" for generalized impulse response with one standard deviation impulses, "gen1" for GIRF with one unit impulses, "chol" Cholezky decomposition, "chol1" Cholezky decomposition with unit impulses, "comb1" concerted action with unit impulse.}
+\item{irf}{Character string specifying the IRF type. Supported values are
+\code{"gen"}, \code{"chol"}, \code{"chol1"}, \code{"gen1"}, and \code{"comb1"}.}
 
-\item{G}{For permanent and transitory decomposition}
+\item{G}{Optional transformation matrix used in permanent-transitory
+decompositions.}
 
-\item{smat}{For an explicit structural decomposition of the correlated shocks}
+\item{smat}{Optional explicit shock-decomposition matrix.}
 
-\item{sigmaNPDS}{the state-dependent covariance matrix}
+\item{sigmaNPDS}{Optional state-dependent covariance matrix. When \code{NA}, the
+matrix is computed from \code{res} and \code{state}.}
 
-\item{runs}{number of bootstrapping runs}
+\item{runs}{Integer scalar giving the number of bootstrap replications.}
 
-\item{conf}{A vector containing confidence levels}
+\item{conf}{Numeric vector of tail probabilities used to form the bootstrap
+confidence interval.}
 
-\item{NT}{number of impulse response scenarios in a simulation run}
+\item{NT}{Integer scalar giving the number of simulated IRF scenarios.}
 }
 \value{
-a list of bootstrap result. The first component contains the impulse response functions with confidence bands. It is an (mn,mn,nstep,3) array where the IRF columns represent the impulse and rows represent the responses.
+A list of bootstrap results. Its first element is a
+four-dimensional array containing the point estimate and confidence bounds,
+indexed by responses, impulses, horizons, and interval component.
 }
 \description{
-This function calculates the regime specific impulse response functions of an estimated MRGVAR(n,p,S).
-Using the estimated G[,,,s] and Sigma[,,s] matrices of the MRGVAR, this function calculates the regime specific impulse response functions.
+Compute regime-specific impulse response functions for an estimated MRGVAR
+model and bootstrap confidence bands for a selected state configuration.
 }
 \examples{
 \dontrun{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/constraints.R
 \name{f_constrained}
 \alias{f_constrained}
-\title{Objective Function for Constrained Regime-Specific VECM Estimation}
+\title{Compute the constrained objective for regime-specific VECM estimation}
 \usage{
 f_constrained(
   x,
@@ -21,43 +21,49 @@ f_constrained(
 )
 }
 \arguments{
-\item{x}{Optimization variables (stacked vector of phi, psi_1, and psi_2)}
+\item{x}{Numeric vector of optimization variables, stacking \code{phi}, \code{psi_1},
+and \code{psi_2}.}
 
-\item{beta}{Cointegration vectors (n x crk matrix)}
+\item{beta}{Numeric \verb{n x crk} matrix used for reshaping the restricted
+cointegration parameters.}
 
-\item{alpha}{Adjustment vectors (n x crk matrix)}
+\item{alpha}{Numeric \verb{n x crk} matrix used for reshaping the restricted
+adjustment parameters.}
 
-\item{G}{List of two restriction matrices on alpha for each regime}
+\item{G}{List of two restriction matrices for the regime-specific adjustment
+coefficients.}
 
-\item{H}{Restriction matrix on beta}
+\item{H}{Restriction matrix for \code{beta}.}
 
-\item{phi}{Freely varying parameters in beta}
+\item{phi}{Free-parameter vector for \code{beta}.}
 
-\item{psi}{List of two freely varying parameter vectors for alpha in each regime}
+\item{psi}{List of free-parameter vectors for the two regime-specific
+adjustment matrices.}
 
-\item{h}{Restriction vector on beta}
+\item{h}{Restriction vector for \code{beta}.}
 
-\item{Z1}{I(1) data matrix (T x n)}
+\item{Z1}{Matrix of lagged level variables.}
 
-\item{St}{Regime 1 indicator series (T x 1)}
+\item{St}{Regime-1 indicator vector.}
 
-\item{NSt}{Regime 2 indicator series (T x 1)}
+\item{NSt}{Regime-2 indicator vector.}
 
-\item{Y0}{I(0) data matrix (T x n)}
+\item{Y0}{Matrix of differenced endogenous variables.}
 
-\item{Z2}{I(0) data matrix (T x k)}
+\item{Z2}{Matrix of stationary regressors.}
 }
 \value{
-Determinant of the residual sum of squares matrix
+Numeric scalar equal to the determinant of the residual
+sum-of-squares matrix implied by the restricted model.
 }
 \description{
-This function computes the objective function (determinant of residual sum of squares)
-for constrained maximum likelihood estimation of regime-specific VECM models with
-linear restrictions on cointegration vectors (beta) and adjustment coefficients (alpha).
+Evaluates the determinant of the residual sum-of-squares matrix for a
+two-regime VECM under linear restrictions on the regime-specific adjustment
+matrices and the common cointegration vectors.
 }
 \details{
-The function incorporates restrictions in the form:
-\deqn{vec(\alpha'_1) = G_1 \psi_1, \quad vec(\alpha'_2) = G_2 \psi_2, \quad vec(\beta) = H\phi + h}
+The constrained parametrization is
+\deqn{vec(\alpha'_1) = G_1 \psi_1, \quad vec(\alpha'_2) = G_2 \psi_2, \quad vec(\beta) = H \phi + h.}
 }
 \examples{
 # Example with simulated data

@@ -2,32 +2,37 @@
 % Please edit documentation in R/constraints.R
 \name{rz_st2_vecm}
 \alias{rz_st2_vecm}
-\title{Estimate Separate Regime-Specific VECM Models}
+\title{Estimate separate regime-specific VECM models}
 \usage{
 rz_st2_vecm(R0, R1, Y0, Z2, Z1, St, crk)
 }
 \arguments{
-\item{R0}{I(0) residuals of the auxiliary regression}
+\item{R0}{Residual matrix for the differenced variables from the auxiliary
+regression.}
 
-\item{R1}{I(0) residuals of the auxiliary regression}
+\item{R1}{Residual matrix for the lagged levels from the auxiliary
+regression.}
 
-\item{Y0}{The first difference series of the endogenous I(1) variables}
+\item{Y0}{Matrix of differenced endogenous variables.}
 
-\item{Z2}{The first difference series with lags}
+\item{Z2}{Matrix of stationary regressors and lagged differences.}
 
-\item{Z1}{The level series}
+\item{Z1}{Matrix of lagged level variables.}
 
-\item{St}{The regime indicator series}
+\item{St}{Regime indicator vector for the first regime.}
 
-\item{crk}{The cointegration rank}
+\item{crk}{Integer cointegration rank.}
 }
 \value{
-A list containing estimated constrained parameters as initial values for further iterations
+A named list containing regime-specific cointegration vectors
+\code{beta1} and \code{beta2}, adjustment matrices \code{alpha1} and \code{alpha2}, fitted VECM
+objects and summaries for both regimes, and residual covariance matrices
+\code{Omega1} and \code{Omega2}.
 }
 \description{
-This function estimates separate Vector Error Correction Models (VECM) for two regimes
-based on a regime indicator series. It performs eigenvalue decomposition and extracts
-cointegration vectors and adjustment coefficients for each regime separately.
+Splits the sample into two regimes using the indicator \code{St}, estimates one
+VECM per regime, and returns regime-specific cointegration vectors,
+adjustment coefficients, model fits, and covariance matrices.
 }
 \examples{
 # Example usage with simulated data

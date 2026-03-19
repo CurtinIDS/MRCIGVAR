@@ -2,19 +2,22 @@
 % Please edit documentation in R/estimation.R
 \name{mrcigvar_estimate}
 \alias{mrcigvar_estimate}
-\title{This function estimates parameters of a multi regime cointegrated global VAR(p) model. The adjustment speeds to the cointegration relations are assumed to be different in different regimes.}
+\title{Estimate a multi-regime cointegrated GVAR model}
 \usage{
 mrcigvar_estimate(res)
 }
 \arguments{
-\item{res}{: an MRCIVAR object of the output of mrcigvar_data}
+\item{res}{MRCIGVAR-style data object, typically the output of
+\code{mrcigvar_data()}.}
 }
 \value{
-\if{html}{\out{<div class="sourceCode">}}\preformatted{ : an MRCIVAR object with estimated parameters and test statistics.
-}\if{html}{\out{</div>}}
+The input MRCIGVAR object augmented with estimated parameters,
+regime-specific VECM output, and summary statistics.
 }
 \description{
-This function estimates parameters of a multi regime cointegrated global VAR(p) model. The adjustment speeds to the cointegration relations are assumed to be different in different regimes.
+Estimates a multi-regime cointegrated GVAR in which adjustment to the common
+long-run relations may differ across regimes, and returns the fitted model
+together with regime-specific test output and summary statistics.
 }
 \examples{
 m = 2

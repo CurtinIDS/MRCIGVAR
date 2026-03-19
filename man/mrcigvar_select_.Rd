@@ -2,22 +2,28 @@
 % Please edit documentation in R/model_selection.R
 \name{mrcigvar_select_}
 \alias{mrcigvar_select_}
-\title{MRCIGVAR Model Selection Function}
+\title{Select lag and threshold specifications for an MRCIGVAR model}
 \usage{
 mrcigvar_select_(res, L_V = L_V, TH_V = TH_V)
 }
 \arguments{
-\item{res}{: an MRCIGVAR object generated from mrcigvar_data or estimated from mrcigvar_estimate.}
+\item{res}{An MRCIGVAR object, typically returned by \code{mrcigvar_data()} or
+\code{mrcigvar_estimate()}.}
 
-\item{L_V}{: a 2 components vector containing the maxima of the domestic lag length and the foreign lag length respectively.}
+\item{L_V}{Numeric vector of length 2 giving the maximum domestic and
+foreign lag orders considered in the search.}
 
-\item{TH_V}{: a vector containing possible threshold values.}
+\item{TH_V}{Numeric vector of candidate threshold values.}
 }
 \value{
-a matrix with different lag specifications, threshold values and the corresponding information criteria.
+A numeric matrix containing the evaluated lag and threshold
+specifications together with the information criteria returned by the
+estimator.
 }
 \description{
-This function performs model selection for the MRCIGVAR (Markov Regime-Switching Cointegrated GVAR) framework by calculating AIC, BIC, and other information criteria for various lag specifications and threshold values across regimes and countries.
+Evaluate alternative domestic lag, foreign lag, and threshold
+specifications for an MRCIGVAR model and return the resulting information
+criteria.
 }
 \examples{
 m = 2                  ## m: number of variables, n: number of countries

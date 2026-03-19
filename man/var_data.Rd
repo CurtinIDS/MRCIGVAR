@@ -7,34 +7,42 @@
 var_data(n, p, T, r_np, A, B, Co, U, Sigma, type, X, mu, Yo)
 }
 \arguments{
-\item{n}{: number of variables}
+\item{n}{Integer. Number of endogenous variables.}
 
-\item{p}{: lag length}
+\item{p}{Integer. Lag order.}
 
-\item{T}{: number of observations}
+\item{T}{Integer. Number of observations.}
 
-\item{r_np}{: an n x p matrix of roots of the characteristic polynomials of n independent AR(p)-processes. If not provided, it will be generated randomly.}
+\item{r_np}{Optional \verb{n x p} matrix of characteristic roots for the
+underlying independent AR processes.}
 
-\item{A}{: an n x n full rank matrix of transformation to generate correlated VAR(p) from the n independent AR(p)}
+\item{A}{Optional full-rank \verb{n x n} transformation matrix.}
 
-\item{B}{: (n,n,p) array of the coefficients of the VAR(p) process. If B is not given, it will be calculated out of r_np and A.}
+\item{B}{Optional coefficient array with dimension \verb{n x n x p}.}
 
-\item{Co}{: (n,k+1) matrix of the coefficients of deterministic components in a VAR(p) process. For type="none" Co = 0*(1:n), for type="const" Co is an n vector, for type="exog0" Co is an (n,k) matrix, and for type="exog1" Co is an (n,1+k) matrix.}
+\item{Co}{Optional coefficient matrix for deterministic terms or exogenous
+regressors.}
 
-\item{U}{: residuals, if it is not NA it will be used as input to generate the VAR(p) process.}
+\item{U}{Optional innovation matrix used directly when supplied.}
 
-\item{Sigma}{: an n x n covariance matrix of the VAR(p) residuals.}
+\item{Sigma}{Optional \verb{n x n} innovation covariance matrix.}
 
-\item{type}{: types of deterministic components. "none", "const" "exog0" and "exog1" are four options}
+\item{type}{Character string specifying the deterministic component.
+Supported values are \code{"none"}, \code{"const"}, \code{"exog0"}, and \code{"exog1"}.}
 
-\item{X}{: a (T x k) matrix of exogenous variables.}
+\item{X}{Optional \verb{T x k} matrix of exogenous variables.}
 
-\item{mu}{: an n vector of the expected mean of the VAR(p) process}
+\item{mu}{Optional expected-mean vector for the VAR process.}
 
-\item{Yo}{: a p x n matrix of initial values of the VAR(p) process}
+\item{Yo}{Optional \verb{p x n} matrix of initial values.}
 }
 \value{
-An object of VAR(p) containing the generated data, the used parameters and the exogenous variables. res = list(n,p,type,r_np,Phi,A,B,Co,Sigma,Y,X,resid,U,Y1,Yo,check)
+A list containing the simulated VAR data and model inputs, including
+dimensions \code{n} and \code{p}, specification \code{type}, roots \code{r_np}, autoregressive
+coefficients \code{Phi} and \code{B}, transformation matrix \code{A}, deterministic terms
+\code{Co}, covariance matrix \code{Sigma}, generated series \code{Y}, exogenous variables
+\code{X}, residuals \code{resid}, innovations \code{U}, latent series \code{Y1}, initial
+values \code{Yo}, and diagnostic value \code{check}.
 }
 \description{
 Simulates a stationary VAR process and returns the generated data together

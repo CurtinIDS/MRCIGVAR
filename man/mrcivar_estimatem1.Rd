@@ -2,18 +2,22 @@
 % Please edit documentation in R/estimation.R
 \name{mrcivar_estimatem1}
 \alias{mrcivar_estimatem1}
-\title{This function executes a Johansen test of cointegration ranks and estimates the parameters of a MRCIVAR(n,p,S) model.}
+\title{Estimate a multi-regime CIVAR model}
 \usage{
 mrcivar_estimatem1(res)
 }
 \arguments{
-\item{res}{an MRCIVAR object of the output of mrcivar_data_m}
+\item{res}{MRCIVAR-style data object, typically the output of
+\code{mrcivar_data_m()}.}
 }
 \value{
-an estimated MRCIVAR object containing estimated parameters and test results
+The input MRCIVAR object augmented with estimated parameters and test
+results.
 }
 \description{
-This function executes a Johansen test of cointegration ranks and estimates the parameters of a MRCIVAR(n,p,S) model.
+Runs Johansen rank testing and parameter estimation for a multi-regime
+cointegrated VAR model and returns the fitted MRCIVAR object with associated
+test results.
 }
 \examples{
 Sigma = 1:(4*4*2)

@@ -4,22 +4,23 @@
 
 
 #'
-#' Generate Independent Common Stochastic Trends and Idiosyncratic Trends for VAR Models
+#' Generate VAR coefficients with common and idiosyncratic trends
 #'
-#' This function creates independent common stochastic trends and idiosyncratic trends 
-#' for a given number of variables, lags, and observations. It also computes the 
-#' parameter matrix of domestic variables, cointegration vectors, and adjustment vectors 
-#' based on the specified roots of the characteristic polynomial.
+#' Construct domestic VAR coefficient arrays together with implied
+#' cointegration and adjustment matrices under user-specified characteristic
+#' roots and an optional number of common stochastic trends.
 #'
-#' @param m number of variables
-#' @param p lags
-#' @param T number of observations
-#' @param r_npo roots of the characteristic polynomial
-#' @param Ncommtrend number of common trends
-#' @param n number of countries
-#'
-#' @return A list containing the parameter matrix of the domestic variables, 
-#'         the cointegration vectors, and the adjustment vectors
+#' @param m Integer scalar giving the number of variables per country.
+#' @param p Lag-order specification.
+#' @param T Integer scalar giving the number of observations used when building
+#'   auxiliary VAR objects.
+#' @param r_npo Array of characteristic roots used to generate the VAR
+#'   coefficients.
+#' @param Ncommtrend Integer scalar giving the number of common stochastic
+#'   trends. Use `NA` or `0` to omit common trends.
+#' @param n Integer scalar giving the number of countries.
+#' @return A list with three elements: domestic coefficient arrays `Bo`,
+#'   adjustment matrices `alpha`, and cointegration matrices `beta`.
 #' @export
 #' @keywords internal
 #'
@@ -97,12 +98,14 @@ varb_commtrend <- function (m, p, T, r_npo, Ncommtrend, n) {
 
 
 
-#' Summary of Conditional VAR Model
+#' Summarize a conditional VAR fit
 #'
-#' This function provides a summary of a conditional VAR model, allowing for the replacement of specific elements in the column names of the output.
+#' Generate a summary for a conditional VAR fit and optionally clean the
+#' coefficient names by removing a user-specified pattern.
 #'
-#' @param lm1 A fitted conditional VAR model object.
-#' @param sname The elements in column names to be replaced.
+#' @param lm1 A fitted model, a `summary.lm` object, or a list of such objects.
+#' @param sname Character string giving the pattern to remove from coefficient
+#'   row names.
 #' @export
 #' @keywords internal
 #'
@@ -142,22 +145,21 @@ summary_civar <- function(lm1=lm1, sname = "Z2\\[,4:9\\]") {
 
 
 #'
-#' Convert VECM Parameters to VAR Parameters for CIGVAR
+#' Convert VECM parameters to VAR coefficient arrays
 #'
-#' This function transforms the estimated parameters of a Vector Error Correction Model (VECM) 
-#' into the corresponding parameters for a Conditional VAR (CIGVAR) model. It handles different 
-#' types of VECMs and allows for the inclusion of foreign variables and common factors.
+#' Transform estimated VECM parameters into the corresponding VAR coefficient
+#' arrays for single-regime and multi-regime conditional specifications.
 #'
-#' @param param The parameter of an estimated VECM
-#' @param beta The cointegration vectors
-#' @param q A vector specifying different types of VECMs
-#' @param s The indicator of multi regime VECMs
-#' @param kz The number of exogenous common factors
-#' @param Dxflag Indicator whether the foreign variables enter the cointegration space
-#'
-#' @return A list of (A, B, C) with B the auto regression parameter matrix, 
-#'         C the parameter of the deterministic components, and A the parameter 
-#'         matrix of foreign variables for CIGVAR.
+#' @param param Matrix of estimated VECM parameters.
+#' @param beta Cointegration matrix.
+#' @param q Integer vector describing the VECM specification.
+#' @param s Optional regime indicator. Use `NA` for a single-regime model.
+#' @param kz Integer scalar giving the number of exogenous common factors.
+#' @param Dxflag Integer flag indicating whether foreign variables enter the
+#'   cointegration space.
+#' @return A list containing domestic coefficient arrays `B`, foreign
+#'   coefficient arrays `A`, deterministic parameters `C`, and common-factor
+#'   parameters `D`.
 #' @export
 #' @keywords internal
 #'
@@ -271,20 +273,17 @@ vecm2_var <- function(param, beta, q = c(1, 2, 2, 2, 2), s = NA, kz = 0, Dxflag 
 
 
 #'
-#' Convert VAR Coefficients to Error Correction Form
+#' Convert VAR coefficients to error-correction form
 #'
-#' This function transforms the coefficients of a level VAR model into the corresponding 
-#' error correction form. It computes the adjustment coefficients, cointegration vectors, 
-#' and the discrepancy between the selected alpha, beta, and CIB.
+#' Transform a level VAR coefficient array into its error-correction
+#' representation and recover the associated adjustment and cointegration
+#' matrices.
 #'
-#' @param B an (m,m,L) array containing the coefficients of the level VAR.
-#' @return A list containing three components.
-#' \itemize{
-#'    \item CIB        : the coefficients matrix of the error correction form
-#'    \item alpha	     : the adjustment coefficients
-#'    \item beta       : the cointegration vectors
-#'    \item sm         : the discrepancy between the selected alpha beta and CIB.
-#' }
+#' @param B Three-dimensional array of VAR coefficients with dimensions `(m, m,
+#'   L)`.
+#' @return A list containing the error-correction coefficients `CIB`, the
+#'   adjustment matrix `alpha`, the cointegration matrix `beta`, and the fit
+#'   discrepancy `sm`.
 #' @export
 #' @keywords internal
 #'
@@ -328,20 +327,14 @@ b2_cib <- function (B) {
 
 
 
-#' Convert CIGVAR estimation output into coefficient matrices (B, A, C)
+#' Convert CIGVAR estimates to coefficient arrays
 #'
-#' Constructs the domestic (B), foreign (A), and deterministic (C) coefficient
-#' matrices from a `cigvar_estimate` output object. The matrices are returned in
-#' lag-stacked array form, where the third dimension indexes lags.
+#' Extract domestic, foreign, and deterministic coefficient arrays from a
+#' `cigvar_estimate()` result.
 #'
-#' @param tst An output object returned by `cigvar_estimate`.
-#'
-#' @return A list containing three components:
-#' \itemize{
-#'   \item B: the coefficient matrices of the domestic variables (m x m x `P[1]`)
-#'   \item A: the coefficient matrices of the foreign variables (m x mx x `P[2]`)
-#'   \item C: the coefficient matrices of the deterministic components (m x 1)
-#' }
+#' @param tst Object returned by `cigvar_estimate()`.
+#' @return A list containing domestic coefficient arrays `B`, foreign
+#'   coefficient arrays `A`, and deterministic coefficients `C`.
 #'
 #' @examples
 #' # NOTE: This is a minimal, illustrative example. It fabricates a `tst` object
@@ -418,13 +411,11 @@ cib2_b <- function(tst) {
 
 #' Convert VECM coefficient arrays to VAR coefficient arrays
 #'
-#' Transforms an array of VECM coefficient matrices (with lag order L-1) into the
-#' corresponding VAR coefficient matrices (with lag order L). The input and output
-#' are both 3D arrays, where the third dimension indexes lags.
+#' Transform an array of VECM coefficients into the corresponding VAR
+#' coefficients in levels.
 #'
-#' @param CIB An (m, m, L) array of coefficient matrices of a VECM with lag L-1.
-#'
-#' @return B An (m, m, L) array of coefficient matrices of a VAR with lag L.
+#' @param CIB Three-dimensional array of VECM coefficients.
+#' @return A three-dimensional array of VAR coefficients.
 #'
 #' @examples
 #' # Example with m = 3 variables and L = 2 (so VECM lag is L-1 = 1)
@@ -454,16 +445,13 @@ cib3_b <- function(CIB) {
 
 
 
-#' Convert VECM coefficient arrays to VAR coefficient arrays in levels (foreign block)
+#' Convert foreign-block VECM coefficients to VAR levels form
 #'
-#' Transforms an array of VECM coefficient matrices into the corresponding VAR
-#' coefficient matrices in levels. Both input and output are 3D arrays, where the
-#' third dimension indexes lags.
+#' Transform an array of foreign-block VECM coefficients into the corresponding
+#' VAR coefficient arrays in levels.
 #'
-#' @param CIA A coefficient array of a VECM (m x m x L).
-#'
-#' @return An (m, m, L) array containing the coefficient matrices of the corresponding
-#' VAR in levels.
+#' @param CIA Three-dimensional array of VECM coefficients.
+#' @return A three-dimensional array of VAR coefficients.
 #'
 #' @examples
 #' # Example with m = 2 variables and L = 3 lags in the array
@@ -493,16 +481,14 @@ cia2_a <- function(CIA) {
 
 
 
-#' Compute characteristic roots (eigenvalues) of a VAR(p) companion matrix
+#' Compute characteristic roots of a VAR companion matrix
 #'
-#' Builds the companion matrix for a VAR(p) coefficient array and returns the roots
-#' (eigenvalues) of the associated characteristic polynomial. These roots are often
-#' used to assess VAR stability (all moduli strictly less than 1 implies stability).
+#' Build the companion matrix implied by a VAR coefficient array and return its
+#' eigenvalues.
 #'
-#' @param G A coefficient array of dimension (m, m, p) for a VAR(p) object, where the
-#' third dimension indexes lags.
-#'
-#' @return A complex vector of eigenvalues (roots of the characteristic polynomial).
+#' @param G Three-dimensional array of VAR coefficients with dimensions `(m, m,
+#'   p)`.
+#' @return A complex vector of characteristic roots.
 #'
 #' @examples
 #' # Example: VAR(2) with m = 2 variables
@@ -530,29 +516,19 @@ spectral_radius <- function(G) {
 
 
 
-#' Convert conditional VECM parameters to conditional VAR coefficient arrays
+#' Convert conditional VECM parameters to conditional VAR arrays
 #'
-#' Converts estimated parameters from a conditional VECM into coefficient arrays for
-#' the corresponding conditional VAR in levels. It returns domestic coefficients (B),
-#' foreign/conditioning coefficients (A, when present), and deterministic components (C).
+#' Transform conditional VECM parameter estimates into domestic, conditioning,
+#' and deterministic coefficient arrays for the associated conditional VAR in
+#' levels.
 #'
-#' This helper supports both:
-#' - a single-regime conditional VECM (when `s` is `NA`), and
-#' - multi-regime specifications used in MRCIGVAR / MRCIVAR (when `s` is provided).
-#'
-#' @param param Estimated parameters of a conditional VECM.
-#' @param beta The estimated cointegration vectors.
-#' @param p A vector specifying different types of conditional VECM. Its interpretation
-#' depends on the model regime setting.
-#' @param s Indicator variable of different regimes. If `NA`, a single-regime model is assumed.
-#' @param N2 Dimension of the conditioning (foreign) variables.
-#'
-#' @return A list with components `A`, `B`, and `C`, where:
-#' \itemize{
-#'   \item B: conditional VAR coefficient array (domestic block)
-#'   \item A: coefficient array of conditioning/foreign variables for CIGVAR (or `NA` if absent)
-#'   \item C: parameters of deterministic components (or `NA` if absent)
-#' }
+#' @param param Matrix of estimated conditional VECM parameters.
+#' @param beta Cointegration matrix.
+#' @param p Integer vector describing the conditional VECM specification.
+#' @param s Optional regime indicator. Use `NA` for a single-regime model.
+#' @param N2 Integer scalar giving the number of conditioning variables.
+#' @return A list containing domestic coefficient arrays `B`, conditioning
+#'   coefficient arrays `A`, and deterministic coefficients `C`.
 #'
 #' @examples
 #' # Minimal illustrative example (fabricated inputs)
@@ -688,16 +664,13 @@ cvecm2_cvar <- function (param, beta, p = c(1, 2, 2, 2, 2), s = NA, N2)
 
 #' Reorder indices for endogenous and exogenous lag blocks
 #'
-#' Creates a re-indexing vector that rearranges lagged terms so that all endogenous
-#' lag blocks (size `N1`) are placed first across lags, followed by all exogenous
-#' lag blocks (size `N2`) across lags. This is useful when reshaping or reordering
-#' coefficient vectors/matrices built from stacked lag terms.
+#' Create an index vector that moves endogenous lag blocks ahead of exogenous
+#' lag blocks in a stacked regressor layout.
 #'
-#' @param N1 Dimension of the endogenous variables.
-#' @param N2 Dimension of the exogenous variables.
-#' @param p Lag length.
-#'
-#' @return An integer vector giving the reordered index mapping.
+#' @param N1 Integer scalar giving the number of endogenous variables.
+#' @param N2 Integer scalar giving the number of exogenous variables.
+#' @param p Integer scalar giving the lag length.
+#' @return An integer vector defining the reordered index mapping.
 #'
 #' @examples
 #' # Example: N1 = 2 endogenous vars, N2 = 1 exogenous var, p = 3 lags
@@ -720,35 +693,24 @@ redex <- function(N1, N2, p) {
 
 
 
-#' Estimate a conditional VECM and Johansen cointegration test statistics
+#' Estimate a conditional VECM with Johansen statistics
 #'
-#' Estimates the parameters of a conditional vector error correction model (VECM)
-#' using the Johansen procedure, allowing for different deterministic component
-#' specifications (models I–V). The function returns estimated objects and
-#' cointegration test statistics (either maximum-eigenvalue or trace).
+#' Estimate a conditional VECM using the Johansen procedure under alternative
+#' deterministic specifications and return the fitted model together with
+#' cointegration test statistics.
 #'
-#' @param y Data matrix of the endogenous variables.
-#' @param x Data matrix of the exogenous (conditioning) variables. If `length(x) == 1`,
-#' the model is estimated without additional conditioning variables.
-#' @param model Deterministic component specification. One of `"I"`, `"II"`, `"III"`,
-#' `"IV"`, `"V"`.
-#' @param type Johansen test type. One of `"eigen"` (maximum eigenvalue) or `"trace"`.
-#' @param crk Cointegration rank.
-#' @param p Lag length in levels.
-#' @param q Significance level (must be one of `0.9`, `0.95`, `0.99`).
-#'
-#' @return A list containing estimated parameters and test statistics, including:
-#' \itemize{
-#'   \item erg: matrix of test statistics and critical values
-#'   \item estimation: fitted VECM (lm object)
-#'   \item lambda: transformed eigenvalue-based statistics
-#'   \item z: combined data matrix of endogenous and exogenous variables
-#'   \item Z2: lagged differenced regressors (or `NULL`)
-#'   \item beta: estimated cointegration vectors
-#'   \item PI: short-run parameter matrix
-#'   \item GAMMA: additional short-run parameters (or `NULL`)
-#'   \item model: deterministic specification used
-#' }
+#' @param y Numeric matrix of endogenous variables.
+#' @param x Numeric matrix of conditioning variables. If `length(x) == 1`, the
+#'   model is estimated without additional conditioning variables.
+#' @param model Character string specifying the deterministic setup. Supported
+#'   values are `"I"`, `"II"`, `"III"`, `"IV"`, and `"V"`.
+#' @param type Character string specifying the Johansen statistic. Supported
+#'   values are `"eigen"` and `"trace"`.
+#' @param crk Integer scalar giving the cointegration rank.
+#' @param p Integer scalar giving the lag length in levels.
+#' @param q Significance level used for critical values.
+#' @return A list containing Johansen test results, the fitted VECM, estimated
+#'   cointegration objects, and the data matrices used in estimation.
 #'
 #' @examples
 #' # Minimal illustrative example (fabricated data)
@@ -1007,16 +969,14 @@ cvecm <- function (y,x,model = c("I","II","III","IV","V"),type = c("eigen", "tra
 
 
 
-#' Compute an orthogonal complement of a full-column-rank matrix
+#' Compute an orthogonal complement of a matrix
 #'
-#' Constructs a matrix whose columns span the orthogonal complement of the column
-#' space of `alpha` (that is, a basis for the subspace orthogonal to `alpha`).
-#' The input `alpha` is assumed to have linearly independent columns.
+#' Construct a matrix whose columns span the orthogonal complement of the
+#' column space of `alpha`.
 #'
-#' @param alpha A matrix with linearly independent (full-rank) columns.
-#'
-#' @return A matrix whose columns form an orthogonal complementary basis to the
-#' columns of `alpha`.
+#' @param alpha Matrix with full-column rank.
+#' @return A matrix whose columns form a basis for the orthogonal complement of
+#'   `alpha`.
 #'
 #' @examples
 #' set.seed(1)
@@ -1045,23 +1005,19 @@ alpha_perpf <- function(alpha = (alpha)) {
 
 
 
-#' Objective function for fitting an AB-SVAR from reduced-form covariance
+#' Evaluate the AB-SVAR covariance objective
 #'
-#' Computes the sum of squared deviations between the implied structural covariance
-#' in an AB-SVAR model and the reduced-form covariance matrix `Sigma`. The free
-#' (non-fixed) elements of `A0` and `B0` are supplied via the parameter vector `x`,
-#' while fixed elements are coded as `0` or `1` in `A0`/`B0`. The function is intended
-#' for use inside numerical optimisation routines.
+#' Compute the sum of squared deviations between the structural covariance
+#' implied by `A0` and `B0` and the reduced-form covariance matrix `Sigma`.
 #'
-#' @param x Difference between the reduced form and the AB form, supplied as a vector
-#' of the free parameters.
-#' @param A0 A matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.
-#' @param B0 B matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.
-#' @param Sigma Covariance matrix of the reduced form.
-#'
-#' @return A single numeric value: the sum of squared residuals
-#' \eqn{\sum (A \Sigma A' - B B')^2}. Returns a character message if the system is
-#' not exactly identified or if `x` has incorrect length.
+#' @param x Numeric vector of free structural parameters.
+#' @param A0 Structural `A` template matrix with fixed entries coded as `0` or
+#'   `1`.
+#' @param B0 Structural `B` template matrix with fixed entries coded as `0` or
+#'   `1`.
+#' @param Sigma Reduced-form covariance matrix.
+#' @return A single numeric objective value, or a character message if the
+#'   identification or parameter dimensions are invalid.
 #'
 #' @examples
 #' # Minimal illustrative example (fabricated matrices)
@@ -1108,25 +1064,19 @@ x_abf <-  function(x, A0, B0, Sigma) {
 
 
 
-#' Estimate an AB-SVAR from the reduced-form covariance matrix
+#' Estimate an AB-SVAR from reduced-form covariance
 #'
-#' Solves an exactly identified AB-SVAR by fitting structural matrices `A` and `B`
-#' to a reduced-form covariance matrix `Sigma`. Free parameters are provided via
-#' an initial vector `x0`, while fixed entries in `A0` and `B0` are coded as `0` or `1`.
-#' Estimation is performed by minimising the sum of squared deviations between
-#' \eqn{A \Sigma A'} and \eqn{B B'} using `stats::nlm()`.
+#' Estimate exactly identified AB-SVAR structural matrices by minimizing the
+#' covariance-matching objective defined in `x_abf()`.
 #'
-#' @param x0 Initial values for the free parameters (vector).
-#' @param A0 A matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.
-#' @param B0 B matrix in an AB_SVAR model. Fixed entries should be coded as 0 or 1.
-#' @param Sigma Covariance matrix of the reduced form.
-#'
-#' @return A list with three components:
-#' \itemize{
-#'   \item A: estimated structural matrix A
-#'   \item B: estimated structural matrix B (element-wise absolute value applied)
-#'   \item diff: minimised sum of squared errors
-#' }
+#' @param x0 Numeric vector of initial values for the free parameters.
+#' @param A0 Structural `A` template matrix with fixed entries coded as `0` or
+#'   `1`.
+#' @param B0 Structural `B` template matrix with fixed entries coded as `0` or
+#'   `1`.
+#' @param Sigma Reduced-form covariance matrix.
+#' @return A list containing the estimated structural matrices `A` and `B`, and
+#'   the minimized objective value `diff`.
 #'
 #' @examples
 #' \dontrun{
@@ -1174,28 +1124,21 @@ absvar <- function(x0, A0, B0, Sigma) {
 
 
 
-#' Assemble GVAR coefficient array from domestic and foreign blocks and weights
+#' Assemble a GVAR coefficient array from domestic and foreign blocks
 #'
-#' Builds the stacked GVAR coefficient array `G` of dimension (mn, mn, p) by combining
-#' country-specific domestic VAR coefficient matrices (`Bo`) with weighted foreign
-#' coefficient matrices (`Ao`) using the GVAR weighting matrix `W`.
+#' Build the stacked GVAR coefficient array by combining domestic coefficient
+#' blocks, foreign coefficient blocks, and the weighting matrix.
 #'
-#' The output `G[ , , L ]` contains the lag-`L` coefficient matrix of the global VAR,
-#' where each (m x m) block corresponds to the effect of country `j` variables on
-#' country `i` variables at lag `L`. Off-diagonal blocks are formed as
-#' `Ao[,,L,i] * W[i,j]`, and diagonal blocks are overwritten by the domestic block
-#' `Bo[,,L,i]`.
-#'
-#' @param Bo Parameter array (or vectorised form) of domestic variables. Will be
-#' reshaped internally to (m, m, p, n).
-#' @param Ao Parameter array (or vectorised form) of foreign variables. Will be
-#' reshaped internally to (m, m, p, n).
-#' @param W Weighting matrix of the GVAR model (n x n).
-#' @param m Number of variables per country.
-#' @param n Number of countries.
-#' @param p Lag order.
-#'
-#' @return An (mn, mn, p) array of GVAR(m, n, p) coefficients.
+#' @param Bo Domestic coefficient array, reshaped internally to `(m, m, p, n)`
+#'   if needed.
+#' @param Ao Foreign coefficient array, reshaped internally to `(m, m, p, n)`
+#'   if needed.
+#' @param W GVAR weighting matrix of dimension `(n, n)`.
+#' @param m Integer scalar giving the number of variables per country.
+#' @param n Integer scalar giving the number of countries.
+#' @param p Integer scalar giving the lag order.
+#' @return A three-dimensional array of stacked GVAR coefficients with
+#'   dimensions `(m * n, m * n, p)`.
 #'
 #' @examples
 #' # Example with n = 2 countries, m = 2 variables, p = 2 lags
@@ -1237,24 +1180,16 @@ bo_ao_w2_g <- function(Bo, Ao, W, m, n, p) {
 
 
 
-#' Extract domestic and foreign coefficient arrays from a GVAR coefficient array
+#' Extract domestic and foreign blocks from a GVAR coefficient array
 #'
-#' Decomposes a stacked GVAR coefficient array `G` (dimension mn x mn x p) into:
-#' - `Bo`: country-specific domestic coefficient arrays (m x m x p x n), taken from
-#'   the diagonal blocks of `G`, and
-#' - `Ao`: country-specific foreign coefficient arrays (m x m x p x n), recovered from
-#'   the off-diagonal blocks of `G` by dividing by the corresponding weights `W[i, j]`.
+#' Decompose a stacked GVAR coefficient array into country-specific domestic and
+#' foreign coefficient arrays.
 #'
-#' If `G` is supplied without a third dimension, it is treated as a VAR(1) (p = 1).
-#'
-#' @param G The GVAR coefficient array of dimension (mn, mn, p) (or (mn, mn) for p = 1).
-#' @param W The weighting matrix of the GVAR model (n x n).
-#'
-#' @return A named list with two elements:
-#' \itemize{
-#'   \item Bo: domestic coefficient arrays (m x m x p x n)
-#'   \item Ao: foreign coefficient arrays (m x m x p x n)
-#' }
+#' @param G Stacked GVAR coefficient array of dimension `(m * n, m * n, p)`, or
+#'   a matrix for `p = 1`.
+#' @param W GVAR weighting matrix of dimension `(n, n)`.
+#' @return A list with two elements: domestic coefficient arrays `Bo` and
+#'   foreign coefficient arrays `Ao`.
 #'
 #' @examples
 #' set.seed(1)
@@ -2497,24 +2432,17 @@ shift_z2 <- function(Z2, kz, n1, p) {
 
 
 
-#' Shift common-factor regressors to the end of Z2 (domestic + foreign lag structure)
+#' Shift common-factor regressors to the end of a mixed lag matrix
 #'
-#' Reorders the regressor matrix `Z2` by moving the lagged exogenous common-factor
-#' columns (if present) to the end, when `Z2` contains both domestic and foreign lag
-#' blocks. If there are no common factors (`kz = 0`) or no domestic lags (`p = 0`),
-#' `Z2` is returned unchanged.
+#' Reorder a regressor matrix so that lagged common-factor columns are moved to
+#' the end when both domestic and foreign lag blocks are present.
 #'
-#' Compared with `shift_z2()`, this variant also accounts for an additional block
-#' structure that includes foreign-variable lags (`p2`) and shifts the corresponding
-#' common-factor positions in both relevant parts of the regressor layout.
-#'
-#' @param Z2 Regressor matrix to be shifted.
-#' @param kz Number of common exogenous factors.
-#' @param n1 Number of domestic variables.
-#' @param p Lag length of domestic variables in `Z2` (also the lag length of common factors).
-#' @param p2 Lag length of foreign variables in `Z2`.
-#'
-#' @return A regressor matrix with common-factor columns shifted to the end (when applicable).
+#' @param Z2 Regressor matrix to reorder.
+#' @param kz Integer scalar giving the number of common exogenous factors.
+#' @param n1 Integer scalar giving the number of domestic variables.
+#' @param p Integer scalar giving the domestic lag length.
+#' @param p2 Integer scalar giving the foreign lag length.
+#' @return A reordered regressor matrix.
 #'
 #' @examples
 #' set.seed(1)
@@ -2547,4 +2475,3 @@ shift_z2m <- function(Z2, kz, n1, p, p2) {
   }
   return(Z2)
 }
-

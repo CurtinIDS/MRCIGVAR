@@ -2,22 +2,27 @@
 % Please edit documentation in R/model_selection.R
 \name{mrvar_select_}
 \alias{mrvar_select_}
-\title{MRVAR Model Selection Function}
+\title{Select lag and threshold specifications for an MRVAR model}
 \usage{
 mrvar_select_(res, L_V = L_V, TH_V = TH_V)
 }
 \arguments{
-\item{res}{: an MRVAR object generated from mrvar_data or estimated from mrvar_estimate.}
+\item{res}{An MRVAR object, typically returned by \code{mrvar_data()} or
+\code{mrvar_estimate()}.}
 
-\item{L_V}{: a 2 components vector containing the maxima lags in the two regimes, respectively.}
+\item{L_V}{Numeric vector of length 2 giving the maximum lag orders searched
+in regimes 1 and 2.}
 
-\item{TH_V}{: a vector containing the possible threshold values over which the model selection criteria values will be calculated.}
+\item{TH_V}{Numeric vector of candidate threshold values.}
 }
 \value{
-a matrix with different lag specifications and threshold values as well as the corresponding information criterion values.
+A numeric matrix containing the evaluated lag and threshold
+specifications together with the information criteria reported by the
+estimator.
 }
 \description{
-This function performs model selection for the MRVAR (Markov Regime-Switching VAR) framework by calculating AIC, BIC, and other information criteria for various lag specifications and threshold values across regimes.
+Evaluate regime-specific lag orders and threshold values for an MRVAR model
+and return the associated model selection criteria.
 }
 \examples{
 res_d = mrvar_data(n=4,p=matrix(c(2,1,2,2,0,0,0,0),4,2),T=800,S=2,SESVI=1)

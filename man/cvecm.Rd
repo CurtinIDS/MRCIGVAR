@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{cvecm}
 \alias{cvecm}
-\title{Estimate a conditional VECM and Johansen cointegration test statistics}
+\title{Estimate a conditional VECM with Johansen statistics}
 \usage{
 cvecm(
   y,
@@ -15,41 +15,31 @@ cvecm(
 )
 }
 \arguments{
-\item{y}{Data matrix of the endogenous variables.}
+\item{y}{Numeric matrix of endogenous variables.}
 
-\item{x}{Data matrix of the exogenous (conditioning) variables. If \code{length(x) == 1},
-the model is estimated without additional conditioning variables.}
+\item{x}{Numeric matrix of conditioning variables. If \code{length(x) == 1}, the
+model is estimated without additional conditioning variables.}
 
-\item{model}{Deterministic component specification. One of \code{"I"}, \code{"II"}, \code{"III"},
-\code{"IV"}, \code{"V"}.}
+\item{model}{Character string specifying the deterministic setup. Supported
+values are \code{"I"}, \code{"II"}, \code{"III"}, \code{"IV"}, and \code{"V"}.}
 
-\item{type}{Johansen test type. One of \code{"eigen"} (maximum eigenvalue) or \code{"trace"}.}
+\item{type}{Character string specifying the Johansen statistic. Supported
+values are \code{"eigen"} and \code{"trace"}.}
 
-\item{crk}{Cointegration rank.}
+\item{crk}{Integer scalar giving the cointegration rank.}
 
-\item{p}{Lag length in levels.}
+\item{p}{Integer scalar giving the lag length in levels.}
 
-\item{q}{Significance level (must be one of \code{0.9}, \code{0.95}, \code{0.99}).}
+\item{q}{Significance level used for critical values.}
 }
 \value{
-A list containing estimated parameters and test statistics, including:
-\itemize{
-\item erg: matrix of test statistics and critical values
-\item estimation: fitted VECM (lm object)
-\item lambda: transformed eigenvalue-based statistics
-\item z: combined data matrix of endogenous and exogenous variables
-\item Z2: lagged differenced regressors (or \code{NULL})
-\item beta: estimated cointegration vectors
-\item PI: short-run parameter matrix
-\item GAMMA: additional short-run parameters (or \code{NULL})
-\item model: deterministic specification used
-}
+A list containing Johansen test results, the fitted VECM, estimated
+cointegration objects, and the data matrices used in estimation.
 }
 \description{
-Estimates the parameters of a conditional vector error correction model (VECM)
-using the Johansen procedure, allowing for different deterministic component
-specifications (models I–V). The function returns estimated objects and
-cointegration test statistics (either maximum-eigenvalue or trace).
+Estimate a conditional VECM using the Johansen procedure under alternative
+deterministic specifications and return the fitted model together with
+cointegration test statistics.
 }
 \examples{
 # Minimal illustrative example (fabricated data)

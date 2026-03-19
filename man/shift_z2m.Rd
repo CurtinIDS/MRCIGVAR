@@ -2,34 +2,27 @@
 % Please edit documentation in R/utils.R
 \name{shift_z2m}
 \alias{shift_z2m}
-\title{Shift common-factor regressors to the end of Z2 (domestic + foreign lag structure)}
+\title{Shift common-factor regressors to the end of a mixed lag matrix}
 \usage{
 shift_z2m(Z2, kz, n1, p, p2)
 }
 \arguments{
-\item{Z2}{Regressor matrix to be shifted.}
+\item{Z2}{Regressor matrix to reorder.}
 
-\item{kz}{Number of common exogenous factors.}
+\item{kz}{Integer scalar giving the number of common exogenous factors.}
 
-\item{n1}{Number of domestic variables.}
+\item{n1}{Integer scalar giving the number of domestic variables.}
 
-\item{p}{Lag length of domestic variables in \code{Z2} (also the lag length of common factors).}
+\item{p}{Integer scalar giving the domestic lag length.}
 
-\item{p2}{Lag length of foreign variables in \code{Z2}.}
+\item{p2}{Integer scalar giving the foreign lag length.}
 }
 \value{
-A regressor matrix with common-factor columns shifted to the end (when applicable).
+A reordered regressor matrix.
 }
 \description{
-Reorders the regressor matrix \code{Z2} by moving the lagged exogenous common-factor
-columns (if present) to the end, when \code{Z2} contains both domestic and foreign lag
-blocks. If there are no common factors (\code{kz = 0}) or no domestic lags (\code{p = 0}),
-\code{Z2} is returned unchanged.
-}
-\details{
-Compared with \code{shift_z2()}, this variant also accounts for an additional block
-structure that includes foreign-variable lags (\code{p2}) and shifts the corresponding
-common-factor positions in both relevant parts of the regressor layout.
+Reorder a regressor matrix so that lagged common-factor columns are moved to
+the end when both domestic and foreign lag blocks are present.
 }
 \examples{
 set.seed(1)

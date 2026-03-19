@@ -7,77 +7,23 @@
 mrcivar_select_m(res = res, L_V = L_V, TH_V = TH_V)
 }
 \arguments{
-\item{res}{An MRCIVAR-related object containing the data and model setup,
-typically the output of \code{mrcivar_data_m()} or an estimated object carrying
-the same core fields required by \code{mrcivar_estimatem1()}. It must contain,
-at minimum, the observed series, lag specification, number of variables,
-number of regimes, threshold variable information, and deterministic
-specification.}
+\item{res}{An MRCIVAR object, typically returned by \code{mrcivar_data_m()} or
+\code{mrcivar_estimatem1()}.}
 
-\item{L_V}{A numeric vector of length 2 giving the upper bounds for the lag
-search in the two regimes. The function evaluates:
-\describe{
-\item{regime 1 lags}{from 2 to \code{L_V[1]},}
-\item{regime 2 lags}{from 2 to \code{L_V[2]}.}
-}
-These values define the search grid, not a single fixed lag choice.}
+\item{L_V}{Numeric vector of length 2 giving the maximum lag orders searched
+for regimes 1 and 2.}
 
-\item{TH_V}{A numeric vector of candidate threshold values to be evaluated in
-the model selection procedure.}
+\item{TH_V}{Numeric vector of candidate threshold values.}
 }
 \value{
-A numeric matrix with one row for each evaluated specification and
-nine columns:
-\describe{
-\item{\code{Lag_regime1}}{lag order used for regime 1,}
-\item{\code{Lag_regime2}}{lag order used for regime 2,}
-\item{\code{threshold}}{threshold value used in that specification,}
-\item{\code{AIC}}{Akaike Information Criterion,}
-\item{\code{BIC}}{Bayesian Information Criterion,}
-\item{\code{LHH_AIC}}{alternative AIC measure reported by the estimator,}
-\item{\code{LHH_BIC}}{alternative BIC measure reported by the estimator,}
-\item{\code{ORAIC}}{additional AIC-type criterion from the estimator,}
-\item{\code{ORBIC}}{additional BIC-type criterion from the estimator.}
-}
+A numeric matrix with one row per evaluated specification and columns
+for the regime-specific lag orders, threshold, and the information
+criteria extracted from the estimator.
 }
 \description{
-Evaluates alternative Markov regime-switching cointegrated VAR (MRCIVAR)
-specifications over a grid of regime-specific lag orders and threshold values,
-and returns a table of information criteria for model comparison.
-}
-\details{
-The function repeatedly re-estimates the model for each combination of:
-\itemize{
-\item lag order in regime 1,
-\item lag order in regime 2,
-\item threshold value.
-}
-For each specification, it extracts model selection criteria such as AIC and
-BIC from the estimation output. This helps identify a preferred MRCIVAR
-specification under competing lag and threshold settings.
-
-The function performs a grid search over all combinations of:
-\deqn{
-(l_d, l_f, TH),
-}
-where \code{l_d} is the lag order used for regime 1, \code{l_f} is the lag order used
-for regime 2, and \code{TH} is a candidate threshold value from \code{TH_V}.
-
-For each candidate model:
-\enumerate{
-\item the lag orders in \code{res$p} are updated,
-\item the threshold value in \code{res$TH} is replaced,
-\item \code{mrcivar_estimatem1()} is called,
-\item the corresponding information criteria are extracted.
-}
-
-The returned matrix includes standard likelihood-based information criteria
-(\code{AIC}, \code{BIC}) and additional criteria reported by the estimation routine
-(\code{LHH_AIC}, \code{LHH_BIC}, \code{ORAIC}, \code{ORBIC}).
-
-Note that the current implementation searches lag values starting from 2 in
-both regimes. Therefore, \code{L_V} should be chosen so that \code{L_V[1] >= 2} and
-\code{L_V[2] >= 2}.
+Evaluate regime-specific lag orders and threshold values for an MRCIVAR
+model over a grid of candidate specifications and return the associated
+information criteria.
 }
 \examples{
 \dontrun{
@@ -106,6 +52,5 @@ mrvar_select__summary(Selm)
 
 }
 \seealso{
-\code{\link{mrcivar_data_m}},
-\code{\link{mrcivar_estimatem1}}
+\code{\link[=mrcivar_data_m]{mrcivar_data_m()}}, \code{\link[=mrcivar_estimatem1]{mrcivar_estimatem1()}}
 }

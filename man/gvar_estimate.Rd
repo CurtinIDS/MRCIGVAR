@@ -2,19 +2,24 @@
 % Please edit documentation in R/estimation.R
 \name{gvar_estimate}
 \alias{gvar_estimate}
-\title{Estimate a Global VAR(p) Model}
+\title{Estimate a GVAR model}
 \usage{
 gvar_estimate(res)
 }
 \arguments{
-\item{res}{a GVAR object that is an output of gvar_data including at least values of m, n, p, type, Y, W, and optionally X.}
+\item{res}{GVAR-style data object, typically the output of \code{gvar_data()},
+containing at least \code{m}, \code{n}, \code{p}, \code{type}, \code{Y}, and \code{W}, and optionally
+exogenous variables.}
 }
 \value{
-a GVAR object with estimated parameter values, AIC, BIC, LH, and the estimated VAR models for each country.
+The input GVAR object augmented with estimated parameter arrays,
+country-specific VAR fits, residual covariance matrix, and summary
+statistics such as AIC, BIC, and log-likelihood values.
 }
 \description{
-This function estimates the parameters of a GVAR(m,n,p) model based on provided data.
-It runs a VAR estimation country by country and pieces the results together to obtain a GVAR.
+Estimates a GVAR system by fitting country-specific VAR models and
+assembling the resulting domestic and foreign coefficients into the stacked
+global representation.
 }
 \examples{
 \dontrun{

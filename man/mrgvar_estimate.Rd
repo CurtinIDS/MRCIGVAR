@@ -2,18 +2,21 @@
 % Please edit documentation in R/estimation.R
 \name{mrgvar_estimate}
 \alias{mrgvar_estimate}
-\title{This function estimates the parameters of a specified MRGVAR(m,n,p,S) model based on provided data.}
+\title{Estimate a multi-regime GVAR model}
 \usage{
 mrgvar_estimate(res)
 }
 \arguments{
-\item{res}{: an MRGVAR object which is an output of MRGVARData.}
+\item{res}{MRGVAR-style data object, typically the output of \code{mrgvar_data()}.}
 }
 \value{
-res  : an MRGVAR object with estimated parameters and test statistics.
+The input MRGVAR object augmented with estimated parameters and test
+statistics.
 }
 \description{
-This function estimates the parameters of a specified MRGVAR(m,n,p,S) model based on provided data.
+Estimates the parameters of an MRGVAR system from supplied data and returns
+the fitted multi-regime global VAR together with summary statistics and
+regime-specific outputs.
 }
 \examples{
 \dontrun{

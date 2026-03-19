@@ -2,26 +2,22 @@
 % Please edit documentation in R/utils.R
 \name{b2_cib}
 \alias{b2_cib}
-\title{Convert VAR Coefficients to Error Correction Form}
+\title{Convert VAR coefficients to error-correction form}
 \usage{
 b2_cib(B)
 }
 \arguments{
-\item{B}{an (m,m,L) array containing the coefficients of the level VAR.}
+\item{B}{Three-dimensional array of VAR coefficients with dimensions \verb{(m, m, L)}.}
 }
 \value{
-A list containing three components.
-\itemize{
-\item CIB        : the coefficients matrix of the error correction form
-\item alpha	     : the adjustment coefficients
-\item beta       : the cointegration vectors
-\item sm         : the discrepancy between the selected alpha beta and CIB.
-}
+A list containing the error-correction coefficients \code{CIB}, the
+adjustment matrix \code{alpha}, the cointegration matrix \code{beta}, and the fit
+discrepancy \code{sm}.
 }
 \description{
-This function transforms the coefficients of a level VAR model into the corresponding
-error correction form. It computes the adjustment coefficients, cointegration vectors,
-and the discrepancy between the selected alpha, beta, and CIB.
+Transform a level VAR coefficient array into its error-correction
+representation and recover the associated adjustment and cointegration
+matrices.
 }
 \examples{
 # Example usage of b2_cib function

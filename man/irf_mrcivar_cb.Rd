@@ -2,7 +2,7 @@
 % Please edit documentation in R/irf.R
 \name{irf_mrcivar_cb}
 \alias{irf_mrcivar_cb}
-\title{Generate Impulse Response Functions with Confidence Bands for MRCIVAR Models}
+\title{Compute MRCIVAR impulse responses with confidence bands}
 \usage{
 irf_mrcivar_cb(
   res_e,
@@ -16,29 +16,34 @@ irf_mrcivar_cb(
 )
 }
 \arguments{
-\item{res_e}{an object of MRCIVAR as output of mrcivar_estimatem1}
+\item{res_e}{A fitted MRCIVAR object, typically returned by
+\code{mrcivar_estimatem1()}.}
 
-\item{nstep}{the length of impulse response function}
+\item{nstep}{Integer scalar giving the number of IRF horizons.}
 
-\item{irf}{types of the impulse response function c("gen","chol","chol1","gen1","comb1"), gen for GIRF, gen1 for GIRF with unit impulse, chol Cholezky decomposition, chol1 Cholezky decomposition with unit impulse, comb1 concerted action with a one unit impulse.}
+\item{irf}{Character string specifying the IRF type. Supported values are
+\code{"gen"}, \code{"chol"}, \code{"chol1"}, \code{"gen1"}, and \code{"comb1"}.}
 
-\item{runs}{number of bootstrap runs to generate the confidence bands}
+\item{runs}{Integer scalar giving the number of bootstrap replications.}
 
-\item{comb}{a vector specify the concerted action in policy-simulation impulse response function}
+\item{comb}{Numeric vector defining a combined or concerted-action shock.}
 
-\item{G}{the matrix used in the permanent and transitory decomposition}
+\item{G}{Optional transformation matrix used in permanent-transitory
+decompositions.}
 
-\item{smat}{an explicit decomposition matrix that defines a structural shock}
+\item{smat}{Optional explicit shock-decomposition matrix.}
 
-\item{conf}{a vector of the tail probabilities of the confidence interval}
+\item{conf}{Numeric vector of tail probabilities used to form the bootstrap
+confidence interval.}
 }
 \value{
-a list containing impulse response functions with confidence bands for both regimes and the bootstrap parameters
+A list whose first two elements are four-dimensional arrays
+containing the point estimate and confidence bounds for regimes 1 and 2.
+Remaining elements store bootstrap draws of model quantities.
 }
 \description{
-This function computes the impulse response functions (IRFs) of an estimated MRCIVAR model,
-providing confidence bands through bootstrap methods. It allows for various types of IRFs
-and can handle different configurations of shocks and responses across multiple regimes.
+Compute impulse response functions (IRFs) for an estimated MRCIVAR model and
+bootstrap confidence bands for each regime.
 }
 \examples{
 n = 10

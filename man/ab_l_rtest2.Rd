@@ -2,7 +2,7 @@
 % Please edit documentation in R/constraints.R
 \name{ab_l_rtest2}
 \alias{ab_l_rtest2}
-\title{This function runs a test in cointegration space and provides an estimation of restricted alpha and beta.}
+\title{Run restricted Johansen testing with linear constraints}
 \usage{
 ab_l_rtest2(
   y,
@@ -19,29 +19,49 @@ ab_l_rtest2(
 )
 }
 \arguments{
-\item{y}{the endogenous variables}
+\item{y}{Numeric matrix of endogenous variables.}
 
-\item{x}{the exogenous variables}
+\item{x}{Optional matrix of exogenous variables.}
 
-\item{model}{Types of the deterministic specification}
+\item{model}{Character string describing the deterministic specification.
+Supported values are \code{"I"}, \code{"II"}, \code{"III"}, \code{"IV"}, and \code{"V"}.}
 
-\item{bnorm}{normalization of the cointegration vectors}
+\item{bnorm}{Character string specifying the normalization rule for the
+cointegration vectors. Supported values are \code{"1"} and \code{"2"}.}
 
-\item{type}{types of returns}
+\item{type}{Character string specifying whether the Johansen output is based
+on \code{"eigen"} or \code{"trace"} statistics.}
 
-\item{p}{Lags of the CIVAR model}
+\item{p}{Integer lag order of the CIVAR model.}
 
-\item{r}{the cointegration rank}
+\item{r}{Integer cointegration rank.}
 
-\item{q}{the significance level}
+\item{q}{Significance level used for the Johansen critical values. Supported
+values are \code{0.9}, \code{0.95}, and \code{0.99}.}
 
-\item{H}{restriction matrix of beta}
+\item{H}{Restriction matrix for \code{beta}.}
 
-\item{h}{restriction vector of beta}
+\item{h}{Restriction vector for \code{beta}.}
 
-\item{G}{restriction matrix of alpha}
+\item{G}{Restriction matrix for \code{alpha}.}
+}
+\value{
+A list containing the Johansen test output, unrestricted VECM fit,
+restricted \code{alpha} and \code{beta}, short-run coefficients, likelihood-ratio
+statistic, and convergence error.
 }
 \description{
-This function runs a test in cointegration space and provides an estimation of restricted alpha and beta.
+Performs Johansen-style cointegration testing and estimation under linear
+restrictions on the cointegration vectors and adjustment coefficients, and
+returns both unrestricted and restricted CIVAR quantities.
+}
+\details{
+The restriction system is
+\deqn{vec(\alpha') = G \psi, \quad vec(\beta) = H \phi + h.}
+
+The function first builds the Johansen regression objects implied by the
+deterministic specification, computes the unrestricted cointegration
+quantities, and then iterates to obtain restricted maximum-likelihood
+estimates of \code{alpha} and \code{beta}.
 }
 \keyword{internal}

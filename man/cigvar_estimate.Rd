@@ -2,20 +2,24 @@
 % Please edit documentation in R/estimation.R
 \name{cigvar_estimate}
 \alias{cigvar_estimate}
-\title{This function estimates the parameters of a CIGVAR(m,n,p) object based on provided data.
-It runs a VECM estimation country/unit by country/unit under a given cointegration rank and pieces the results together to obtain a CIGVAR.}
+\title{Estimate a cointegrated GVAR model}
 \usage{
 cigvar_estimate(res)
 }
 \arguments{
-\item{res}{a CIGVAR object of an output of cigvar_data including at least values of m,n,p,type,Y,crk and optionally X.}
+\item{res}{CIGVAR-style data object, typically the output of \code{cigvar_data()},
+containing at least \code{m}, \code{n}, \code{p}, \code{type}, \code{Y}, and \code{crk}, and optionally
+exogenous variables and common-factor objects.}
 }
 \value{
-a CIGVAR object with estimated parameter values, AIC, BIC and LH
+The input CIGVAR object augmented with estimated coefficient arrays,
+residual covariance matrix, country-specific VECM fits, and summary
+statistics such as AIC, BIC, and log-likelihood values.
 }
 \description{
-This function estimates the parameters of a CIGVAR(m,n,p) object based on provided data.
-It runs a VECM estimation country/unit by country/unit under a given cointegration rank and pieces the results together to obtain a CIGVAR.
+Estimates the parameters of a CIGVAR object by fitting country-specific
+VECM representations under the supplied cointegration ranks and combining the
+results into a stacked cointegrated GVAR system.
 }
 \examples{
 
