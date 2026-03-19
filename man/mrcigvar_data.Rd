@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_input.R
 \name{mrcigvar_data}
 \alias{mrcigvar_data}
-\title{This function generates data from an multi-regime cointegrated global VAR process and returns an MRCIGVAR(m,n,p,S) object that is a list containing the data and the parameters used in the MRCIGVAR(m,n,p,S) process.}
+\title{Generate synthetic data from a multi-regime cointegrated GVAR model}
 \usage{
 mrcigvar_data(
   m,
@@ -100,7 +100,9 @@ mrcigvar_data(
 }
 }
 \description{
-This function generates data from an multi-regime cointegrated global VAR process and returns an MRCIGVAR(m,n,p,S) object that is a list containing the data and the parameters used in the MRCIGVAR(m,n,p,S) process.
+Simulates a multi-regime cointegrated GVAR process and returns the generated
+data together with the regime-specific model components used to construct the
+MRCIGVAR system.
 }
 \examples{
 m = 3

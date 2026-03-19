@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_input.R
 \name{mrvar_data}
 \alias{mrvar_data}
-\title{This function generates data from an multi-regime stationary VAR(p) process and returns an MRVAR(n,p,S) object that is a list containing data and the parameters used in the MRVAR(n,p,S) process.}
+\title{Generate synthetic data from a multi-regime VAR model}
 \usage{
 mrvar_data(
   n,
@@ -67,7 +67,8 @@ mrvar_data(
 an MRVAR(n,p,S) object that is a list containing the generated data, the used parameters and the exogenous variables.
 }
 \description{
-This function generates data from an multi-regime stationary VAR(p) process and returns an MRVAR(n,p,S) object that is a list containing data and the parameters used in the MRVAR(n,p,S) process.
+Simulates a multi-regime stationary VAR process and returns the generated
+data together with the regime-specific parameters used in the MRVAR system.
 }
 \examples{
 p = matrix(c(3,3,0,0),2,2)

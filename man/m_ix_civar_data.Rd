@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_input.R
 \name{m_ix_civar_data}
 \alias{m_ix_civar_data}
-\title{This function generates and estimates a mixed VECM with I(0) and I(1) variables}
+\title{Generate and estimate a mixed I(0)/I(1) CIVAR model}
 \usage{
 m_ix_civar_data(
   n,
@@ -21,37 +21,47 @@ m_ix_civar_data(
 )
 }
 \arguments{
-\item{n}{: dimension of the mixed CIVAR}
+\item{n}{Integer. Dimension of the mixed CIVAR system.}
 
-\item{p}{: lag of the mixed CIVAR}
+\item{p}{Integer. Lag order.}
 
-\item{T}{: number of observations or length of the generated data}
+\item{T}{Integer. Number of observations.}
 
-\item{r}{: number of unit roots in the joint CIVAR}
+\item{r}{Integer. Number of unit-root components in the joint system.}
 
-\item{k}{: number of I(0) variables}
+\item{k}{Integer. Number of stationary, \code{I(0)}, variables.}
 
-\item{type}{: types of the deterministic components in the conditional CIVAR}
+\item{type}{Character string describing the deterministic specification.}
 
-\item{Bo}{: coefficient matrix of the mixed CIVAR}
+\item{Bo}{Optional coefficient array for the underlying mixed VAR.}
 
-\item{Y}{: data of the mixed CIVAR}
+\item{Y}{Optional generated data matrix to use in place of the internally
+simulated series.}
 
-\item{X}{: data of the exogenous variables}
+\item{X}{Optional exogenous-variable matrix. The current implementation
+rebuilds this internally from the simulated process.}
 
-\item{D}{: transformation matrix to mix the I(0) and I(1) components}
+\item{D}{Optional transformation matrix used to mix the \code{I(0)} and \code{I(1)}
+components.}
 
-\item{Go}{: pre-loaded selection matrix}
+\item{Go}{Optional pre-specified selection matrix for the final restriction
+test.}
 
-\item{B}{: coefficient matrix of the mixed CIVAR}
+\item{B}{Optional coefficient array for the transformed CIVAR system.}
 
-\item{Sigma}{: covariance matrix of the residuals}
+\item{Sigma}{Optional covariance matrix of the innovations.}
 }
 \value{
-a list contains estimation and test results of the mixed VECM
+A list containing the transformation matrix \code{D}, the original
+coefficient array \code{Bo}, the generated data \code{Y}, three restriction-test
+results \code{AABtest}, \code{ABtest}, and \code{GABtest}, the unrestricted and data
+objects \code{res_e} and \code{res_d}, the corresponding p-values \code{p-value_A},
+\code{p-value_E}, and \code{p-value_W}, and the number of stationary variables \code{k}.
 }
 \description{
-This function generates and estimates a mixed VECM with I(0) and I(1) variables
+Builds a synthetic system that mixes integrated and stationary components,
+estimates the implied CIVAR model, and evaluates several restriction tests
+used for the mixed VECM specification.
 }
 \examples{
 

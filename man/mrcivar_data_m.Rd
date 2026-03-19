@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_input.R
 \name{mrcivar_data_m}
 \alias{mrcivar_data_m}
-\title{This function generates data from an multi-regime cointegrated VAR(p) process with identical cointegration relations and different adjustment speeds and returns a MRCIVAR which is a list containing data and parameters used in the multi regime cointegrated VAR(p) process.}
+\title{Generate synthetic data from a multi-regime CIVAR model}
 \usage{
 mrcivar_data_m(
   n = 2,
@@ -72,7 +72,9 @@ mrcivar_data_m(
 An MRCIVAR object containing the generated data, the used parameters, and the exogenous variables.
 }
 \description{
-This function generates data from an multi-regime cointegrated VAR(p) process with identical cointegration relations and different adjustment speeds and returns a MRCIVAR which is a list containing data and parameters used in the multi regime cointegrated VAR(p) process.
+Simulates a multi-regime cointegrated VAR process with shared
+cointegration relations and regime-specific adjustment dynamics, and returns
+the generated data together with the model inputs.
 }
 \examples{
 Sigma = 1:(4*4*2)

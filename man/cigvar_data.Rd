@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_input.R
 \name{cigvar_data}
 \alias{cigvar_data}
-\title{This function generates data from a cointegrated global VAR process and returns an CIGVAR(m,n,p) object that is a list containing data and parameters used in the CIGVAR(m,n,p) process.}
+\title{Generate synthetic data from a cointegrated GVAR model}
 \usage{
 cigvar_data(
   m,
@@ -27,53 +27,72 @@ cigvar_data(
 )
 }
 \arguments{
-\item{m}{: number of variables in each country/unit}
+\item{m}{Integer. Number of endogenous variables in each unit.}
 
-\item{n}{: number of countries/units}
+\item{n}{Integer. Number of units.}
 
-\item{p}{: an (n x 3) matrix, each raw specifies the lag length of the domestic variables, the foreign variables and the number of the exogenous variables.}
+\item{p}{Numeric matrix with \code{n} rows and three columns. For each unit,
+\code{p[,1]} is the domestic lag order, \code{p[,2]} is the foreign lag order, and
+\code{p[,3]} is the number of exogenous regressors.}
 
-\item{T}{: number of observations.
+\item{T}{Integer. Number of observations to generate.}
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{         (m,n,p,T) are parameters which must be provided.
-}\if{html}{\out{</div>}}}
+\item{W}{Optional \verb{n x n} weighting matrix. Element \code{W[i, j]} is the weight
+of unit \code{j} in the foreign block for unit \code{i}. The diagonal is expected to
+be zero. If omitted, equal off-diagonal weights are used.}
 
-\item{W}{: an (n x n) weighting matrix. w_ij is the weight of foreign country j in the foreign variables of i-th country diag(W)=0}
+\item{r_npo}{Optional array of dimension \verb{m x max(p[,1]) x n} containing the
+roots used to construct the domestic country VARs. If omitted, the
+function generates default roots with one unit root in each unit.}
 
-\item{r_npo}{: an (m, p, n) array collecting the roots of the characteristic functions in the lag operator of the country VAR. The number of ones in each ith row of r_npo is the number of unit roots i-th country/unit.}
+\item{Ao}{Optional array of foreign-variable coefficients with dimension
+\verb{m x m x Pmax x n}, where \code{Pmax = max(p[,1:2])}.}
 
-\item{Ao}{: an (m, m, p, n) array collecting the  coefficients of foreign variables.}
+\item{Bo}{Optional array of domestic coefficient matrices with dimension
+\verb{m x m x Pmax x n}.}
 
-\item{Bo}{: an (m, m, p, n) array collecting the  coefficients of domestic variables.}
+\item{Co}{Optional coefficient array for deterministic terms or exogenous
+regressors. Its interpretation depends on \code{type}.}
 
-\item{Co}{: an (m , k+1, n) array collecting the coefficients of the deterministic components of the n countries.}
+\item{Uo}{Optional innovation matrix of dimension \verb{T x (m*n)}.}
 
-\item{Uo}{: an (T x mn) matrix of the temporally independent innovation processes}
+\item{Sigmao}{Optional covariance matrix of dimension \verb{(m*n) x (m*n)} for
+the innovations in the stacked system.}
 
-\item{Sigmao}{: (mn x mn) matrix of the covariance matrix of the CIGVAR(m,n,p)
-(W,r_npo,Ao,Bo,Uo,Sigmao) if not provided, they will be generated randomly. The default assumption is one unit root in one country. Hence m-1 cointegration relations in each country.}
+\item{type}{Character string specifying the deterministic specification.
+Supported values are \code{"none"}, \code{"const"}, \code{"exog0"}, and \code{"exog1"}.}
 
-\item{type}{: deterministic component "const", "none", "exog0", and "exog1" are four options}
+\item{X}{Optional array of stationary exogenous variables with dimension
+\verb{T x k x n}.}
 
-\item{X}{: a (T x k x n) array of exogenous stationary variables.}
+\item{mu}{Optional unconditional mean array used when \code{type = "const"}. It
+has dimension \verb{m x 1 x n}.}
 
-\item{mu}{: if type = "const" mu has the same dimension as Co. is an muV is nm vector of the means of the time series in the system}
+\item{DFYflag}{Numeric flag controlling whether foreign variables enter the
+cointegration space. \code{0} excludes them and \code{1} includes them.}
 
-\item{DFYflag}{: DFYflag = 0 implies foreign variables are not in the cointegration space. DFYflag = 1 allows foreign variables enter the cointegration relation.}
+\item{crk}{Optional length-\code{n} vector of country-specific cointegration
+ranks.}
 
-\item{crk}{: n vector containing the cointegration rank in each country/unit. crk is to specified for estimation of parameters.}
+\item{Ncommfakt}{Integer. Number of common stochastic factors to append to
+the system.}
 
-\item{Ncommfakt}{: number of common exogenous stochastic factors}
+\item{A}{Optional transformation matrix used when common factors are added.}
 
-\item{A}{: a transformation matrix that adds the common exogenous factors to the system.}
-
-\item{uz}{: innovations of the exogenous common factors}
+\item{uz}{Optional innovations for the common factors.}
 }
 \value{
-a CIGVAR object containing the generated data, the parameters used and the exogenous variables.
+A list with the generated data and simulation inputs, including the
+stacked series \code{Y}, exogenous variables \code{X}, innovations \code{Uo}, coefficient
+arrays \code{G}, \code{Ao}, \code{Bo}, and \code{Co}, the weighting matrix \code{W}, the covariance
+matrix \code{Sigmao}, common-factor objects \code{GC}, \code{uz}, \code{Z}, \code{A}, \code{Do}, and the
+metadata fields \code{m}, \code{n}, \code{p}, \code{mu}, \code{check}, \code{type}, \code{crk}, \code{Ct},
+\code{DFYflag}, and \code{Ncommfakt}.
 }
 \description{
-This function generates data from a cointegrated global VAR process and returns an CIGVAR(m,n,p) object that is a list containing data and parameters used in the CIGVAR(m,n,p) process.
+Simulates a cointegrated global VAR for \code{n} units with \code{m} endogenous
+variables per unit and returns the generated series together with the model
+components used to build the process.
 }
 \examples{
 n = 5

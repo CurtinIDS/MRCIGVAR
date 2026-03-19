@@ -242,8 +242,8 @@ irf_CIVAR_CB <- function(...) {
 
 # Legacy alias for irf_GloabalResponse_CB()
 irf_GloabalResponse_CB <- function(...) {
-  .Deprecated(new = "irf_gloabal_response_cb")
-  irf_gloabal_response_cb(...)
+  .Deprecated(new = "irf_global_response_cb")
+  irf_global_response_cb(...)
 }
 
 # Legacy alias for IRF_graph()

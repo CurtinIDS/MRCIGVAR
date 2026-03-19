@@ -338,8 +338,8 @@ b2_cib <- function (B) {
 #'
 #' @return A list containing three components:
 #' \itemize{
-#'   \item B: the coefficient matrices of the domestic variables (m x m x P[1])
-#'   \item A: the coefficient matrices of the foreign variables (m x mx x P[2])
+#'   \item B: the coefficient matrices of the domestic variables (m x m x `P[1]`)
+#'   \item A: the coefficient matrices of the foreign variables (m x mx x `P[2]`)
 #'   \item C: the coefficient matrices of the deterministic components (m x 1)
 #' }
 #'
@@ -1840,13 +1840,66 @@ bo_ao_ws2_gs <- function(Bo, Ao, W, m, n, p, state) {
 
 
 
+#' Extract the active exogenous design matrix across states
 #'
-#' @param X The data matrix of exogenous variables
+#' Extracts a single exogenous data matrix from a state-dependent exogenous
+#' variable array by selecting the state that contains the largest number of
+#' active, non-zero exogenous variable columns.
 #'
-#' @return An array of containing exogenous data
+#' This helper is intended for Markov regime-switching VAR-type models where
+#' exogenous variables may be stored in a three-dimensional array with separate
+#' slices for each state, and some states may contain padded zero columns.
+#' The function identifies the state with the richest exogenous specification
+#' and returns only the corresponding non-zero block of exogenous data.
+#'
+#' @param X A three-dimensional numeric array of exogenous variables with
+#'   dimensions `T x Nx x S`, where:
+#'   \describe{
+#'     \item{`T`}{number of time observations,}
+#'     \item{`Nx`}{maximum number of exogenous variables across states,}
+#'     \item{`S`}{number of states or regimes.}
+#'   }
+#'   Each slice `X[,,s]` contains the exogenous data for state `s`. Columns that
+#'   are not used in a given state are assumed to be zero-filled.
+#'
+#' @details
+#' For each state `s`, the function counts how many columns in `X[,,s]` contain
+#' at least one non-zero value. It then finds the state with the largest such
+#' count and returns the first `ss` columns from that state, where `ss` is the
+#' maximum number of active exogenous variables detected across all states.
+#'
+#' This is useful when a model stores state-dependent exogenous regressors in a
+#' padded array and a single representative exogenous matrix is needed for
+#' downstream calculations or reconstruction of the model design matrix.
+#'
+#' If multiple states have the same maximum number of active columns, the first
+#' such state encountered is used.
+#'
+#' @return A numeric matrix of dimension `T x ss` containing the exogenous data
+#'   extracted from the state with the largest number of active exogenous
+#'   variables, where `ss` is the maximum number of non-zero columns across
+#'   states.
+#'
+#' @examples
+#' \dontrun{
+#' ## T = 5 observations, Nx = 4 possible exogenous variables, S = 2 states
+#' X = array(0, dim = c(5, 4, 2))
+#'
+#' ## state 1 uses two exogenous variables
+#' X[, 1, 1] = rnorm(5)
+#' X[, 2, 1] = rnorm(5)
+#'
+#' ## state 2 uses three exogenous variables
+#' X[, 1, 2] = rnorm(5)
+#' X[, 2, 2] = rnorm(5)
+#' X[, 3, 2] = rnorm(5)
+#'
+#' XX = bind_exogenous_by_state(X)
+#' dim(XX)   ## 5 x 3
+#' }
+#'
 #' @export
 #' @keywords internal
-#'
 bind_exogenous_by_state = function(X) {
 ### X: the T x Nx x S array collecting the exogenous variables in MRVAR with state dependent exog variables
 	S  = dim(X)[3]
@@ -1865,18 +1918,115 @@ bind_exogenous_by_state = function(X) {
 
 
 
+#' Construct a shock transformation matrix for impulse response analysis
 #'
-#' @param B The coefficient matrix of a VAR object
-#' @param sigma The covariance matrix of a VAR object
-#' @param irf Types of impulse response functions
-#' @param comb Types of concerted policy actions
-#' @param G The matrix used in the permanent and transitory decomposition
-#' @param smat An explicit decomposition matrix that defines a structural shock.
+#' Builds the shock transformation matrix used to generate impulse response
+#' functions (IRFs) under different identification schemes in a VAR-type model.
+#' Depending on the selected `irf` option, the function returns a matrix that
+#' maps reduced-form innovations into orthogonalised, generalised, concerted,
+#' or user-defined structural shocks.
 #'
-#' @return The transformation matrix for a shock decomposition
+#' This is an internal helper for IRF computation. It supports standard
+#' Cholesky-based identification, generalised impulse responses, normalised
+#' variants, concerted policy shocks, linear combinations of shocks, and an
+#' explicitly supplied structural shock matrix.
+#'
+#' @param B A numeric coefficient array of a VAR object, typically with
+#'   dimensions `n x n x p`, where `n` is the number of endogenous variables
+#'   and `p` is the lag order. Only the variable dimension is used here to
+#'   validate compatibility with the shock matrix.
+#' @param sigma A numeric covariance matrix of the reduced-form residuals, with
+#'   dimension `n x n`.
+#' @param irf Character string specifying the type of shock transformation to
+#'   construct. Supported values include:
+#'   \describe{
+#'     \item{`"gen"`}{generalised impulse responses, scaled by residual standard
+#'     deviations.}
+#'     \item{`"chol"`}{standard Cholesky decomposition of `sigma`.}
+#'     \item{`"chol1"`}{column-normalised Cholesky decomposition.}
+#'     \item{`"gen1"`}{generalised impulse responses scaled by residual
+#'     variances.}
+#'     \item{`"genN1"`}{negative version of `"gen1"`.}
+#'     \item{`"comb"`}{linear combinations of shocks, scaled to unit variance.}
+#'     \item{`"comb1"`}{linear combinations of shocks, scaled by variance
+#'     rather than standard deviation.}
+#'     \item{`"smat"`}{user-supplied transformation matrix `smat`.}
+#'     \item{`"concerts1"`}{concerted shock based on `comb`, scaled by
+#'     variances.}
+#'     \item{`"concerts0"`}{concerted shock based on `comb`, scaled by standard
+#'     deviations.}
+#'     \item{`"concertc"`}{concerted conditional shock using `comb` and
+#'     `invi()`.}
+#'     \item{`"PTdecomp"`}{permanent-transitory decomposition based on `G`.}
+#'   }
+#' @param comb Optional numeric matrix defining linear combinations or
+#'   concerted policy actions. This is required when `irf` is one of
+#'   `"comb"`, `"comb1"`, `"concerts1"`, `"concerts0"`, or `"concertc"`.
+#' @param G Optional numeric matrix used in the permanent-transitory
+#'   decomposition when `irf = "PTdecomp"`. The transformation is based on the
+#'   Cholesky decomposition of `G %*% sigma %*% t(G)`.
+#' @param smat Optional numeric matrix giving an explicit structural shock
+#'   decomposition. This is only used when `irf = "smat"`.
+#'
+#' @details
+#' The function returns a transformation matrix `smat` that determines how a
+#' shock is defined before the impulse responses are propagated through the VAR.
+#'
+#' Different options correspond to different identification strategies:
+#' \itemize{
+#'   \item \strong{Cholesky-based IRFs}: `"chol"` and `"chol1"` use a recursive
+#'   ordering implied by the covariance matrix `sigma`.
+#'   \item \strong{Generalised IRFs}: `"gen"`, `"gen1"`, and `"genN1"` do not
+#'   require orthogonalisation through variable ordering in the same way as
+#'   Cholesky IRFs.
+#'   \item \strong{Combined or concerted shocks}: `"comb"`, `"comb1"`,
+#'   `"concerts1"`, `"concerts0"`, and `"concertc"` allow shocks to be defined
+#'   as user-specified linear combinations of the reduced-form innovations.
+#'   \item \strong{User-defined structural shocks}: `"smat"` directly uses the
+#'   matrix supplied in `smat`.
+#'   \item \strong{Permanent-transitory decomposition}: `"PTdecomp"` uses `G`
+#'   to transform the covariance structure before decomposition.
+#' }
+#'
+#' For the `"comb"` and `"comb1"` options, the function rescales the combined
+#' shocks using the diagonal elements of `t(comb) %*% sigma %*% comb`.
+#'
+#' A dimension check is performed at the end to ensure that the number of shock
+#' columns in `smat` matches the number of variables in `B`.
+#'
+#' @return A numeric matrix `smat` defining the shock transformation used for
+#'   the requested impulse response identification scheme.
+#'
+#' @seealso
+#' \code{\link{chol}}, \code{\link{diag}}
+#'
+#' @examples
+#' \dontrun{
+#' ## Example covariance matrix
+#' sigma = matrix(c(1.0, 0.3,
+#'                  0.3, 2.0), 2, 2)
+#'
+#' ## Example VAR coefficient array
+#' B = array(0, dim = c(2, 2, 1))
+#'
+#' ## Cholesky identification
+#' u1(B, sigma, irf = "chol")
+#'
+#' ## Generalised identification
+#' u1(B, sigma, irf = "gen")
+#'
+#' ## Combined shock affecting both variables
+#' comb = matrix(c(1, 1,
+#'                 0, 1), 2, 2)
+#' u1(B, sigma, irf = "comb", comb = comb)
+#'
+#' ## User-specified structural matrix
+#' smat = diag(2)
+#' u1(B, sigma, irf = "smat", smat = smat)
+#' }
+#'
 #' @export
 #' @keywords internal
-#'
 u1=function(B,sigma,irf = c("gen", "chol", "chol1","gen1","genN1","comb", "comb1","smat","concerts1","concerts0","concertc"),comb,G=NA,smat=NA)
   {
     ##-----debug--------
@@ -2168,7 +2318,7 @@ sample_n_out_of_t <- function(N, T) {
 #' @examples
 #' \dontrun{
 #' # Univariate example
-#' y <- tseries::ts(1:20)
+#' y <- stats::ts(1:20)
 #' YY <- embed_ts(y, p = 3)
 #' dim(YY)
 #'
@@ -2180,7 +2330,7 @@ sample_n_out_of_t <- function(N, T) {
 #'
 #' @export
 #' @keywords internal
-embed_ts <- function(y=tseries::ts(c(1:20)), p=3, prefix="") {
+embed_ts <- function(y=stats::ts(c(1:20)), p=3, prefix="") {
   YY = stats::embed(y,p)
   if (!is.null(colnames(y))) {
     strc = colnames(y)

@@ -2,36 +2,46 @@
 % Please edit documentation in R/data_input.R
 \name{ccivar_data}
 \alias{ccivar_data}
-\title{The function generates data from a conditional cointegrated VAR(p)}
+\title{Generate synthetic data from a conditional CIVAR model}
 \usage{
 ccivar_data(n1, n2, crk, p, T, type, Bc = NA)
 }
 \arguments{
-\item{n1}{dimension of the conditional cointegrated process}
+\item{n1}{Integer. Dimension of the conditional cointegrated block.}
 
-\item{n2}{dimension of the conditioning variables}
+\item{n2}{Integer. Dimension of the conditioning block.}
 
-\item{crk}{the cointegration rank}
+\item{crk}{Integer. Cointegration rank of the joint system.}
 
-\item{p}{lag}
+\item{p}{Integer. Lag order.}
 
-\item{T}{number of observations}
+\item{T}{Integer. Number of observations.}
 
-\item{type}{types of the deterministic component. "none" and "const" are two options.}
+\item{type}{Character string specifying the deterministic component. The
+function uses the same conventions as \code{civar_data()}, and is typically used
+with \code{"none"} or \code{"const"}.}
 
-\item{Bc}{Coefficient matrix of the joint cointegration process}
+\item{Bc}{Optional coefficient array for the joint cointegrated process. If
+omitted, a compatible system is generated internally.}
 }
 \value{
-a CCIVAR object which is a list of (n1,n2,p,type,r_np,By,Bx,Cy,Sigma,Y,X,resid,U,check,crk,Bc,Cc)
+A list containing the conditional CIVAR object with dimensions \code{n1}
+and \code{n2}, lag order \code{p}, deterministic specification \code{type}, roots \code{r_np},
+coefficient arrays \code{By} and \code{Bx}, deterministic term \code{Cy}, covariance
+matrix \code{Sigma}, generated dependent data \code{Y}, conditioning data \code{X},
+residuals \code{resid}, innovations \code{U}, diagnostic value \code{check},
+cointegration rank \code{crk}, and the joint-system objects \code{Bc} and \code{Cc}.
 }
 \description{
-The function generates data from a conditional cointegrated VAR(p)
+Constructs a joint CIVAR system, imposes conditional structure on the first
+\code{n1} variables, and returns the simulated dependent block together with the
+conditioning variables and model components.
 }
 \examples{
 
 T = 100
-res_d <- ccivar_data(n1=4,n2=3,crk=3,p=3,T=T,type="const")
-res_e <- cciva_rest(res=res_d)
+res_d <- ccivar_data(n1 = 4, n2 = 3, crk = 3, p = 3, T = T, type = "const")
+res_e <- cciva_rest(res = res_d)
 res_e$Summary
 
 }

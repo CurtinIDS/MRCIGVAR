@@ -2,55 +2,63 @@
 % Please edit documentation in R/data_input.R
 \name{civar_data}
 \alias{civar_data}
-\title{This function generates data from a cointegrated vector autoregressive process CIVAR(p) and returns CIVAR(p) object that is a list containing data and parameters used in the CIVAR(p) process.}
+\title{Generate synthetic data from a CIVAR model}
 \usage{
 civar_data(n, p, T, r_np, A, B, Co, C1, U, Sigma, type, X, mu, Yo, crk)
 }
 \arguments{
-\item{n}{: number of variables}
+\item{n}{Integer. Number of endogenous variables.}
 
-\item{p}{: lag length}
+\item{p}{Integer. Lag order of the CIVAR model.}
 
-\item{T}{: number of observations}
+\item{T}{Integer. Number of observations to generate.}
 
-\item{r_np}{: an (n x p) matrix of roots of the characteristic polynomials of n independent AR(p)-processes. An element 1 in a row implies a unit root process. If the matrix is not provided, it will be generated randomly with one unit root in the first row.}
+\item{r_np}{Optional \verb{n x p} matrix of roots for the characteristic
+polynomials of the underlying independent AR processes. A value of \code{1}
+indicates a unit root. If omitted, roots are generated automatically.}
 
-\item{A}{: an (n x n) full rank transformation matrix that is used to generate correlated a CIVAR(p) from the n independent AR(p) processes with unit roots.}
+\item{A}{Optional full-rank \verb{n x n} transformation matrix used to mix the
+independent component processes into the final CIVAR system.}
 
-\item{B}{: an (n,n,p) array containing the coefficients of the CIVAR(p) process. If B is not given, it will be calculated out of r_np and A.}
+\item{B}{Optional coefficient array of dimension \verb{n x n x p}. If omitted, it
+is constructed from \code{r_np} and \code{A}.}
 
-\item{Co}{: an (n,k+1) matrix containing coefficients of deterministic components in a CIVAR(p) process. For type="none" Co = 0*(1:n), for type="const" Co is an n vector, for type="exog0" Co is a (n,k) matrix, and for type="exog1" Co is an (n,1+k) matrix.}
+\item{Co}{Optional matrix of coefficients for deterministic terms or
+exogenous regressors. Its expected shape depends on \code{type}.}
 
-\item{C1}{: an (n,1) matrix containing coefficients of the trend component. C1 = 0 if there is no trend in the data.}
+\item{C1}{Optional \verb{n x 1} matrix of trend coefficients.}
 
-\item{U}{: residuals, if it is not NA it will be used as input to generate the CIVAR(p)}
+\item{U}{Optional innovation matrix. If supplied, it is used directly to
+generate the process.}
 
-\item{Sigma}{: an n x n covariance matrix of the CIVAR(p)}
+\item{Sigma}{Optional \verb{n x n} covariance matrix of the innovations.}
 
-\item{type}{: types of deterministic components. "none","rconst","const","rtrend", "trend", "exog0" and "exog1" are 7 options
-\itemize{
-\item{none: }{No deterministic component in VECM (Case I)}
-\item{rconst: }{An intercept restricted in the cointegration space (Case II)}
-\item{const: }{An unrestricted intercept (Case III)}
-\item{rtrend: }{An trend component restricted in the cointegration space and an unrestricted intercept in VECM (Case IV)}
-\item{trend: }{An unrestricted trend component and an unretricted intercept in VECM (Case V)}
-\item{exog0: }{Model with exogeneous variable and no deterministic components}
-\item{exog1: }{Model with exogeneous variable and an unrestricted intercept}
-}}
+\item{type}{Character string specifying the deterministic specification.
+Supported values are \code{"none"}, \code{"rconst"}, \code{"const"}, \code{"rtrend"},
+\code{"trend"}, \code{"exog0"}, and \code{"exog1"}.}
 
-\item{X}{: a (T x k) matrix of exogenous variables.}
+\item{X}{Optional \verb{T x k} matrix of exogenous regressors.}
 
-\item{mu}{: an n vector of drifts of the CIVAR(p) process}
+\item{mu}{Optional \verb{n x 1} drift vector used when a constant is present.}
 
-\item{Yo}{: (p x n) matrix of initial values of the process}
+\item{Yo}{Optional matrix of initial values for the untransformed process.}
 
-\item{crk}{: number of cointegration relations. It equals n-r, where r is the number of unit roots.}
+\item{crk}{Optional cointegration rank. It equals \code{n - r}, where \code{r} is the
+number of unit roots.}
 }
 \value{
-An object of CIVAR(p) containing the generated data, the parameters used and the exogenous variables. res = list(n,p,type,r_np,Phi,A,B,Co,Sigma,Y,X,resid,U,Y1,Yo,check)
+A list containing the generated CIVAR object: dimensions \code{n} and
+\code{p}, deterministic specification \code{type}, roots \code{r_np}, AR coefficients
+\code{Phi}, transformation matrix \code{A}, coefficient array \code{B}, deterministic
+terms \code{Co} and \code{C1}, covariance matrix \code{Sigma}, generated data \code{Y},
+exogenous data \code{X}, residuals \code{resid}, innovations \code{U}, latent series
+\code{Y1}, initial path \code{Yo}, diagnostic value \code{check}, and cointegration rank
+\code{crk}.
 }
 \description{
-This function generates data from a cointegrated vector autoregressive process CIVAR(p) and returns CIVAR(p) object that is a list containing data and parameters used in the CIVAR(p) process.
+Simulates a cointegrated VAR of order \code{p} and returns the generated series,
+coefficient matrices, deterministic terms, and auxiliary quantities used in
+the construction.
 }
 \examples{
 res_d = civar_data(n=2,p=2,T=100,type="const")

@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_input.R
 \name{gvar_data}
 \alias{gvar_data}
-\title{Generate GVAR synthetic data}
+\title{Generate synthetic data from a GVAR model}
 \usage{
 gvar_data(
   m,
@@ -21,21 +21,181 @@ gvar_data(
   mu = NA
 )
 }
+\arguments{
+\item{m}{Integer. Number of endogenous variables in each cross-sectional
+unit.}
+
+\item{n}{Integer. Number of cross-sectional units.}
+
+\item{p}{Matrix of lag orders. A numeric matrix with \code{n} rows and three
+columns:
+\describe{
+\item{\code{p[,1]}}{lag order of domestic variables for each unit.}
+\item{\code{p[,2]}}{lag order of foreign variables for each unit.}
+\item{\code{p[,3]}}{number of exogenous regressors used for each unit. This
+column is only relevant when \code{type} is \code{"exog0"} or \code{"exog1"}.}
+}}
+
+\item{T}{Integer. Sample size.}
+
+\item{W}{Optional weighting matrix of dimension \verb{n x n}. This matrix governs
+cross-unit dependence. If omitted, a default matrix is created with zero
+diagonal elements and equal off-diagonal weights \code{1/(n-1)}.}
+
+\item{r_npo}{Optional array of non-zero domestic lag indicators returned by
+\code{var_data()}. If \code{Bo} is not supplied, this is generated internally.}
+
+\item{Ao}{Optional array of foreign-variable coefficient matrices with
+dimension \verb{m x m x Pmax x n}, where \code{Pmax = max(p[,1:2])}. If omitted,
+random small coefficients are generated for the foreign lags specified by
+\code{p[,2]}.}
+
+\item{Bo}{Optional array of domestic autoregressive coefficient matrices with
+dimension \verb{m x m x Pmax x n}. If omitted, country-specific VAR coefficient
+matrices are generated internally using \code{var_data()}.}
+
+\item{Co}{Optional deterministic or exogenous coefficient array. Its
+interpretation depends on \code{type}:
+\describe{
+\item{\code{"none"}}{ignored and set to zero.}
+\item{\code{"const"}}{an array of dimension \verb{m x 1 x n} containing constant
+terms.}
+\item{\code{"exog0"}}{an array of dimension \verb{m x k x n} in effect, stored as
+\verb{m x (k+1) x n} with the first slice reserved and set to zero. No
+intercept is included.}
+\item{\code{"exog1"}}{an array of dimension \verb{m x (k+1) x n}, where the first
+slice corresponds to the intercept and the remaining slices correspond
+to exogenous regressors.}
+}}
+
+\item{Uo}{Optional innovation matrix of dimension \verb{T x (m*n)}. If omitted,
+innovations are generated from a multivariate normal distribution with
+covariance matrix \code{Sigmao}.}
+
+\item{Sigmao}{Optional covariance matrix of innovations with dimension
+\verb{(m*n) x (m*n)}. If omitted, it is generated internally using \code{var_data()}.}
+
+\item{type}{Character string specifying the deterministic/exogenous
+specification. Supported values are:
+\describe{
+\item{\code{"none"}}{no constant and no exogenous variables.}
+\item{\code{"const"}}{constant term only.}
+\item{\code{"exog0"}}{exogenous regressors only, without intercept.}
+\item{\code{"exog1"}}{exogenous regressors with intercept.}
+}
+If omitted, the default is \code{"none"}.}
+
+\item{X}{Optional exogenous data array used when \code{type = "exog0"} or
+\code{type = "exog1"}. It is expected to have \code{T} rows, \code{k} columns, and \code{n}
+slices, where \code{k} is the number of exogenous variables.}
+
+\item{mu}{Optional unconditional mean array of dimension \verb{m x 1 x n}. This
+is only used when \code{type = "const"}. If \code{Co} is not supplied, \code{mu} can be
+used to construct a compatible constant term.}
+}
+\value{
+A list containing:
+\describe{
+\item{\code{Y}}{Generated endogenous data matrix of dimension \verb{T x (m*n)}.}
+\item{\code{X}}{Exogenous data supplied to the function, or \code{NA} if not used.}
+\item{\code{Uo}}{Innovation matrix of dimension \verb{T x (m*n)}.}
+\item{\code{G}}{Full stacked GVAR coefficient array of dimension
+\verb{(m*n) x (m*n) x Pmax}.}
+\item{\code{Sigmao}}{Innovation covariance matrix.}
+\item{\code{r_npo}}{Indicator array for non-zero domestic lag coefficients.}
+\item{\code{Ao}}{Foreign coefficient array.}
+\item{\code{Bo}}{Domestic coefficient array.}
+\item{\code{Co}}{Constant or exogenous coefficient array.}
+\item{\code{W}}{Cross-unit weighting matrix.}
+\item{\code{m}}{Number of endogenous variables per unit.}
+\item{\code{n}}{Number of cross-sectional units.}
+\item{\code{p}}{Lag specification matrix.}
+\item{\code{mu}}{Unconditional mean array when relevant, otherwise \code{NA}.}
+\item{\code{check}}{Maximum absolute value in \code{Y}, useful as a simple diagnostic
+for explosive simulated paths.}
+\item{\code{type}}{Model specification used in the simulation.}
+}
+}
 \description{
-Creates a GVAR dataset under the package’s model specification.
+Simulates a synthetic dataset from a Global Vector Autoregressive (GVAR)
+model with country-specific lag orders, optional cross-country dependence,
+and optional deterministic or exogenous components. The function can either
+use user-supplied coefficient matrices and innovations or automatically
+generate them when they are not provided.
+}
+\details{
+The model is built for \code{n} cross-sectional units (for example, countries),
+each with \code{m} endogenous variables. Domestic dynamics are controlled by
+\code{Bo}, cross-unit spillovers are controlled by \code{Ao} together with the
+weighting matrix \code{W}, and the innovation covariance structure is controlled
+by \code{Sigmao}. Depending on \code{type}, the generated series may contain no
+deterministic term, a constant term, or exogenous regressors.
+
+The full GVAR coefficient array \code{G} is assembled by combining domestic
+autoregressive coefficients \code{Bo} and weighted foreign coefficients \code{Ao}.
+Domestic blocks are placed on the diagonal of \code{G}, while cross-unit blocks
+are constructed as \code{Ao[,,,i] * W[i,j]} for unit \code{i} receiving spillovers
+from unit \code{j}.
+
+The generated process has the form
+\deqn{
+Y_t = C_t + \sum_{L=1}^{Pmax} G_L Y_{t-L} + U_t,
+}
+where \code{C_t} depends on \code{type}:
+\describe{
+\item{\code{"none"}}{\code{C_t = 0}.}
+\item{\code{"const"}}{\code{C_t} is a time-invariant constant implied by \code{Co} or by
+the supplied unconditional mean \code{mu}.}
+\item{\code{"exog0"}}{\code{C_t} is driven only by exogenous regressors \code{X_t}.}
+\item{\code{"exog1"}}{\code{C_t} is driven by an intercept and exogenous regressors
+\code{X_t}.}
+}
+
+When coefficient matrices are not supplied, the function creates a valid
+synthetic GVAR structure automatically:
+\itemize{
+\item domestic coefficients are generated from \code{var_data()},
+\item foreign coefficients are generated as small random values,
+\item innovations are generated from \code{rnorm_sigma()},
+\item default cross-unit weights are equal for all foreign units.
+}
+
+The recursion starts from the initial values embedded in \code{Uo + Ct}, and the
+autoregressive dynamics are applied from time \code{max(p) + 1} onward.
 }
 \examples{
 \dontrun{
-p = (1:12)*0; dim(p) = c(4,3);p[,1] = 2; p[,2]=1;   p[,3]=1; p[2,2]=2;
-p    ## country-wise lag specification
+p = (1:12) * 0
+dim(p) = c(4, 3)
+p[,1] = 2
+p[,2] = 1
+p[,3] = 1
+p[2,2] = 2
 
-res_d = gvar_data(m=2,n=4,p=p,T=200,type="exog0",X=X)
+## country-wise lag specification
+p
+
+## create synthetic exogenous data
+X = array(rnorm(200 * 1 * 4), dim = c(200, 1, 4))
+
+## simulate data
+res_d = gvar_data(m = 2, n = 4, p = p, T = 200, type = "exog0", X = X)
+
+## estimate the model
 res_e = gvar_estimate(res = res_d)
 res_e$Summary
 
-IRF_CB = irf_gvar_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
+## impulse response with confidence bands
+IRF_CB = irf_gvar_cb(res_e, nstep = 10, comb = NA, irf = "gen",
+                     runs = 200, conf = c(0.05, 0.95))
 dim(IRF_CB)
-IRF_g = plot_irf(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
+
+## plot selected responses
+IRF_g = plot_irf(IRF_CB, Names = NA, response = c(1, 4),
+                 impulse = c(1, 2, 3, 4), ncol = 4)
 }
 
+}
+\seealso{
+\code{\link{var_data}}, \code{\link{rnorm_sigma}}, \code{\link{gvar_estimate}}
 }

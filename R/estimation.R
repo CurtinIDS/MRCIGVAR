@@ -1664,17 +1664,167 @@ mrcivar_estimatem1 <- function (res)
 
 
 
+#' Estimate a restricted MRCIVAR model and perform a likelihood ratio test
 #'
-#' @param res An MRCIVAR object of the output of MRCIGVARDatam
-#' @param H A matrix specifying restrictions on beta
-#' @param h A vector specifying restrictions on beta
-#' @param phi A vector of freely varying parameters in beta
-#' @param G A matrix specifying restrictions on alpha
-#' @param psi A vector of freely varying parameters in alpha
+#' Estimates a restricted Markov regime-switching cointegrated VAR (MRCIVAR)
+#' model under user-specified linear restrictions on the adjustment matrices
+#' (`alpha`) and the cointegration matrix (`beta`). The function fits the
+#' restricted model by maximum likelihood, reconstructs the corresponding VECM
+#' and VAR representation, and computes a likelihood ratio (LR) statistic for
+#' testing the imposed restrictions against the unrestricted model.
 #'
-#' @return A list containing estimated MRVECM under restrictions, restricted parameter, and likelihood test statistic
+#' The restrictions are imposed in the form
+#' \deqn{
+#' \mathrm{vec}(\beta) = H \phi + h
+#' }
+#' and, for each regime \eqn{s},
+#' \deqn{
+#' \mathrm{vec}(\alpha_s^\top) = G_s \psi_s.
+#' }
+#'
+#' This formulation allows the user to test economically meaningful hypotheses,
+#' such as exclusion restrictions, identifying restrictions, weak exogeneity,
+#' or theoretical long-run relations such as purchasing power parity (PPP).
+#'
+#' @param res An object containing the fitted or prepared MRCIVAR system. This
+#'   is typically the output of `MRCIGVARDatam` and must contain the data,
+#'   lag structure, regime information, deterministic specification, and other
+#'   quantities required by `mrcivar_estimatem1()`.
+#' @param H A numeric matrix defining the linear restrictions on the
+#'   cointegration matrix `beta`. The restriction is written as
+#'   `vec(beta) = H %*% phi + h`.
+#' @param h A numeric vector representing the fixed component of the linear
+#'   restrictions on `beta`. Non-zero elements of `h` can be used to impose
+#'   normalisation or other exact restrictions.
+#' @param phi A numeric vector of free parameters in the restricted
+#'   representation of `beta`.
+#' @param G A list of regime-specific restriction matrices for the adjustment
+#'   coefficients. Each element of `G` maps the free parameters in `psi[[s]]`
+#'   to `vec(alpha_s')`. In the current implementation, `G[[1]]` and `G[[2]]`
+#'   correspond to the two regimes.
+#' @param psi A list of regime-specific vectors of free parameters for the
+#'   restricted adjustment matrices. Each `psi[[s]]` contains the unrestricted
+#'   elements implied by `G[[s]]`.
+#'
+#' @details
+#' The function first estimates the unrestricted MRCIVAR model using
+#' `mrcivar_estimatem1()`. It then uses the unrestricted estimates as starting
+#' values to numerically optimise the restricted likelihood via
+#' `stats::nlm()`, using `f_constrained()` as the objective function.
+#'
+#' After optimisation, the restricted `beta` and regime-specific `alpha`
+#' matrices are reconstructed from the estimated free parameters:
+#' \describe{
+#'   \item{Restricted cointegration matrix}{`betaR = H %*% phi + h`}
+#'   \item{Restricted regime 1 adjustment matrix}{`alpha_1 = G[[1]] %*% psi[[1]]`}
+#'   \item{Restricted regime 2 adjustment matrix}{`alpha_2 = G[[2]] %*% psi[[2]]`}
+#' }
+#'
+#' These are then used to rebuild the restricted VECM, recover the implied VAR
+#' coefficient matrices, and compute regime-specific residual covariance
+#' matrices. Finally, an LR statistic is formed from the restricted and
+#' unrestricted regime-specific covariance determinants.
+#'
+#' The function is currently written for a two-regime specification, with
+#' separate adjustment matrices for regime 1 and regime 2.
+#'
+#' Typical uses include:
+#' \itemize{
+#'   \item testing weak exogeneity through zero restrictions on rows of
+#'     `alpha`,
+#'   \item imposing identifying restrictions on `beta`,
+#'   \item testing theory-driven long-run relationships such as PPP,
+#'   \item comparing restricted and unrestricted regime-switching VECM
+#'     specifications.
+#' }
+#'
+#' @return A list with the following components:
+#' \describe{
+#'   \item{`VECMR`}{The restricted VECM estimated by least squares after imposing
+#'   the restricted cointegration relations and adjustment coefficients.}
+#'   \item{`BoR`}{Restricted VAR autoregressive coefficient array implied by the
+#'   restricted VECM.}
+#'   \item{`CoR`}{Restricted deterministic coefficient array implied by the
+#'   restricted VECM. For models without deterministic terms, this may remain
+#'   zero.}
+#'   \item{`sigmaR`}{Regime-specific residual covariance matrices of the
+#'   restricted model.}
+#'   \item{`betaR`}{Restricted estimate of the cointegration matrix `beta`.}
+#'   \item{`alphaR`}{A list containing the restricted regime-specific adjustment
+#'   matrices.}
+#'   \item{`LR`}{Likelihood ratio statistic comparing the restricted and
+#'   unrestricted models.}
+#'   \item{`p_value`}{P-value associated with the LR statistic under the
+#'   asymptotic chi-squared distribution.}
+#'   \item{`LH_P`}{Restricted model log-likelihood value used internally for
+#'   comparison.}
+#'   \item{`code`}{Convergence code returned by `stats::nlm()`.}
+#'   \item{`tst`}{Placeholder for additional test output. In the current
+#'   implementation this is returned as `NA`.}
+#' }
+#'
+#' @section Restriction examples:
+#' \strong{Example 1: Restrictions on `alpha` only (weak exogeneity).}
+#'
+#' Suppose `vec(alpha)` has dimension `45 x 1`, and the first variable is
+#' assumed to be weakly exogenous, so its adjustment coefficients are fixed at
+#' zero. Then:
+#' \itemize{
+#'   \item `G` is a `45 x 40` matrix selecting the unrestricted adjustment
+#'   coefficients,
+#'   \item `psi` is a `40 x 1` vector of free parameters,
+#'   \item `H` is the identity matrix,
+#'   \item `h` is a zero vector,
+#'   \item hence `beta` is left unrestricted.
+#' }
+#'
+#' \strong{Example 2: Restrictions on `beta` only (PPP-type restrictions).}
+#'
+#' Suppose `vec(beta)` has dimension `45 x 1`, but only two elements are freely
+#' estimated under the restriction. Then:
+#' \itemize{
+#'   \item `H` is a `45 x 2` matrix selecting the unrestricted elements,
+#'   \item `phi` is a `2 x 1` vector of free parameters,
+#'   \item `h` contains fixed values implementing normalisation and zero
+#'     restrictions,
+#'   \item `G` is an identity matrix, so `alpha` is unrestricted.
+#' }
+#'
+#' @seealso
+#' \code{\link{mrcivar_estimatem1}},
+#' \code{\link{f_constrained}},
+#' \code{\link{vecm2_va_rm}},
+#' \code{\link{rz_st2_vecm}}
+#'
+#' @examples
+#' \dontrun{
+#' ## Example structure only - the dimensions of H, h, G, phi, and psi
+#' ## must be compatible with the fitted MRCIVAR object.
+#'
+#' ## res should be a valid MRCIVAR data/model object
+#' ## res = MRCIGVARDatam(...)
+#'
+#' ## unrestricted estimation
+#' ## res_u = mrcivar_estimatem1(res)
+#'
+#' ## identity restriction on beta (no restriction)
+#' ## H = diag(length(as.vector(res_u$tst$betaS)))
+#' ## h = rep(0, nrow(H))
+#' ## phi = rep(0, ncol(H))
+#'
+#' ## no restriction on alpha in either regime
+#' ## G = list(diag(length(as.vector(t(res_u$tst$alphaS[[1]])))),
+#' ##          diag(length(as.vector(t(res_u$tst$alphaS[[2]])))))
+#' ## psi = list(rep(0, ncol(G[[1]])), rep(0, ncol(G[[2]])))
+#'
+#' ## restricted estimation and LR test
+#' ## test_r = abc_mrciva_restm(res = res, H = H, h = h,
+#' ##                           phi = phi, G = G, psi = psi)
+#' ## test_r$LR
+#' ## test_r$p_value
+#' }
+#'
 #' @export
-#'
 abc_mrciva_restm <- function(res=res,H=H,h=h,phi=phi,G=G,psi=psi) {
   ###
   ### This function runs a likelihood ratio test of linear restrictions on alpha and beta in a CIVAR model

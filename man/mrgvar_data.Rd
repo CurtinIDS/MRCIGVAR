@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_input.R
 \name{mrgvar_data}
 \alias{mrgvar_data}
-\title{This function generates data from an multi-regime stationary global VAR(p) process and returns an MRGVAR object that is a list containing the generated data and the used parameters.}
+\title{Generate synthetic data from a multi-regime GVAR model}
 \usage{
 mrgvar_data(
   m,
@@ -78,7 +78,9 @@ res_d = list(Y,X,Uo,resid,Go,GDC,Co,Sigmao,TH,St,SV,SESVI,Ao,Bo,check,type,m,n,p
 }
 }
 \description{
-This function generates data from an multi-regime stationary global VAR(p) process and returns an MRGVAR object that is a list containing the generated data and the used parameters.
+Simulates a multi-regime stationary GVAR process and returns the generated
+series together with the regime-specific parameters used in the MRGVAR
+system.
 }
 \examples{
 ## case of n = 2, m = 2, S = 2     ## m: number of variables, n: number of countries

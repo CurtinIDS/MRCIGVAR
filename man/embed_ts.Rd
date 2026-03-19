@@ -4,7 +4,7 @@
 \alias{embed_ts}
 \title{Embed a time series with lagged columns and informative names}
 \usage{
-embed_ts(y = tseries::ts(c(1:20)), p = 3, prefix = "")
+embed_ts(y = stats::ts(c(1:20)), p = 3, prefix = "")
 }
 \arguments{
 \item{y}{The time series (vector, matrix, or \code{ts}) to be embedded.}
@@ -25,7 +25,7 @@ optionally preceded by \code{prefix}.
 \examples{
 \dontrun{
 # Univariate example
-y <- tseries::ts(1:20)
+y <- stats::ts(1:20)
 YY <- embed_ts(y, p = 3)
 dim(YY)
 

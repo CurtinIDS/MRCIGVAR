@@ -3,33 +3,54 @@
 
 
 
+#' Generate synthetic data from a cointegrated GVAR model
 #'
-#' This function generates data from a cointegrated global VAR process and returns an CIGVAR(m,n,p) object that is a list containing data and parameters used in the CIGVAR(m,n,p) process.
+#' Simulates a cointegrated global VAR for `n` units with `m` endogenous
+#' variables per unit and returns the generated series together with the model
+#' components used to build the process.
 #'
-#' @param m     : number of variables in each country/unit
-#' @param n     : number of countries/units
-#' @param p     : an (n x 3) matrix, each raw specifies the lag length of the domestic variables, the foreign variables and the number of the exogenous variables.
-#' @param T     : number of observations.
+#' @param m Integer. Number of endogenous variables in each unit.
+#' @param n Integer. Number of units.
+#' @param p Numeric matrix with `n` rows and three columns. For each unit,
+#'   `p[,1]` is the domestic lag order, `p[,2]` is the foreign lag order, and
+#'   `p[,3]` is the number of exogenous regressors.
+#' @param T Integer. Number of observations to generate.
+#' @param W Optional `n x n` weighting matrix. Element `W[i, j]` is the weight
+#'   of unit `j` in the foreign block for unit `i`. The diagonal is expected to
+#'   be zero. If omitted, equal off-diagonal weights are used.
+#' @param r_npo Optional array of dimension `m x max(p[,1]) x n` containing the
+#'   roots used to construct the domestic country VARs. If omitted, the
+#'   function generates default roots with one unit root in each unit.
+#' @param Ao Optional array of foreign-variable coefficients with dimension
+#'   `m x m x Pmax x n`, where `Pmax = max(p[,1:2])`.
+#' @param Bo Optional array of domestic coefficient matrices with dimension
+#'   `m x m x Pmax x n`.
+#' @param Co Optional coefficient array for deterministic terms or exogenous
+#'   regressors. Its interpretation depends on `type`.
+#' @param Uo Optional innovation matrix of dimension `T x (m*n)`.
+#' @param Sigmao Optional covariance matrix of dimension `(m*n) x (m*n)` for
+#'   the innovations in the stacked system.
+#' @param type Character string specifying the deterministic specification.
+#'   Supported values are `"none"`, `"const"`, `"exog0"`, and `"exog1"`.
+#' @param X Optional array of stationary exogenous variables with dimension
+#'   `T x k x n`.
+#' @param mu Optional unconditional mean array used when `type = "const"`. It
+#'   has dimension `m x 1 x n`.
+#' @param DFYflag Numeric flag controlling whether foreign variables enter the
+#'   cointegration space. `0` excludes them and `1` includes them.
+#' @param crk Optional length-`n` vector of country-specific cointegration
+#'   ranks.
+#' @param Ncommfakt Integer. Number of common stochastic factors to append to
+#'   the system.
+#' @param A Optional transformation matrix used when common factors are added.
+#' @param uz Optional innovations for the common factors.
 #'
-#'              (m,n,p,T) are parameters which must be provided.
-#' @param W     : an (n x n) weighting matrix. w_ij is the weight of foreign country j in the foreign variables of i-th country diag(W)=0
-#' @param r_npo : an (m, p, n) array collecting the roots of the characteristic functions in the lag operator of the country VAR. The number of ones in each ith row of r_npo is the number of unit roots i-th country/unit.
-#' @param Ao    : an (m, m, p, n) array collecting the  coefficients of foreign variables.
-#' @param Bo    : an (m, m, p, n) array collecting the  coefficients of domestic variables.
-#' @param Co    : an (m , k+1, n) array collecting the coefficients of the deterministic components of the n countries.
-#' @param Uo    : an (T x mn) matrix of the temporally independent innovation processes
-#' @param Sigmao : (mn x mn) matrix of the covariance matrix of the CIGVAR(m,n,p)
-#' (W,r_npo,Ao,Bo,Uo,Sigmao) if not provided, they will be generated randomly. The default assumption is one unit root in one country. Hence m-1 cointegration relations in each country.
-#'
-#' @param type	: deterministic component "const", "none", "exog0", and "exog1" are four options
-#' @param X	: a (T x k x n) array of exogenous stationary variables.
-#' @param mu    : if type = "const" mu has the same dimension as Co. is an muV is nm vector of the means of the time series in the system
-#' @param DFYflag	: DFYflag = 0 implies foreign variables are not in the cointegration space. DFYflag = 1 allows foreign variables enter the cointegration relation.
-#' @param crk   : n vector containing the cointegration rank in each country/unit. crk is to specified for estimation of parameters.
-#' @param Ncommfakt   : number of common exogenous stochastic factors
-#' @param A           : a transformation matrix that adds the common exogenous factors to the system.
-#' @param uz          : innovations of the exogenous common factors
-#' @return a CIGVAR object containing the generated data, the parameters used and the exogenous variables.
+#' @return A list with the generated data and simulation inputs, including the
+#'   stacked series `Y`, exogenous variables `X`, innovations `Uo`, coefficient
+#'   arrays `G`, `Ao`, `Bo`, and `Co`, the weighting matrix `W`, the covariance
+#'   matrix `Sigmao`, common-factor objects `GC`, `uz`, `Z`, `A`, `Do`, and the
+#'   metadata fields `m`, `n`, `p`, `mu`, `check`, `type`, `crk`, `Ct`,
+#'   `DFYflag`, and `Ncommfakt`.
 #'
 #' @examples
 #' n = 5
@@ -304,34 +325,44 @@ cigvar_data <- function(m, n, p, T, W = NA, r_npo = NA, Ao = NA, Bo = NA, Co = N
 
 
 
+#' Generate synthetic data from a CIVAR model
 #'
-#' This function generates data from a cointegrated vector autoregressive process CIVAR(p) and returns CIVAR(p) object that is a list containing data and parameters used in the CIVAR(p) process.
+#' Simulates a cointegrated VAR of order `p` and returns the generated series,
+#' coefficient matrices, deterministic terms, and auxiliary quantities used in
+#' the construction.
 #'
-#' @param n     : number of variables
-#' @param p     : lag length
-#' @param T     : number of observations
-#' @param r_np  : an (n x p) matrix of roots of the characteristic polynomials of n independent AR(p)-processes. An element 1 in a row implies a unit root process. If the matrix is not provided, it will be generated randomly with one unit root in the first row.
-#' @param A     : an (n x n) full rank transformation matrix that is used to generate correlated a CIVAR(p) from the n independent AR(p) processes with unit roots.
-#' @param B     : an (n,n,p) array containing the coefficients of the CIVAR(p) process. If B is not given, it will be calculated out of r_np and A.
-#' @param Co    : an (n,k+1) matrix containing coefficients of deterministic components in a CIVAR(p) process. For type="none" Co = 0*(1:n), for type="const" Co is an n vector, for type="exog0" Co is a (n,k) matrix, and for type="exog1" Co is an (n,1+k) matrix.
-#' @param C1    : an (n,1) matrix containing coefficients of the trend component. C1 = 0 if there is no trend in the data.
-#' @param U     : residuals, if it is not NA it will be used as input to generate the CIVAR(p)
-#' @param Sigma : an n x n covariance matrix of the CIVAR(p)
-#' @param type  : types of deterministic components. "none","rconst","const","rtrend", "trend", "exog0" and "exog1" are 7 options
-#'                \itemize{
-#'                \item{none: }{No deterministic component in VECM (Case I)}
-#'                \item{rconst: }{An intercept restricted in the cointegration space (Case II)}
-#'                \item{const: }{An unrestricted intercept (Case III)}
-#'                \item{rtrend: }{An trend component restricted in the cointegration space and an unrestricted intercept in VECM (Case IV)}
-#'                \item{trend: }{An unrestricted trend component and an unretricted intercept in VECM (Case V)}
-#'                \item{exog0: }{Model with exogeneous variable and no deterministic components}
-#'                \item{exog1: }{Model with exogeneous variable and an unrestricted intercept}
-#'                }
-#' @param X     : a (T x k) matrix of exogenous variables.
-#' @param mu    : an n vector of drifts of the CIVAR(p) process
-#' @param Yo    : (p x n) matrix of initial values of the process
-#' @param crk   : number of cointegration relations. It equals n-r, where r is the number of unit roots.
-#' @return An object of CIVAR(p) containing the generated data, the parameters used and the exogenous variables. res = list(n,p,type,r_np,Phi,A,B,Co,Sigma,Y,X,resid,U,Y1,Yo,check)
+#' @param n Integer. Number of endogenous variables.
+#' @param p Integer. Lag order of the CIVAR model.
+#' @param T Integer. Number of observations to generate.
+#' @param r_np Optional `n x p` matrix of roots for the characteristic
+#'   polynomials of the underlying independent AR processes. A value of `1`
+#'   indicates a unit root. If omitted, roots are generated automatically.
+#' @param A Optional full-rank `n x n` transformation matrix used to mix the
+#'   independent component processes into the final CIVAR system.
+#' @param B Optional coefficient array of dimension `n x n x p`. If omitted, it
+#'   is constructed from `r_np` and `A`.
+#' @param Co Optional matrix of coefficients for deterministic terms or
+#'   exogenous regressors. Its expected shape depends on `type`.
+#' @param C1 Optional `n x 1` matrix of trend coefficients.
+#' @param U Optional innovation matrix. If supplied, it is used directly to
+#'   generate the process.
+#' @param Sigma Optional `n x n` covariance matrix of the innovations.
+#' @param type Character string specifying the deterministic specification.
+#'   Supported values are `"none"`, `"rconst"`, `"const"`, `"rtrend"`,
+#'   `"trend"`, `"exog0"`, and `"exog1"`.
+#' @param X Optional `T x k` matrix of exogenous regressors.
+#' @param mu Optional `n x 1` drift vector used when a constant is present.
+#' @param Yo Optional matrix of initial values for the untransformed process.
+#' @param crk Optional cointegration rank. It equals `n - r`, where `r` is the
+#'   number of unit roots.
+#'
+#' @return A list containing the generated CIVAR object: dimensions `n` and
+#'   `p`, deterministic specification `type`, roots `r_np`, AR coefficients
+#'   `Phi`, transformation matrix `A`, coefficient array `B`, deterministic
+#'   terms `Co` and `C1`, covariance matrix `Sigma`, generated data `Y`,
+#'   exogenous data `X`, residuals `resid`, innovations `U`, latent series
+#'   `Y1`, initial path `Yo`, diagnostic value `check`, and cointegration rank
+#'   `crk`.
 #' @examples
 #' res_d = civar_data(n=2,p=2,T=100,type="const")
 #' res_d = civar_data(n=2,p=2,T=10,Co=c(1:2)*0,type="none")
@@ -561,25 +592,35 @@ civar_data <- function (n, p, T, r_np, A, B, Co, C1,U, Sigma, type, X, mu, Yo, c
 
 
 
+#' Generate synthetic data from a conditional CIVAR model
 #'
-#' The function generates data from a conditional cointegrated VAR(p)
+#' Constructs a joint CIVAR system, imposes conditional structure on the first
+#' `n1` variables, and returns the simulated dependent block together with the
+#' conditioning variables and model components.
 #'
-#' @param n1 dimension of the conditional cointegrated process
-#' @param n2 dimension of the conditioning variables
-#' @param crk the cointegration rank
-#' @param p lag
-#' @param T number of observations
-#' @param type types of the deterministic component. "none" and "const" are two options.
-#' @param Bc Coefficient matrix of the joint cointegration process
+#' @param n1 Integer. Dimension of the conditional cointegrated block.
+#' @param n2 Integer. Dimension of the conditioning block.
+#' @param crk Integer. Cointegration rank of the joint system.
+#' @param p Integer. Lag order.
+#' @param T Integer. Number of observations.
+#' @param type Character string specifying the deterministic component. The
+#'   function uses the same conventions as `civar_data()`, and is typically used
+#'   with `"none"` or `"const"`.
+#' @param Bc Optional coefficient array for the joint cointegrated process. If
+#'   omitted, a compatible system is generated internally.
 #'
-#' @return a CCIVAR object which is a list of (n1,n2,p,type,r_np,By,Bx,Cy,Sigma,Y,X,resid,U,check,crk,Bc,Cc)
-#' @export
+#' @return A list containing the conditional CIVAR object with dimensions `n1`
+#'   and `n2`, lag order `p`, deterministic specification `type`, roots `r_np`,
+#'   coefficient arrays `By` and `Bx`, deterministic term `Cy`, covariance
+#'   matrix `Sigma`, generated dependent data `Y`, conditioning data `X`,
+#'   residuals `resid`, innovations `U`, diagnostic value `check`,
+#'   cointegration rank `crk`, and the joint-system objects `Bc` and `Cc`.
 #'
 #' @examples
 #'
 #' T = 100
-#' res_d <- ccivar_data(n1=4,n2=3,crk=3,p=3,T=T,type="const")
-#' res_e <- cciva_rest(res=res_d)
+#' res_d <- ccivar_data(n1 = 4, n2 = 3, crk = 3, p = 3, T = T, type = "const")
+#' res_e <- cciva_rest(res = res_d)
 #' res_e$Summary
 #'
 #' @export
@@ -616,24 +657,35 @@ ccivar_data <- function(n1,n2,crk,p,T,type,Bc=NA) {
 
 
 
+#' Generate and estimate a mixed I(0)/I(1) CIVAR model
 #'
-#' This function generates and estimates a mixed VECM with I(0) and I(1) variables
+#' Builds a synthetic system that mixes integrated and stationary components,
+#' estimates the implied CIVAR model, and evaluates several restriction tests
+#' used for the mixed VECM specification.
 #'
-#' @param n	: dimension of the mixed CIVAR
-#' @param p	: lag of the mixed CIVAR
-#' @param T : number of observations or length of the generated data
-#' @param r : number of unit roots in the joint CIVAR
-#' @param k  : number of I(0) variables
-#' @param type : types of the deterministic components in the conditional CIVAR
-#' @param Bo : coefficient matrix of the mixed CIVAR
-#' @param Y : data of the mixed CIVAR
-#' @param X : data of the exogenous variables
-#' @param D : transformation matrix to mix the I(0) and I(1) components
-#' @param Go : pre-loaded selection matrix
-#' @param B : coefficient matrix of the mixed CIVAR
-#' @param Sigma : covariance matrix of the residuals
+#' @param n Integer. Dimension of the mixed CIVAR system.
+#' @param p Integer. Lag order.
+#' @param T Integer. Number of observations.
+#' @param r Integer. Number of unit-root components in the joint system.
+#' @param k Integer. Number of stationary, `I(0)`, variables.
+#' @param type Character string describing the deterministic specification.
+#' @param Bo Optional coefficient array for the underlying mixed VAR.
+#' @param Y Optional generated data matrix to use in place of the internally
+#'   simulated series.
+#' @param X Optional exogenous-variable matrix. The current implementation
+#'   rebuilds this internally from the simulated process.
+#' @param D Optional transformation matrix used to mix the `I(0)` and `I(1)`
+#'   components.
+#' @param Go Optional pre-specified selection matrix for the final restriction
+#'   test.
+#' @param B Optional coefficient array for the transformed CIVAR system.
+#' @param Sigma Optional covariance matrix of the innovations.
 #'
-#' @return  a list contains estimation and test results of the mixed VECM
+#' @return A list containing the transformation matrix `D`, the original
+#'   coefficient array `Bo`, the generated data `Y`, three restriction-test
+#'   results `AABtest`, `ABtest`, and `GABtest`, the unrestricted and data
+#'   objects `res_e` and `res_d`, the corresponding p-values `p-value_A`,
+#'   `p-value_E`, and `p-value_W`, and the number of stationary variables `k`.
 #' @examples
 #'
 #' #RR <- m_ix_civar_data(n=9,p=2,T=209,r=5,k=2,type="const",Bo=NA,Y=NA,D=NA)
@@ -877,22 +929,167 @@ m_ix_civar_data = function(n,p,T,r,k,type,Bo=NA,Y=NA,X=NA,D=NA,Go=NA,B=NA,Sigma 
   return(RR)
 }
 
-#' Generate GVAR synthetic data
+#' Generate synthetic data from a GVAR model
 #'
-#' Creates a GVAR dataset under the package’s model specification.
+#' Simulates a synthetic dataset from a Global Vector Autoregressive (GVAR)
+#' model with country-specific lag orders, optional cross-country dependence,
+#' and optional deterministic or exogenous components. The function can either
+#' use user-supplied coefficient matrices and innovations or automatically
+#' generate them when they are not provided.
+#'
+#' The model is built for `n` cross-sectional units (for example, countries),
+#' each with `m` endogenous variables. Domestic dynamics are controlled by
+#' `Bo`, cross-unit spillovers are controlled by `Ao` together with the
+#' weighting matrix `W`, and the innovation covariance structure is controlled
+#' by `Sigmao`. Depending on `type`, the generated series may contain no
+#' deterministic term, a constant term, or exogenous regressors.
+#'
+#' @param m Integer. Number of endogenous variables in each cross-sectional
+#'   unit.
+#' @param n Integer. Number of cross-sectional units.
+#' @param p Matrix of lag orders. A numeric matrix with `n` rows and three
+#'   columns:
+#'   \describe{
+#'     \item{`p[,1]`}{lag order of domestic variables for each unit.}
+#'     \item{`p[,2]`}{lag order of foreign variables for each unit.}
+#'     \item{`p[,3]`}{number of exogenous regressors used for each unit. This
+#'     column is only relevant when `type` is `"exog0"` or `"exog1"`.}
+#'   }
+#' @param T Integer. Sample size.
+#' @param W Optional weighting matrix of dimension `n x n`. This matrix governs
+#'   cross-unit dependence. If omitted, a default matrix is created with zero
+#'   diagonal elements and equal off-diagonal weights `1/(n-1)`.
+#' @param r_npo Optional array of non-zero domestic lag indicators returned by
+#'   `var_data()`. If `Bo` is not supplied, this is generated internally.
+#' @param Ao Optional array of foreign-variable coefficient matrices with
+#'   dimension `m x m x Pmax x n`, where `Pmax = max(p[,1:2])`. If omitted,
+#'   random small coefficients are generated for the foreign lags specified by
+#'   `p[,2]`.
+#' @param Bo Optional array of domestic autoregressive coefficient matrices with
+#'   dimension `m x m x Pmax x n`. If omitted, country-specific VAR coefficient
+#'   matrices are generated internally using `var_data()`.
+#' @param Co Optional deterministic or exogenous coefficient array. Its
+#'   interpretation depends on `type`:
+#'   \describe{
+#'     \item{`"none"`}{ignored and set to zero.}
+#'     \item{`"const"`}{an array of dimension `m x 1 x n` containing constant
+#'     terms.}
+#'     \item{`"exog0"`}{an array of dimension `m x k x n` in effect, stored as
+#'     `m x (k+1) x n` with the first slice reserved and set to zero. No
+#'     intercept is included.}
+#'     \item{`"exog1"`}{an array of dimension `m x (k+1) x n`, where the first
+#'     slice corresponds to the intercept and the remaining slices correspond
+#'     to exogenous regressors.}
+#'   }
+#' @param Uo Optional innovation matrix of dimension `T x (m*n)`. If omitted,
+#'   innovations are generated from a multivariate normal distribution with
+#'   covariance matrix `Sigmao`.
+#' @param Sigmao Optional covariance matrix of innovations with dimension
+#'   `(m*n) x (m*n)`. If omitted, it is generated internally using `var_data()`.
+#' @param type Character string specifying the deterministic/exogenous
+#'   specification. Supported values are:
+#'   \describe{
+#'     \item{`"none"`}{no constant and no exogenous variables.}
+#'     \item{`"const"`}{constant term only.}
+#'     \item{`"exog0"`}{exogenous regressors only, without intercept.}
+#'     \item{`"exog1"`}{exogenous regressors with intercept.}
+#'   }
+#'   If omitted, the default is `"none"`.
+#' @param X Optional exogenous data array used when `type = "exog0"` or
+#'   `type = "exog1"`. It is expected to have `T` rows, `k` columns, and `n`
+#'   slices, where `k` is the number of exogenous variables.
+#' @param mu Optional unconditional mean array of dimension `m x 1 x n`. This
+#'   is only used when `type = "const"`. If `Co` is not supplied, `mu` can be
+#'   used to construct a compatible constant term.
+#'
+#' @details
+#' The full GVAR coefficient array `G` is assembled by combining domestic
+#' autoregressive coefficients `Bo` and weighted foreign coefficients `Ao`.
+#' Domestic blocks are placed on the diagonal of `G`, while cross-unit blocks
+#' are constructed as `Ao[,,,i] * W[i,j]` for unit `i` receiving spillovers
+#' from unit `j`.
+#'
+#' The generated process has the form
+#' \deqn{
+#' Y_t = C_t + \sum_{L=1}^{Pmax} G_L Y_{t-L} + U_t,
+#' }
+#' where `C_t` depends on `type`:
+#' \describe{
+#'   \item{`"none"`}{`C_t = 0`.}
+#'   \item{`"const"`}{`C_t` is a time-invariant constant implied by `Co` or by
+#'   the supplied unconditional mean `mu`.}
+#'   \item{`"exog0"`}{`C_t` is driven only by exogenous regressors `X_t`.}
+#'   \item{`"exog1"`}{`C_t` is driven by an intercept and exogenous regressors
+#'   `X_t`.}
+#' }
+#'
+#' When coefficient matrices are not supplied, the function creates a valid
+#' synthetic GVAR structure automatically:
+#' \itemize{
+#'   \item domestic coefficients are generated from `var_data()`,
+#'   \item foreign coefficients are generated as small random values,
+#'   \item innovations are generated from `rnorm_sigma()`,
+#'   \item default cross-unit weights are equal for all foreign units.
+#' }
+#'
+#' The recursion starts from the initial values embedded in `Uo + Ct`, and the
+#' autoregressive dynamics are applied from time `max(p) + 1` onward.
+#'
+#' @return A list containing:
+#' \describe{
+#'   \item{`Y`}{Generated endogenous data matrix of dimension `T x (m*n)`.}
+#'   \item{`X`}{Exogenous data supplied to the function, or `NA` if not used.}
+#'   \item{`Uo`}{Innovation matrix of dimension `T x (m*n)`.}
+#'   \item{`G`}{Full stacked GVAR coefficient array of dimension
+#'   `(m*n) x (m*n) x Pmax`.}
+#'   \item{`Sigmao`}{Innovation covariance matrix.}
+#'   \item{`r_npo`}{Indicator array for non-zero domestic lag coefficients.}
+#'   \item{`Ao`}{Foreign coefficient array.}
+#'   \item{`Bo`}{Domestic coefficient array.}
+#'   \item{`Co`}{Constant or exogenous coefficient array.}
+#'   \item{`W`}{Cross-unit weighting matrix.}
+#'   \item{`m`}{Number of endogenous variables per unit.}
+#'   \item{`n`}{Number of cross-sectional units.}
+#'   \item{`p`}{Lag specification matrix.}
+#'   \item{`mu`}{Unconditional mean array when relevant, otherwise `NA`.}
+#'   \item{`check`}{Maximum absolute value in `Y`, useful as a simple diagnostic
+#'   for explosive simulated paths.}
+#'   \item{`type`}{Model specification used in the simulation.}
+#' }
+#'
+#' @seealso
+#' \code{\link{var_data}}, \code{\link{rnorm_sigma}}, \code{\link{gvar_estimate}}
 #'
 #' @examples
 #' \dontrun{
-#' p = (1:12)*0; dim(p) = c(4,3);p[,1] = 2; p[,2]=1;   p[,3]=1; p[2,2]=2;
-#' p    ## country-wise lag specification
+#' p = (1:12) * 0
+#' dim(p) = c(4, 3)
+#' p[,1] = 2
+#' p[,2] = 1
+#' p[,3] = 1
+#' p[2,2] = 2
 #'
-#' res_d = gvar_data(m=2,n=4,p=p,T=200,type="exog0",X=X)
+#' ## country-wise lag specification
+#' p
+#'
+#' ## create synthetic exogenous data
+#' X = array(rnorm(200 * 1 * 4), dim = c(200, 1, 4))
+#'
+#' ## simulate data
+#' res_d = gvar_data(m = 2, n = 4, p = p, T = 200, type = "exog0", X = X)
+#'
+#' ## estimate the model
 #' res_e = gvar_estimate(res = res_d)
 #' res_e$Summary
 #'
-#' IRF_CB = irf_gvar_cb(res_e,nstep=10,comb=NA,irf="gen",runs=200,conf=c(0.05,0.95))
+#' ## impulse response with confidence bands
+#' IRF_CB = irf_gvar_cb(res_e, nstep = 10, comb = NA, irf = "gen",
+#'                      runs = 200, conf = c(0.05, 0.95))
 #' dim(IRF_CB)
-#' IRF_g = plot_irf(IRF_CB,Names=NA,response=c(1,4),impulse=c(1,2,3,4), ncol=4)
+#'
+#' ## plot selected responses
+#' IRF_g = plot_irf(IRF_CB, Names = NA, response = c(1, 4),
+#'                  impulse = c(1, 2, 3, 4), ncol = 4)
 #' }
 #'
 #' @export
@@ -1058,8 +1255,11 @@ gvar_data <- function (m, n, p, T, W = NA, r_npo = NA, Ao = NA, Bo = NA, Co = NA
 
 
 
+#' Generate synthetic data from a multi-regime cointegrated GVAR model
 #'
-#' This function generates data from an multi-regime cointegrated global VAR process and returns an MRCIGVAR(m,n,p,S) object that is a list containing the data and the parameters used in the MRCIGVAR(m,n,p,S) process.
+#' Simulates a multi-regime cointegrated GVAR process and returns the generated
+#' data together with the regime-specific model components used to construct the
+#' MRCIGVAR system.
 #'
 #' @param m     : number of variables in each country/unit
 #' @param n     : number of countries/units
@@ -1465,8 +1665,11 @@ mrcigvar_data <- function(m,n,p,T,S,W=NA,SESVI=NA,TH=NA,Go=NA,Ao=NA,Bo=NA,Sigmao
 
 
 
+#' Regenerate data from an estimated MRCIGVAR object
 #'
-#' This function will generate data from a MRCIGVAR object. It will generate enough data for estimation purpose.
+#' Regenerates synthetic data from an estimated `mrcigvar_estimate()` result,
+#' typically to obtain a sample large enough for downstream estimation or
+#' bootstrap-style procedures.
 #'
 #' @param res     : an output of mrcigvar_estimate
 #' @return	: an MRCIGVAR object.
@@ -1515,8 +1718,11 @@ mrcigvar_data_r <- function(res) {
 
 
 
+#' Generate synthetic data from a multi-regime CIVAR model
 #'
-#' This function generates data from an multi-regime cointegrated VAR(p) process with identical cointegration relations and different adjustment speeds and returns a MRCIVAR which is a list containing data and parameters used in the multi regime cointegrated VAR(p) process.
+#' Simulates a multi-regime cointegrated VAR process with shared
+#' cointegration relations and regime-specific adjustment dynamics, and returns
+#' the generated data together with the model inputs.
 #'
 #' @param n     : number of variables
 #' @param S     : number of regimes
@@ -1814,8 +2020,11 @@ mrcivar_data_m = function(n=2,p=matrix(2,2,2),T=100,S=2,SESVI,TH,Bo,Co,Sigmao,Uo
 
 
 
+#' Generate synthetic data from a multi-regime GVAR model
 #'
-#' This function generates data from an multi-regime stationary global VAR(p) process and returns an MRGVAR object that is a list containing the generated data and the used parameters.
+#' Simulates a multi-regime stationary GVAR process and returns the generated
+#' series together with the regime-specific parameters used in the MRGVAR
+#' system.
 #'
 #' @param m     : number of variables in a country/unit
 #' @param n     : number of countries/units
@@ -2123,8 +2332,11 @@ mrgvar_data=function(m,n,p,T,S,W=NA,SESVI=NA,TH=NA,Go=NA,Ao=NA,Bo=NA,Sigmao=NA,U
 
 
 
+#' Regenerate data from an estimated MRGVAR object
 #'
-#' This function will generate data from a MRGVAR object. It will generate enough data for estimation purpose.
+#' Regenerates synthetic data from an estimated `mrgvar_estimate()` result,
+#' typically to produce a sample large enough for estimation or resampling
+#' procedures.
 #'
 #' @param res     : an output of mrgvar_estimate
 #' @return an MRGVAR object.
@@ -2172,8 +2384,10 @@ mrgvar_data_r=function(res) {
 
 
 
+#' Generate synthetic data from a multi-regime VAR model
 #'
-#' This function generates data from an multi-regime stationary VAR(p) process and returns an MRVAR(n,p,S) object that is a list containing data and the parameters used in the MRVAR(n,p,S) process.
+#' Simulates a multi-regime stationary VAR process and returns the generated
+#' data together with the regime-specific parameters used in the MRVAR system.
 #'
 #' @param n     : number of variables
 #' @param S     : number of regimes
@@ -2429,8 +2643,10 @@ mrvar_data = function(n,p,T,S,SESVI,TH,Bo,Co,Sigmao,Uo,SV,type,X,mu,Yo,Do,d) {
 
 
 
+#' Generate synthetic data from a VAR model
 #'
-#' This function will generate data from a stationary VAR(p) process and return a list containing data and parameters used in the VAR(p) process.
+#' Simulates a stationary VAR process and returns the generated data together
+#' with the parameters used to construct the VAR system.
 #'
 #' @param n     : number of variables
 #' @param p     : lag length
@@ -2626,4 +2842,3 @@ var_data = function(n,p,T,r_np,A,B,Co,U,Sigma,type,X,mu,Yo)  {
   names(result)=c("n","p","type","r_np","Phi","A","B","Co","Sigma","Y","X","resid","U","Y1","Yo","check")
   return(result)
 }
-

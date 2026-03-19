@@ -12,8 +12,8 @@ cib2_b(tst)
 \value{
 A list containing three components:
 \itemize{
-\item B: the coefficient matrices of the domestic variables (m x m x P\link{1})
-\item A: the coefficient matrices of the foreign variables (m x mx x P\link{2})
+\item B: the coefficient matrices of the domestic variables (m x m x \code{P[1]})
+\item A: the coefficient matrices of the foreign variables (m x mx x \code{P[2]})
 \item C: the coefficient matrices of the deterministic components (m x 1)
 }
 }

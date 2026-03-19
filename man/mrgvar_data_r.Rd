@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_input.R
 \name{mrgvar_data_r}
 \alias{mrgvar_data_r}
-\title{This function will generate data from a MRGVAR object. It will generate enough data for estimation purpose.}
+\title{Regenerate data from an estimated MRGVAR object}
 \usage{
 mrgvar_data_r(res)
 }
@@ -13,6 +13,8 @@ mrgvar_data_r(res)
 an MRGVAR object.
 }
 \description{
-This function will generate data from a MRGVAR object. It will generate enough data for estimation purpose.
+Regenerates synthetic data from an estimated \code{mrgvar_estimate()} result,
+typically to produce a sample large enough for estimation or resampling
+procedures.
 }
 \keyword{internal}

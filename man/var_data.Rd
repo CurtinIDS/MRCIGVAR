@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_input.R
 \name{var_data}
 \alias{var_data}
-\title{This function will generate data from a stationary VAR(p) process and return a list containing data and parameters used in the VAR(p) process.}
+\title{Generate synthetic data from a VAR model}
 \usage{
 var_data(n, p, T, r_np, A, B, Co, U, Sigma, type, X, mu, Yo)
 }
@@ -37,7 +37,8 @@ var_data(n, p, T, r_np, A, B, Co, U, Sigma, type, X, mu, Yo)
 An object of VAR(p) containing the generated data, the used parameters and the exogenous variables. res = list(n,p,type,r_np,Phi,A,B,Co,Sigma,Y,X,resid,U,Y1,Yo,check)
 }
 \description{
-This function will generate data from a stationary VAR(p) process and return a list containing data and parameters used in the VAR(p) process.
+Simulates a stationary VAR process and returns the generated data together
+with the parameters used to construct the VAR system.
 }
 \examples{
 res_d = var_data(n=2,p=2,T=100,type="const")

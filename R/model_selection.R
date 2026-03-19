@@ -186,27 +186,104 @@ mrcigvar_select_ = function(res,L_V=L_V,TH_V=TH_V)  {
 
 
 
-#' MRCIVAR Model Selection Function
+#' Select lag and threshold specifications for an MRCIVAR model
 #'
-#' This function performs model selection for the MRCIVAR framework by calculating AIC and BIC criteria for various lag specifications and threshold values.
+#' Evaluates alternative Markov regime-switching cointegrated VAR (MRCIVAR)
+#' specifications over a grid of regime-specific lag orders and threshold values,
+#' and returns a table of information criteria for model comparison.
+#'
+#' The function repeatedly re-estimates the model for each combination of:
+#' \itemize{
+#'   \item lag order in regime 1,
+#'   \item lag order in regime 2,
+#'   \item threshold value.
+#' }
+#' For each specification, it extracts model selection criteria such as AIC and
+#' BIC from the estimation output. This helps identify a preferred MRCIVAR
+#' specification under competing lag and threshold settings.
+#'
+#' @param res An MRCIVAR-related object containing the data and model setup,
+#'   typically the output of `mrcivar_data_m()` or an estimated object carrying
+#'   the same core fields required by `mrcivar_estimatem1()`. It must contain,
+#'   at minimum, the observed series, lag specification, number of variables,
+#'   number of regimes, threshold variable information, and deterministic
+#'   specification.
+#' @param L_V A numeric vector of length 2 giving the upper bounds for the lag
+#'   search in the two regimes. The function evaluates:
+#'   \describe{
+#'     \item{regime 1 lags}{from 2 to `L_V[1]`,}
+#'     \item{regime 2 lags}{from 2 to `L_V[2]`.}
+#'   }
+#'   These values define the search grid, not a single fixed lag choice.
+#' @param TH_V A numeric vector of candidate threshold values to be evaluated in
+#'   the model selection procedure.
+#'
+#' @details
+#' The function performs a grid search over all combinations of:
+#' \deqn{
+#' (l_d, l_f, TH),
+#' }
+#' where `l_d` is the lag order used for regime 1, `l_f` is the lag order used
+#' for regime 2, and `TH` is a candidate threshold value from `TH_V`.
+#'
+#' For each candidate model:
+#' \enumerate{
+#'   \item the lag orders in `res$p` are updated,
+#'   \item the threshold value in `res$TH` is replaced,
+#'   \item `mrcivar_estimatem1()` is called,
+#'   \item the corresponding information criteria are extracted.
+#' }
+#'
+#' The returned matrix includes standard likelihood-based information criteria
+#' (`AIC`, `BIC`) and additional criteria reported by the estimation routine
+#' (`LHH_AIC`, `LHH_BIC`, `ORAIC`, `ORBIC`).
+#'
+#' Note that the current implementation searches lag values starting from 2 in
+#' both regimes. Therefore, `L_V` should be chosen so that `L_V[1] >= 2` and
+#' `L_V[2] >= 2`.
+#'
+#' @return A numeric matrix with one row for each evaluated specification and
+#'   nine columns:
+#'   \describe{
+#'     \item{`Lag_regime1`}{lag order used for regime 1,}
+#'     \item{`Lag_regime2`}{lag order used for regime 2,}
+#'     \item{`threshold`}{threshold value used in that specification,}
+#'     \item{`AIC`}{Akaike Information Criterion,}
+#'     \item{`BIC`}{Bayesian Information Criterion,}
+#'     \item{`LHH_AIC`}{alternative AIC measure reported by the estimator,}
+#'     \item{`LHH_BIC`}{alternative BIC measure reported by the estimator,}
+#'     \item{`ORAIC`}{additional AIC-type criterion from the estimator,}
+#'     \item{`ORBIC`}{additional BIC-type criterion from the estimator.}
+#'   }
+#'
+#' @seealso
+#' \code{\link{mrcivar_data_m}},
+#' \code{\link{mrcivar_estimatem1}}
 #'
 #' @examples
+#' \dontrun{
+#' Sigma = 1:(4 * 4 * 2)
+#' dim(Sigma) = c(4, 4, 2)
+#' Sigma[, , 1] = diag(4)
+#' Sigma[, , 2] = diag(4)
 #'
-#' Sigma = 1:(4*4*2)
-#' dim(Sigma) = c(4,4,2)
-#' Sigma[,,1] = diag(4)
-#' Sigma[,,2] = diag(4)
-#' p=matrix(0,2,2)
-#' p[,1] = c(3,2)
+#' p = matrix(0, 2, 2)
+#' p[, 1] = c(3, 2)
 #'
-#' res_d = mrcivar_data_m(n=4,p=p,T=2610,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=1)
-#' res_e = mrcivar_estimatem1(res=res_d)
+#' res_d = mrcivar_data_m(
+#'   n = 4, p = p, T = 2610, S = 2,
+#'   SESVI = 1, TH = 0, Sigmao = Sigma,
+#'   type = "const", r = 1
+#' )
 #'
-#' TH_v = c(0,0.1)
-#' L_v = c(6,6)
+#' res_e = mrcivar_estimatem1(res = res_d)
 #'
-#' Selm = mrcivar_select_m(res=res_e,L_V=L_v,TH_V=TH_v)
+#' TH_v = c(0, 0.1)
+#' L_v = c(6, 6)
+#'
+#' Selm = mrcivar_select_m(res = res_e, L_V = L_v, TH_V = TH_v)
 #' mrvar_select__summary(Selm)
+#' }
 #'
 #' @export
 mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
