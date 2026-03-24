@@ -45,6 +45,30 @@ User-facing workflow changes should also be reflected in:
 
 - `README.Rmd` when the package overview or entry example changes
 - the relevant vignette in `vignettes/` when longer-form usage guidance changes
+- the corresponding page in `docs/` when the MkDocs site documents the same
+  workflow
+
+## Documentation site
+
+The repository now includes an `MkDocs` documentation site for navigable
+project documentation.
+
+- `mkdocs.yml` defines the site structure and theme configuration.
+- `docs/` contains the site source.
+- `environment-docs.yml` defines the conda environment for local preview and CI
+  builds.
+- `.github/workflows/mkdocs.yml` builds and deploys the site to GitHub Pages.
+
+For local docs work:
+
+```bash
+conda env create -f environment-docs.yml
+conda activate mrcigvar-docs
+mkdocs serve
+```
+
+Use `mkdocs build --strict` before pushing documentation-heavy changes when
+possible.
 
 ## File organisation
 

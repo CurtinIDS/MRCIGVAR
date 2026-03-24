@@ -1,0 +1,129 @@
+# MRCIGVAR Workflow
+
+This page focuses on the package's flagship workflow: multi-regime
+cointegrated global VAR modelling with `MRCIGVAR`.
+
+It covers:
+
+1. constructing a multi-regime model object
+2. estimating the model
+3. selecting lag and threshold specifications
+4. computing state-specific impulse responses
+
+## Model ingredients
+
+An `MRCIGVAR` workflow typically requires:
+
+- `m`: number of variables per country
+- `n`: number of countries
+- `S`: number of regimes
+- `p`: lag-order array with dimension `n x 3 x S`
+- `TH`: threshold specification
+- `SESVI`: switching-variable indices
+- optional exogenous inputs, common trends, and common factors
+
+## Step 1: generate a model object
+
+```r
+m <- 2
+n <- 3
+S <- 2
+
+p <- array(0, dim = c(n, 3, S))
+p[, 1, ] <- 2
+p[, 2, ] <- 2
+
+TH <- matrix(0, nrow = 1, ncol = n)
+SESVI <- c(1, 3, 5)
+
+res_d <- mrcigvar_data(
+  m = m,
+  n = n,
+  p = p,
+  TH = TH,
+  T = 150,
+  S = S,
+  SESVI = SESVI,
+  r = rep(1, n),
+  Ncommtrend = 1
+)
+```
+
+The resulting object stores the simulated data together with regime-specific
+coefficient arrays, covariance objects, switching information, and metadata
+used later in estimation and IRF analysis.
+
+## Step 2: estimate the model
+
+```r
+res_e <- mrcigvar_estimate(res = res_d)
+res_e$Summary
+```
+
+The fitted object typically contains:
+
+- regime-specific domestic and foreign coefficient arrays
+- residual covariance structures
+- country- and regime-level estimation summaries
+- information criteria and related diagnostics
+
+## Step 3: select lags and thresholds
+
+```r
+sel <- mrcigvar_select_(
+  res = res_d,
+  L_V = c(3, 3),
+  TH_V = c(0, 0.1)
+)
+
+sel[which.min(sel[, ncol(sel)]), ]
+```
+
+Selection in the multi-regime setting is more expensive than in the
+single-regime case because lag choices and thresholds interact with the regime
+structure.
+
+## Step 4: compute state-specific IRFs
+
+```r
+irf_cb <- irf_mrcigvar_cb(
+  res = res_e,
+  nstep = 10,
+  comb = NA,
+  state = c(2, 1, 1),
+  irf = "gen1",
+  runs = 20,
+  conf = c(0.05, 0.95),
+  NT = 1
+)
+
+plot_irf(irf_cb[[1]])
+```
+
+The `state` argument selects which regime is active for each country when the
+IRF is constructed.
+
+## GIRFs with regime migration
+
+For nonlinear, path-dependent response analysis under regime migration, use the
+GIRF helpers:
+
+```r
+girf <- girf_mrcigvar_rm(
+  res = res_e,
+  shock = c(1, 1, 1, 1, 1, 1),
+  R = 100,
+  nstep = 10,
+  Omega_hist = NA,
+  resid_method = "parametric"
+)
+```
+
+Use `girf_mrcigvar_rm_cb()` when confidence bands are required.
+
+## Practical notes
+
+- Keep examples small during development; multi-regime estimation can be slow.
+- Check output dimensions explicitly when working with arrays.
+- Prefer the refactored lowercase API for user-facing code.
+- Preserve return shapes when extending the workflow.

@@ -1,0 +1,42 @@
+site_name: MRCIGVAR
+site_description: Documentation for the MRCIGVAR R package
+site_url: https://curtinids.github.io/MRCIGVAR/
+repo_url: https://github.com/CurtinIDS/MRCIGVAR
+repo_name: CurtinIDS/MRCIGVAR
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+  palette:
+    primary: teal
+    accent: amber
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - md_in_html
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - tables
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Overview: getting-started/overview.md
+      - Installation: getting-started/installation.md
+      - Docs Development: getting-started/docs-development.md
+  - Workflows:
+      - Core Model Workflows: workflows/core-model-workflows.md
+      - MRCIGVAR Workflow: workflows/mrcigvar-workflow.md
+      - IRF and GIRF Analysis: workflows/irf-and-girf.md
+  - Reference:
+      - API Migration Guide: reference/migration-guide.md
+      - API Reference Strategy: reference/api-reference-strategy.md
