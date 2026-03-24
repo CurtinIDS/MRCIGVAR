@@ -45,8 +45,8 @@ User-facing workflow changes should also be reflected in:
 
 - `README.Rmd` when the package overview or entry example changes
 - the relevant vignette in `vignettes/` when longer-form usage guidance changes
-- the corresponding page in `docs/` when the MkDocs site documents the same
-  workflow
+- `docs/` only for MkDocs-native pages that are not generated from `README.Rmd`
+  or `vignettes/*.Rmd`
 
 ## Documentation site
 
@@ -54,7 +54,9 @@ The repository now includes an `MkDocs` documentation site for navigable
 project documentation.
 
 - `mkdocs.yml` defines the site structure and theme configuration.
-- `docs/` contains the site source.
+- `scripts/render-docs.R` regenerates the MkDocs pages derived from
+  `README.Rmd` and selected vignette sources.
+- `docs/` contains both generated MkDocs pages and MkDocs-native pages.
 - `environment-docs.yml` defines the conda environment for local preview and CI
   builds.
 - `.github/workflows/mkdocs.yml` builds and deploys the site to GitHub Pages.
@@ -64,6 +66,7 @@ For local docs work:
 ```bash
 conda env create -f environment-docs.yml
 conda activate mrcigvar-docs
+Rscript scripts/render-docs.R
 mkdocs serve
 ```
 

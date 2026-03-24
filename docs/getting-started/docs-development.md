@@ -23,6 +23,7 @@ To start a local preview server:
 
 ```bash
 conda activate mrcigvar-docs
+Rscript scripts/render-docs.R
 mkdocs serve
 ```
 
@@ -34,6 +35,7 @@ To validate the site and generate static output:
 
 ```bash
 conda activate mrcigvar-docs
+Rscript scripts/render-docs.R
 mkdocs build --strict
 ```
 
@@ -41,14 +43,22 @@ The built site is written to `site/`, which is intentionally ignored by Git.
 
 ## Source of truth
 
-The site is currently assembled from:
+The site is assembled from two source types:
 
-- `docs/` for MkDocs-native pages
-- `README.Rmd` and `README.md` for package overview material
-- `vignettes/*.Rmd` for long-form workflows and migration guidance
+- `README.Rmd` and selected files in `vignettes/*.Rmd` for generated MkDocs pages
+- `docs/` for MkDocs-native pages that do not come from R Markdown sources
 
-When updating user-facing package workflows, keep the corresponding MkDocs page
-and vignette aligned.
+Run `Rscript scripts/render-docs.R` whenever you change `README.Rmd` or a
+vignette that feeds the site. The script regenerates:
+
+- `docs/index.md`
+- `docs/getting-started/overview.md`
+- `docs/workflows/core-model-workflows.md`
+- `docs/workflows/mrcigvar-workflow.md`
+- `docs/workflows/irf-and-girf.md`
+- `docs/reference/migration-guide.md`
+
+Do not edit those generated files by hand.
 
 ## Deployment
 
@@ -57,6 +67,7 @@ GitHub Pages deployment is configured in `.github/workflows/mkdocs.yml`.
 The workflow installs dependencies from `environment-docs.yml` and runs:
 
 ```bash
+Rscript scripts/render-docs.R
 mkdocs build --strict
 ```
 

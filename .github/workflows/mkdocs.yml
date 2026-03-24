@@ -29,8 +29,12 @@ jobs:
           activate-environment: mrcigvar-docs
           auto-activate-base: false
           environment-file: environment-docs.yml
-          miniforge-variant: Miniforge
+          miniforge-variant: Miniforge3
           use-mamba: true
+
+      - name: Render generated docs pages
+        shell: bash -l {0}
+        run: Rscript scripts/render-docs.R
 
       - name: Build site
         shell: bash -l {0}
