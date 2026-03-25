@@ -16,6 +16,13 @@ The current refactor standardises the public API around lower snake_case
 function names while keeping backward-compatible legacy aliases where
 needed.
 
+## Acknowledgment
+
+This repository builds on the original `MRCIGVAR` package created by Dr
+Pu Chen. We gratefully acknowledge Dr Chen as the founder and original
+owner of the package. The original repository is available at
+<https://github.com/puchen8229/MRCIGVAR/>.
+
 ## Supported model families
 
 The package currently includes workflows for:

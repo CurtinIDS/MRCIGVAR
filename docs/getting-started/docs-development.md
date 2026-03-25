@@ -48,6 +48,13 @@ The site is assembled from two source types:
 - `README.Rmd` and selected files in `vignettes/*.Rmd` for generated MkDocs pages
 - `docs/` for MkDocs-native pages that do not come from R Markdown sources
 
+`README.md` is also generated from `README.Rmd`. Do not edit `README.md` by
+hand. Update `README.Rmd`, then rebuild the repository README with:
+
+```bash
+Rscript -e "rmarkdown::render('README.Rmd', output_format = 'github_document', quiet = TRUE)"
+```
+
 Run `Rscript scripts/render-docs.R` whenever you change `README.Rmd` or a
 vignette that feeds the site. The script regenerates:
 
