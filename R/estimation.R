@@ -256,7 +256,7 @@ civar_estimate <- function (res)
     Co = param[crk + (p - 1) * n + 1, ]
   }
   LREG = tst[[2]]
-  sigma = t(LREG$residuals) %*% (LREG$residuals)/(T)
+  sigma = t(LREG$residuals) %*% (LREG$residuals)/(T-(crk + (p - 1) * n))
   resid = Y * 0
   resid[(p + 1):T, ] = LREG$residuals
   if (type == "const" | type == "exog1")
