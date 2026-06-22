@@ -1781,7 +1781,7 @@ bo_ao_ws2_gs <- function(Bo, Ao, W, m, n, p, state) {
 #' variable array by selecting the state that contains the largest number of
 #' active, non-zero exogenous variable columns.
 #'
-#' This helper is intended for Markov regime-switching VAR-type models where
+#' This helper is intended for regime-switching VAR-type models where
 #' exogenous variables may be stored in a three-dimensional array with separate
 #' slices for each state, and some states may contain padded zero columns.
 #' The function identifies the state with the richest exogenous specification

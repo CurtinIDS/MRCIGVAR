@@ -1,9 +1,10 @@
 ---
-output: github_document
+#output: github_document
+output: html_document
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
+  
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -37,7 +38,7 @@ You can install the development version of MRCIGVAR from [GitHub](https://github
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("puchen8229/MRCIGVAR")
+#devtools::install_github("puchen8229/MRCIGVAR")
 ```
 
 ## Example
@@ -188,7 +189,7 @@ The main functions for CIVAR models are
 * irf_civar_cb
 * civar_test
 * ccivar_data
-* ccivar_est
+* ccivar_estimate
                         
 The following codes demonstrate how civar_data can be used to generate data from a cointegrated VAR process with a variety of specifications.
 ```{r,results='hide',fig.show='hide'}
@@ -341,14 +342,14 @@ res_e$Co
 
 ### Conditional cointegration processes
 
-ccivar_data and ccivar_est are functions used to model conditional cointegrated VAR processes.[^1]  This conditional cointegrated VAR process differs from CIVARX in that the conditioning variables are weakly exogenous I(1) variables that enter the cointegration space, while the exogenous variables in CIVARX are I(0) variables and hence they do not enter the cointegration space.     
+ccivar_data and ccivar_estimate are functions used to model conditional cointegrated VAR processes.[^1]  This conditional cointegrated VAR process differs from CIVARX in that the conditioning variables are weakly exogenous I(1) variables that enter the cointegration space, while the exogenous variables in CIVARX are I(0) variables and hence they do not enter the cointegration space.     
 
 [^1] I. Harbo, S. Johansen, B. Nielsen, and A. Rahbek (1998) Asymptotic Inference on Cointegrating Rank in Partial Systems, Journal of Business & Economic Statistics, 16(4) (1998), 388-399.
 
 ```{r,results='hide',fig.show='hide'}
 T = 200
 res_d <- ccivar_data(n1=4,n2=3,crk=3,p=3,T=T,type="const")
-res_e <- ccivar_est(res=res_d)
+res_e <- ccivar_estimate(res=res_d)
 res_e$Summary
 res_e$tst$beta
 
@@ -356,8 +357,10 @@ res_e$tst$beta
 
 ### Vector error correction models with I(1) and I(0) variables
 
-mixed_civar_data function is used to generate CIVAR data with mixed I(1) and I(0) variables. It is also used to estimate the mixed CIVAR models. The following example codes generate a set of data from a mixed CIVAR process with a total of 9 variables and 5 independent unit roots. The first 7 columns in Y are I(1) variables and the the last 2 columns are I(0) variables.
+mixed_civar_data function is used to generate CIVAR data with mixed I(1) and I(0) variables.[^6] It is also used to estimate the mixed CIVAR models. The following example codes generate a set of data from a mixed CIVAR process with a total of 9 variables and 5 independent unit roots. The first 7 columns in Y are I(1) variables and the the last 2 columns are I(0) variables.
 
+
+[^6] P. Chen (2024) Vector Error Correction Models with Stationary and Nonstationary Variables, EAL  2024 3(2):55.
 
 ```{r,results='hide',fig.show='hide'}
 RR <- mixed_civar_data(n=9,p=2,T=209,r=5,k=2,type="const",Bo=NA,Y=NA,D=NA)
@@ -602,13 +605,13 @@ where $\alpha^{(1)}$, $\alpha^{(2)}$ and $\beta$ are $(n\times ckr)$ matrices. U
 
 The main functions for this class of models are 
 
-+ mrcivar_data_m, mrcivar_estimatem1
-+ abc_mrciva_restm
-+ mrcivar_select_m
++ mrcivar_data, mrcivar_estimate
++ abc_mrcivar_test
++ mrcivar_select
 + irf_mrcivar_cb
 + girf_mrcivar_rm_cb
 
-The following sample codes demonstrate how mrcivar_data_m can be used to generate data from a two-regime cointegrated VAR process with a variety of specifications and how MRCIVARestm is used to estimate the parameters. mrcivar_select_m calculates AIC or BIC criteria for a range of parameter settings.
+The following sample codes demonstrate how mrcivar_data can be used to generate data from a two-regime cointegrated VAR process with a variety of specifications and how MRCIVARestm is used to estimate the parameters. mrcivar_select calculates AIC or BIC criteria for a range of parameter settings.
 ```{r,results='hide',fig.show='hide'}
 Sigma = 1:(4*4*2)
 dim(Sigma) = c(4,4,2)
@@ -617,8 +620,8 @@ Sigma[,,2] = diag(4)
 p=matrix(0,2,2)
 p[,1] = c(3,2)
 
-res_d = mrcivar_data_m(n=4,p=p,T=261,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=1)
-res_e = mrcivar_estimatem1(res=res_d)
+res_d = mrcivar_data(n=4,p=p,T=261,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=1)
+res_e = mrcivar_estimate(res=res_d)
 res_e$Summary
 ```
 The output of MRCIVARData is an MRCIVAR object containing generated data and parameters as well as the residuals. The components of the generated MRCIVAR object correspond to the model variables and parameters as follows.
@@ -665,7 +668,7 @@ spectral_radius(res_d$Bo[,,,2])
 ```
 For empirical applications it is recommended to follow the steps:
 
-+ Use mrcivar_data_m to generate a MRCIVAR object.
++ Use mrcivar_data to generate a MRCIVAR object.
 + Replace the generated model data with the empirical data.
 + Estimate the model 
 + Run analysis.
@@ -680,15 +683,15 @@ Sigma[,,2] = diag(4)
 p=matrix(0,2,2)
 p[,1] = c(3,2)
 
-res_d = mrcivar_data_m(n=4,p=p,T=260,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=1)
-res_e = mrcivar_estimatem1(res=res_d)
+res_d = mrcivar_data(n=4,p=p,T=260,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=1)
+res_e = mrcivar_estimate(res=res_d)
 
 
 TH_v = c(0,0.1)
 L_v = c(6,6)
 plot(ts(res_d$Y))
 
-Selm = mrcivar_select_m(res=res_e,L_V=L_v,TH_V=TH_v)
+Selm = mrcivar_select(res=res_e,L_V=L_v,TH_V=TH_v)
 Selm[which.min(Selm[,5]),]
 Selm[which.min(Selm[,4]),]
 mrvar_select__summary(Selm)
@@ -696,6 +699,18 @@ mrvar_select__summary(Selm)
 ```
 
 The sample codes above demonstrate how model selection criteria can be used to specify the lag length and threshold values in the two regimes. The two-regime AIC and BIC values are less than those of the one-regime models ORAIC and ORBIC. This suggests that the two-regime model is a better fit for the data. The function MRCIVAR_Select has two arguments: L_V and L_TH, which specify the maximum lag length of the two regimes and the threshold values, over which the information criteria AIC and BIC will be calculated. The mrvar_select__summary function is used to output the minimum of the information criteria.
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## GVAR/CIGVAR Models
 
@@ -1022,7 +1037,7 @@ res_e = cigvar_estimate(res_d)
 ## adjust the model specification according to the cointegration test results
 res_d$crk = c(1,2,2,2,2)
 res_e = cigvar_estimate(res_d)
-#res_e$Summary
+res_e$Summary
 #### unit roots in the CIGVAR model
 spectral_radius(res_e$G)
 spectral_radius(res_e$GC)
@@ -1476,7 +1491,7 @@ The preceding example shows how we can aggregate different shocks on the shock s
 ### also be used to aggregate global responses and regional responses. 
 
 
-Global_Response_CB <- irf_gloabal_response_cb(IRF_CB,comb_all)
+Global_Response_CB <- irf_global_response_cb(IRF_CB,comb_all)
 
 
 IRF_list <- plot_irf(Global_Response_CB[[1]],Names=iNames,INames=iNames,impulse=c(1),response=c(1:8),ncol=4)

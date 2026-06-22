@@ -207,8 +207,8 @@ mrcigvar_select_ = function(res,L_V=L_V,TH_V=TH_V)  {
 #' model over a grid of candidate specifications and return the associated
 #' information criteria.
 #'
-#' @param res An MRCIVAR object, typically returned by `mrcivar_data_m()` or
-#'   `mrcivar_estimatem1()`.
+#' @param res An MRCIVAR object, typically returned by `mrcivar_data()` or
+#'   `mrcivar_estimate()`.
 #' @param L_V Numeric vector of length 2 giving the maximum lag orders searched
 #'   for regimes 1 and 2.
 #' @param TH_V Numeric vector of candidate threshold values.
@@ -216,7 +216,7 @@ mrcigvar_select_ = function(res,L_V=L_V,TH_V=TH_V)  {
 #'   for the regime-specific lag orders, threshold, and the information
 #'   criteria extracted from the estimator.
 #'
-#' @seealso [mrcivar_data_m()], [mrcivar_estimatem1()]
+#' @seealso [mrcivar_data()], [mrcivar_estimate()]
 #'
 #' @examples
 #' \dontrun{
@@ -228,23 +228,23 @@ mrcigvar_select_ = function(res,L_V=L_V,TH_V=TH_V)  {
 #' p = matrix(0, 2, 2)
 #' p[, 1] = c(3, 2)
 #'
-#' res_d = mrcivar_data_m(
+#' res_d = mrcivar_data(
 #'   n = 4, p = p, T = 2610, S = 2,
 #'   SESVI = 1, TH = 0, Sigmao = Sigma,
 #'   type = "const", r = 1
 #' )
 #'
-#' res_e = mrcivar_estimatem1(res = res_d)
+#' res_e = mrcivar_estimate(res = res_d)
 #'
 #' TH_v = c(0, 0.1)
 #' L_v = c(6, 6)
 #'
-#' Selm = mrcivar_select_m(res = res_e, L_V = L_v, TH_V = TH_v)
+#' Selm = mrcivar_select(res = res_e, L_V = L_v, TH_V = TH_v)
 #' mrvar_select__summary(Selm)
 #' }
 #'
 #' @export
-mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
+mrcivar_select <- function(res=res,L_V=L_V,TH_V=TH_V) {
   res_dd = res
   p      = res_dd$p
   n      = res_dd$n
@@ -268,7 +268,7 @@ mrcivar_select_m <- function(res=res,L_V=L_V,TH_V=TH_V) {
         res_dd$p[2,1] = l_f
         res_dd$TH     = TH_V[l_th]
 
-        res_s         = mrcivar_estimatem1(res=res_dd)
+        res_s         = mrcivar_estimate(res=res_dd)
         Criteria[idx,] = c (l_d,l_f,TH_V[l_th],res_s$Summary$LH_AIC,res_s$Summary$LH_BIC,res_s$Summary$LHH_AIC,res_s$Summary$LHH_BIC,res_s$Summary$ORAIC,res_s$Summary$ORBIC)
         colnames(Criteria) = c("Lag_regime1","Lag_regime2" ,"threshold","AIC","BIC","LHH_AIC","LHH_BIC","ORAIC","ORBIC")
       }

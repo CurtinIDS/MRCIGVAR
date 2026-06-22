@@ -1054,11 +1054,11 @@ mrcvec_mestm <- function (y, x, s, model = c("I", "II", "III", "IV", "V"), type 
 #' @examples
 #' T = 100
 #' res_d <- ccivar_data(n1=4,n2=3,crk=3,p=3,T=T,type="const")
-#' res_e <- cciva_rest(res=res_d)
+#' res_e <- ccivar_estimate(res=res_d)
 #' res_e$Summary
 #'
 #' @export
-cciva_rest <- function (res)
+ccivar_estimate <- function (res)
 {
   n = res$n1
   p = res$p
@@ -1588,7 +1588,7 @@ mrcigvar_estimate <- function(res) {
 #' test results.
 #'
 #' @param res MRCIVAR-style data object, typically the output of
-#'   `mrcivar_data_m()`.
+#'   `mrcivar_data()`.
 #'
 #' @return The input MRCIVAR object augmented with estimated parameters and test
 #'   results.
@@ -1602,13 +1602,13 @@ mrcigvar_estimate <- function(res) {
 #' p=matrix(0,2,2)
 #' p[,1] = c(3,3)
 #'
-#' res_d = mrcivar_data_m(n=4,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
+#' res_d = mrcivar_data(n=4,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
 #' colnames(res_d$Y) = c("w","p","I","Q")
 #' max(abs(res_d$Y))
-#' res_e = mrcivar_estimatem1(res=res_d)
+#' res_e = mrcivar_estimate(res=res_d)
 #' res_e$Summary
 #'
-mrcivar_estimatem1 <- function (res)
+mrcivar_estimate <- function (res)
 {
   TH = res$TH
   type = res$type
@@ -1730,7 +1730,7 @@ mrcivar_estimatem1 <- function (res)
 
 #' Estimate a restricted MRCIVAR model and perform a likelihood ratio test
 #'
-#' Estimates a restricted Markov regime-switching cointegrated VAR (MRCIVAR)
+#' Estimates a restricted regime-switching cointegrated VAR (MRCIVAR)
 #' model under user-specified linear restrictions on the adjustment matrices
 #' (`alpha`) and the cointegration matrix (`beta`). The function fits the
 #' restricted model by maximum likelihood, reconstructs the corresponding VECM
@@ -1753,7 +1753,7 @@ mrcivar_estimatem1 <- function (res)
 #' @param res An object containing the fitted or prepared MRCIVAR system. This
 #'   is typically the output of `MRCIGVARDatam` and must contain the data,
 #'   lag structure, regime information, deterministic specification, and other
-#'   quantities required by `mrcivar_estimatem1()`.
+#'   quantities required by `mrcivar_estimate()`.
 #' @param H A numeric matrix defining the linear restrictions on the
 #'   cointegration matrix `beta`. The restriction is written as
 #'   `vec(beta) = H %*% phi + h`.
@@ -1772,7 +1772,7 @@ mrcivar_estimatem1 <- function (res)
 #'
 #' @details
 #' The function first estimates the unrestricted MRCIVAR model using
-#' `mrcivar_estimatem1()`. It then uses the unrestricted estimates as starting
+#' `mrcivar_estimate()`. It then uses the unrestricted estimates as starting
 #' values to numerically optimise the restricted likelihood via
 #' `stats::nlm()`, using `f_constrained()` as the objective function.
 #'
@@ -1855,7 +1855,7 @@ mrcivar_estimatem1 <- function (res)
 #' }
 #'
 #' @seealso
-#' \code{\link{mrcivar_estimatem1}},
+#' \code{\link{mrcivar_estimate}},
 #' \code{\link{f_constrained}},
 #' \code{\link{vecm2_va_rm}},
 #' \code{\link{rz_st2_vecm}}
@@ -1869,7 +1869,7 @@ mrcivar_estimatem1 <- function (res)
 #' ## res = MRCIGVARDatam(...)
 #'
 #' ## unrestricted estimation
-#' ## res_u = mrcivar_estimatem1(res)
+#' ## res_u = mrcivar_estimate(res)
 #'
 #' ## identity restriction on beta (no restriction)
 #' ## H = diag(length(as.vector(res_u$tst$betaS)))
@@ -1882,14 +1882,14 @@ mrcivar_estimatem1 <- function (res)
 #' ## psi = list(rep(0, ncol(G[[1]])), rep(0, ncol(G[[2]])))
 #'
 #' ## restricted estimation and LR test
-#' ## test_r = abc_mrciva_restm(res = res, H = H, h = h,
+#' ## test_r = abc_mrcivar_test(res = res, H = H, h = h,
 #' ##                           phi = phi, G = G, psi = psi)
 #' ## test_r$LR
 #' ## test_r$p_value
 #' }
 #'
 #' @export
-abc_mrciva_restm <- function(res=res,H=H,h=h,phi=phi,G=G,psi=psi) {
+abc_mrcivar_test <- function(res=res,H=H,h=h,phi=phi,G=G,psi=psi) {
   ###
   ### This function runs a likelihood ratio test of linear restrictions on alpha and beta in a CIVAR model
   ###
@@ -1920,106 +1920,357 @@ abc_mrciva_restm <- function(res=res,H=H,h=h,phi=phi,G=G,psi=psi) {
   ###
   ### (y,x,model = c("I","II","III","IV","V"), bnorm = c("1","2"),type = c("eigen", "trace"),p = 1, r = 2, q = 0.95, H=H,h=h,G=G)
 
-  res_e = mrcivar_estimatem1(res=res)
-  #### regime-specific constrained  ML
-  betaS = res_e$tst$betaS
-  alphaS = res_e$tst$alphaS
-  BoR    = res$Bo*0
-  CoR    = res$Co*0
-  type   = res$type
-
-
-  S = res$S
-  n = res$n
-  X = res$X
-  T = dim(res$Y)[1]
-
-
-  Z1    = res_e$tst$Z1
-  Z2    = res_e$tst$Z2
-  St    = res_e$tst$St
-  NSt   = res_e$tst$NSt
-  Y0    = res_e$tst$Y0
-  Sigma = res_e$Sigmao
-  R1    = res_e$tst$R1
-  R0    = res_e$tst$R0
-  code =  res_e$tst$NLmcode
-  p    =  res$p
-  crk  =  res$crk
-  sigmaR = res$Sigmao * NA
-  resid = (1:(T * n * S)) * 0
-  dim(resid) = c(T, n, S)
-  Tresid = resid[, , 1]
-
-  Omega = 1.0/(nrow(res_e$tst$VECM1$residuals))*t(res_e$tst$VECM1$residuals)%*%res_e$tst$VECM1$residuals
-
-  phi_ini  = as.vector(betaS)[(H%*%phi-h)==1]
-  psi_ini1 = as.vector(t(alphaS[[1]]))[!G[[1]]%*%psi[[1]]==0]
-  psi_ini2 = as.vector(t(alphaS[[2]]))[!G[[2]]%*%psi[[2]]==0]
-
-
-  #f_constrained(x=c(phi,psi[[1]],psi[[2]]), beta=betaS,alpha=alphaS[[1]],G=G,H=H,phi=phi,psi=psi,h, Z1, St, NSt, Y0, Z2)
-  if (crk > 0) {
-    x       = c(phi_ini,psi_ini1,psi_ini2)
-    XX      = stats::nlm(f_constrained,x, beta=betaS, alpha=alphaS[[1]], G, H, phi, psi,h, Z1, St, NSt, Y0, Z2,iterlim=300)
-    xR      = XX$estimate
-    #### not converge for bad initial value but converge for good initial value
-    phir    = xR[1:length(phi)]
-    psi_1r  = xR[(1+length(phi)):(length(phi)+length(psi[[1]]))]
-    psi_2r  = xR[(1+(length(phi)+length(psi[[1]]))):(length(phi)+length(psi[[1]])+length(psi[[1]]))]
-    betaR   = H%*%phi + h
-    alpha_1 = G[[1]]%*%psi[[1]]
-    alpha_2 = G[[2]]%*%psi[[2]]
-
-    dim(betaR) = dim(betaS)
-    CI = Z1 %*% betaR
-    ### restrictions on alpha_1,alpha_2
-    dim(alpha_1) = dim(t(alphaS[[1]]))
-    alpha_1 = t(alpha_1)
-    dim(alpha_2) = dim(t(alphaS[[1]]))
-    alpha_2 = t(alpha_2)
-
-    alphaR  = list(alpha_1,alpha_2)
-    CI1 = (CI * St) %*%t(alpha_1)
-    CI2 = (CI * NSt)%*%t(alpha_2)
-    LM  <- stats::lm(Y0-CI1-CI2 ~ 0 + Z2)
-    residuals <- LM$residuals
-    CI10 = CI * St
-    CI20 = CI * NSt
-    VECMR <- stats::lm(Y0 ~ 0 + CI10 + CI20 + Z2)
-    VECMR$residuals <-  residuals
-    #dim(VECMR$coefficients)
-    VECMR$coefficients[1:crk,]  = t(alpha_1)
-    VECMR$coefficients[(crk+1):(2*crk),] = t(alpha_2)
-    VECMR$coefficients[(2*crk+1):nrow(VECMR$coefficients),] = LM$coefficients
-    CIVAREST = vecm2_va_rm(param = VECMR$coefficients, beta = betaR, p = c(crk, p[1, 1] - 1, p[2, 1] - 1), s = 1)
-    BoR = CIVAREST[[1]]
-    if (type == "const" | type == "exog1")
-      CoR = CIVAREST[[3]]
-    if (type == "exog0") {
-      CoR[,2:(1+dim(CIVAREST[[3]])[2]),] = CIVAREST[[3]]
+    res_e = mrcivar_estimate(res = res)
+    betaS = res_e$tst$betaS
+    alphaS = res_e$tst$alphaS
+    BoR = res_e$Bo * 0
+    CoR = res_e$Co * 0
+    type = res_e$type
+    S = res_e$S
+    n = res_e$n
+    X = res_e$X
+    T = dim(res$Y)[1]
+    Z1 = res_e$tst$Z1
+    Z2 = res_e$tst$Z2
+    St = res_e$tst$St
+    NSt = res_e$tst$NSt
+    Y0 = res_e$tst$Y0
+    Sigma = res_e$Sigmao
+    R1 = res_e$tst$R1
+    R0 = res_e$tst$R0
+    code = res_e$tst$NLmcode
+    p = res_e$p
+    crk = res_e$crk
+    sigmaR = res_e$Sigmao * NA
+    resid = (1:(T * n * S)) * 0
+    dim(resid) = c(T, n, S)
+    Tresid = resid[, , 1]
+    Omega = 1/(nrow(res_e$tst$VECM1$residuals)) * t(res_e$tst$VECM1$residuals) %*% res_e$tst$VECM1$residuals
+    phi_ini = as.vector(betaS)[(H %*% phi - h) == 1]
+    psi_ini1 = as.vector(t(alphaS[[1]]))[!G[[1]] %*% psi[[1]] == 0]
+    psi_ini2 = as.vector(t(alphaS[[2]]))[!G[[2]] %*% psi[[2]] == 0]
+    if (crk > 0) {
+      x = c(phi_ini, psi_ini1, psi_ini2)
+      XX = stats::nlm(f_constrained, x, beta = betaS, alpha = alphaS[[1]], 
+                      G, H, phi, psi, h, Z1, St, NSt, Y0, Z2, iterlim = 300)
+      xR = XX$estimate
+      phir = xR[1:length(phi)]
+      psi_1r = xR[(1 + length(phi)):(length(phi) + length(psi[[1]]))]
+      psi_2r = xR[(1 + (length(phi) + length(psi[[1]]))):(length(phi) + 
+                                                            length(psi[[1]]) + length(psi[[1]]))]
+      betaR = H %*% phir + h
+      alpha_1 = G[[1]] %*% psi_1r
+      alpha_2 = G[[2]] %*% psi_2r
+      dim(betaR) = dim(betaS)
+      CI = Z1 %*% betaR
+      dim(alpha_1) = dim(t(alphaS[[1]]))
+      alpha_1 = t(alpha_1)
+      dim(alpha_2) = dim(t(alphaS[[1]]))
+      alpha_2 = t(alpha_2)
+      alphaR = list(alpha_1, alpha_2)
+      CI1 = (CI * St) %*% t(alpha_1)
+      CI2 = (CI * NSt) %*% t(alpha_2)
+      LM <- stats::lm(Y0 - CI1 - CI2 ~ 0 + Z2)
+      residuals <- LM$residuals
+      CI10 = CI * St
+      CI20 = CI * NSt
+      VECMR <- stats::lm(Y0 ~ 0 + CI10 + CI20 + Z2)
+      VECMR$residuals <- residuals
+      VECMR$coefficients[1:crk, ] = t(alpha_1)
+      VECMR$coefficients[(crk + 1):(2 * crk), ] = t(alpha_2)
+      VECMR$coefficients[(2 * crk + 1):nrow(VECMR$coefficients), 
+      ] = LM$coefficients
+      CIVAREST = vecm2_va_rm(param = VECMR$coefficients, beta = betaR, 
+                             p = c(crk, p[1, 1] - 1, p[2, 1] - 1), s = 1)
+      BoR = CIVAREST[[1]]
+      if (type == "const" | type == "exog1") 
+        CoR = CIVAREST[[3]]
+      if (type == "exog0") {
+        CoR[, 2:(1 + dim(CIVAREST[[3]])[2]), ] = CIVAREST[[3]]
+      }
+      Tresid[(T - dim(VECMR$residuals)[1] + 1):T, ] = VECMR$residuals
+      resid[(T - dim(VECMR$residuals)[1] + 1):T, , 1] = Tresid[(T - 
+                                                                  dim(VECMR$residuals)[1] + 1):T, ] * St
+      resid[(T - dim(VECMR$residuals)[1] + 1):T, , 2] = Tresid[(T - 
+                                                                  dim(VECMR$residuals)[1] + 1):T, ] * (1 - St)
+      sigmaR[, , 1] = t(resid[, , 1]) %*% resid[, , 1]/(sum(St) - 1 * (n * (p[2, 1] - 1) + crk))
+      sigmaR[, , 2] = t(resid[, , 2]) %*% resid[, , 2]/(sum(1 - St) - 1 * (n * (p[2, 1] - 1) + crk))
+      LR = sum(St) * log(det(sigmaR[, , 1])) + sum(NSt) * log(det(sigmaR[, , 2])) - sum(St) * log(det(Sigma[, , 1])) - sum(NSt) * log(det(Sigma[, , 2]))
+      dgf = n * crk - crk - length(phi)
+      p_value = 1 - stats::pchisq(LR, dgf)
+      LH_P = -(T * n/2) * log(2 * pi) - (T * n/2) + (sum(St))/2 * log(det(solve(sigmaR[, , 1]))) + (sum(NSt))/2 * log(det(solve(sigmaR[, , 2])))
     }
-
-    Tresid[(T - dim(VECMR$residuals)[1] + 1):T, ] = VECMR$residuals
-    resid[ (T - dim(VECMR$residuals)[1] + 1):T, , 1] = Tresid[ (T - dim(VECMR$residuals)[1] + 1):T, ] * St
-    resid[ (T - dim(VECMR$residuals)[1] + 1):T, , 2] = Tresid[ (T - dim(VECMR$residuals)[1] + 1):T, ] * (1 - St)
-    sigmaR[, , 1] = t(resid[, , 1]) %*% resid[, , 1]/(sum(St) - 1 * (n * (p[2, 1] - 1) + crk))
-    sigmaR[, , 2] = t(resid[, , 2]) %*% resid[, , 2]/(sum(1 - St) - 1 * (n * (p[2, 1] - 1) + crk))
-    LR = sum(St)*log(det(sigmaR[,,1])) + sum(NSt)*log(det(sigmaR[,,2])) - sum(St)*log(det(Sigma[,,1])) -  sum(NSt)*log(det(Sigma[,,2]))
-    dgf =  n*crk - crk - length(phi)
-    p_value = 1 - stats::pchisq(LR,dgf)
-    LH_P = -(T * n/2) * log(2 * pi) - (T * n/2) + (sum(St))/2 * log(det(solve(sigmaR[, , 1]))) + (sum(NSt))/2 * log(det(solve(sigmaR[,, 2])))
-
+    SepIni = rz_st2_vecm(R0, R1, Y0, Z2, Z1, St, crk)
+    
+    test = list(VECMR, BoR, CoR, sigmaR, betaR, alphaR, LR, p_value,LH_P, XX$code)
+    names(test) = c("VECMR", "BoR", "CoR", "sigmaR", "betaR", "alphaR", "LR1", "p_value1", "LH_P", "code")
+    
+    
+    tst = ab_mrcivar_test(R0,R1,G=G,H=H,h=h,alphaR1=alphaS[[1]],alphaR2=alphaS[[2]],betaR=betaS,alpha1=SepIni$alpha1,alpha2=SepIni$alpha2,beta1=SepIni$beta1,beta2=SepIni$beta2,OmegaR=Omega,Omega1=SepIni$Omega1,Omega2=SepIni$Omega2,IC=1,T1=T,St=St,NSt=NSt) 
+    
+    D_beta <- dim(tst$betar)
+    beta_R <- tst$betar[1:(D_beta[1]/2),1:(D_beta[2]/2)]
+    CI_R = Z1 %*% beta_R
+    alpha_1R = tst$alphar[1:(D_beta[1]/2),1:(D_beta[2]/2)]
+    alpha_2R = tst$alphar[(D_beta[1]/2)+1:(D_beta[1]/2),(D_beta[2]/2)+1:(D_beta[2]/2)]
+    
+    CI1R = (CI_R * St) %*% t(alpha_1R)
+    CI2R = (CI_R * NSt) %*% t(alpha_2R)
+    LM_R <- stats::lm(Y0 - CI1R - CI2R ~ 0 + Z2)
+    residuals <- LM_R$residuals
+    CI10_R = CI_R * St
+    CI20_R = CI_R * NSt
+    VECM_R <- stats::lm(Y0 ~ 0 + CI10_R + CI20_R + Z2)
+    Summary <- summary(VECM_R)
+    
+    test2 <- list(tst$alphar,tst$betar,tst$Omegar,tst$LR,tst$p_value,Summary)
+    names(test2) <- c("alphar","betar","Omegar","LR","p_value","Summary")
+    
+    
+    
+    if (XX$code == 0) result = list(test,test2) else result = list(test2)
+    
+    return(result)
   }
+  
 
-  SepIni = rz_st2_vecm(R0,R1,Y0,Z2,Z1,St,crk)
 
-  #tst = AB_MRCIVARTest(R0,R1,G=G,H=H,h=h,alphaR1=alphaS[[1]],alphaR2=alphaS[[2]],betaR=betaS,alpha1=SepIni$alpha1,alpha2=SepIni$alpha2,beta1=SepIni$beta1,beta2=SepIni$beta2,OmegaR=Omega,Omega1=SepIni$Omega1,Omega2=SepIni$Omega2,IC=1,T1=T,St=St,NSt=NSt)
-  tst  = NA
-  test = list( VECMR,BoR,CoR,sigmaR,betaR,alphaR,LR,p_value, LH_P, XX$code,tst)
-  names(test) = c("VECMR","BoR","CoR","sigmaR","betaR","alphaR","LR","p_value","LH_P","code","tst")
-  return(test)
+
+
+#' Likelihood ratio test of restrictions in CIVAR models
+#'
+#' This function runs Doornik and Boswijk Iteration to estimate restricted alpha and beta in a CIVAR model.
+#'
+#' @param R0 controlled I(0) data matrix
+#' @param R1 controlled I(1) data matrix
+#' @param G A matrix specifying restrictions on alpha
+#' @param H A matrix specifying restrictions on beta
+#' @param h A vector specifying restrictions on alpha
+#' @param alphaR1 Initial value for constrained estimation
+#' @param alphaR2 Initial value for constrained estimation
+#' @param betaR Initial value for constrained estimation
+#' @param alpha1 Initial value for unconstrained estimation
+#' @param alpha2 Initial value for unconstrained estimation
+#' @param beta1 Initial value for unconstrained estimation
+#' @param beta2 Initial value for unconstrained estimation
+#' @param OmegaR Initial value for constrained estimation
+#' @param Omega1 Initial value for unconstrained estimation
+#' @param Omega2 Initial value for unconstrained estimation
+#' @param IC Indicator of BB dimension
+#' @param T1 Number of  used observations
+#' @param St Regime 1 indicator series
+#' @param NSt Regime 2 indicator series
+#'
+#' @return A list containing the constrained estimates and likelihood test results
+#' @export
+ab_mrcivar_test <- function(R0,R1,G,H,h,alphaR1,alphaR2,betaR,alpha1,alpha2,beta1,beta2,OmegaR,Omega1,Omega2,IC=1,T1,St,NSt) {
+  ### this function runs Doornik and Boswijk Iteration to estimate restricted alpha and beta 
+  ### It also estimates the separate MRCIVAR and compare it with the restricted including the model with identical beta. 
+  ### Add output of of separate Models.  
+  
+  n   = dim(alphaR1)[1]
+  crk = dim(alphaR1)[2]
+  
+  T1 = nrow(R1)
+  
+  #R0 <- Y0 - t(M02 %*% M22inv %*% t(Z2))
+  #R1 <- Z1 - t(M12 %*% M22inv %*% t(Z2))
+  
+  R0_1 <- R0*St 
+  R0_2 <- R0*NSt 
+  R1_1 <- R1*St 
+  R1_2 <- R1*NSt 
+  
+  
+  R0 = cbind(R0_1,R0_2)
+  R1 = cbind(R1_1,R1_2)
+  
+  S00 <- crossprod(R0)%*%diag(c(rep(1/sum(St),n),rep(1/sum(NSt),n)))
+  S01 <- crossprod(R0, R1)%*%diag(c(rep(1/sum(St),n),rep(1/sum(NSt),n)))
+  S10 <- crossprod(R1, R0)%*%diag(c(rep(1/sum(St),n),rep(1/sum(NSt),n)))
+  S11 <- crossprod(R1)%*%diag(c(rep(1/sum(St),n),rep(1/sum(NSt),n)))
+  
+  
+  alphai = kronecker(diag(2),alphaR1); alphai[(n+1):(n+n),(crk+1):(crk+crk)] = alphaR2
+  betai  = kronecker(diag(2),betaR)
+  Omegai = kronecker(diag(2),OmegaR)
+  
+  dim(alphai)
+  dim(betai)
+  dim(Omegai)
+  ## 
+  A = diag(length(alphai))
+  G0 =  A[,which(!as.vector(t(alphai))==0)]
+  dim(G0)
+  #### from G 2 G
+  AA = matrix(0,2*dim(G[[1]])[1]+2*dim(G[[2]])[1],dim(G[[1]])[2]+dim(G[[2]])[2])
+  GG = AA
+  for (i in 1:n ) {
+    GG[((i-1)*2*crk+1):((i-1)*2*crk+2*crk),1:dim(G[[1]])[2]]     = kronecker(c(1,0),G[[1]][ ((i-1)*crk+1): ((i-1)*crk+crk),] )
+    GG[((i-1+n)*2*crk+1):((i-1+n)*2*crk+2*crk),(1+dim(G[[1]])[2]):(dim(G[[1]])[2]+dim(G[[2]])[2])] = kronecker(c(0,1),G[[2]][ ((i-1)*crk+1): ((i-1)*crk+crk),] )
+  }
+  
+  if (!IC==1) BB = matrix(0,length(betai),dim(H)[2]+dim(H)[2])
+  if ( IC==1) BB = matrix(0,length(betai),dim(H)[2])
+  HH = BB
+  #HH = t(cbind(t(H),t(H)))    # restriction of identical beta
+  hh = matrix(0,dim(HH)[1],1)
+  #hh = t(cbind(t(h),t(h)))
+  for (i in 1:crk ) {
+    if (!IC==1) {
+      HH[((i-1)*2*n+1):((i-1)*2*n+2*n),1:dim(H)[2]]     = kronecker(c(1,0),H[ ((i-1)*n+1): ((i-1)*n+n),] )
+      HH[((i-1+crk)*2*n+1):((i-1+crk)*2*n+2*n),(1+dim(H)[2]):(dim(H)[2]+dim(H)[2])] = kronecker(c(0,1),H[ ((i-1)*n+1): ((i-1)*n+n),] )
+      
+      hh[((i-1)*2*n+1):((i-1)*2*n+2*n),1]             = kronecker(c(1,0),h[ ((i-1)*n+1): ((i-1)*n+n),1] )
+      hh[((i-1+crk)*2*n+1):((i-1+crk)*2*n+2*n),1]     = kronecker(c(0,1),h[ ((i-1)*n+1): ((i-1)*n+n),1] )
+    }
+    if (IC==1) {
+      # HH = t(cbind(t(H),t(H)))    # restriction of identical beta
+      # hh = t(cbind(t(h),t(h)))
+      HH[((i-1)*2*n+1):((i-1)*2*n+2*n),1:dim(H)[2]]             = kronecker(c(1,0),H[ ((i-1)*n+1): ((i-1)*n+n),] )
+      HH[((i-1+crk)*2*n+1):((i-1+crk)*2*n+2*n),1:dim(H)[2]] = kronecker(c(0,1),H[ ((i-1)*n+1): ((i-1)*n+n),] )
+      
+      hh[((i-1)*2*n+1):((i-1)*2*n+2*n),1]                     = kronecker(c(1,0),h[ ((i-1)*n+1): ((i-1)*n+n),1] )
+      hh[((i-1+crk)*2*n+1):((i-1+crk)*2*n+2*n),1]             = kronecker(c(0,1),h[ ((i-1)*n+1): ((i-1)*n+n),1] )
+    }
+  }
+  
+  HH0 = A[,-which((as.vector(betai)==0)|(as.vector(betai)==1)  )]
+  
+  
+  dim(HH0)[2]
+  H0 <- HH0[,1: (dim(HH0)[2]/2)]
+  H0[(dim(HH0)[1]/2+1):dim(HH0)[1],] = HH0[(dim(HH0)[1]/2+1):dim(HH0)[1],(dim(HH0)[2]/2+1):dim(HH0)[2]]
+  #H0 - HH
+  h0 = matrix(0,length(betai),1)
+  h0[ which(as.vector(betai)==1) ,] = 1
+  # h0-hh
+  #H = A[,-which((as.vector(betai)==0)|(as.vector(betai)==1)  )] - HH
+  #hhh = matrix(0,length(betai),1)
+  #hhh[ which(as.vector(betai)==1) ,] = 1
+  
+  VS10 = S10
+  dim(VS10) <- c(length(S10),1)
+  error = 1
+  tol   = 0.000000001
+  vecpip = solve(S11)%*%S10;dim(vecpip) = c(length(vecpip),1)
+  
+  phii = solve(t(HH)%*%kronecker(t(alphai)%*%solve(Omegai)%*%alphai,S11)%*%HH)%*%(t(HH)%*%kronecker(t(alphai)%*%solve(Omegai),diag(nrow(betai)))%*%VS10
+                                                                                  - t(HH)%*%kronecker(t(alphai)%*%solve(Omegai)%*%alphai,S11)%*%hh)
+  
+  betai <-HH%*%phii+hh ; dim(betai) <- dim(kronecker(diag(2),betaR))
+  
+  
+  gammai = solve(t(GG)%*%kronecker(solve(Omegai),t(betai)%*%S11%*%betai)%*%GG)%*% t(GG)%*%kronecker(solve(Omegai),t(betai))%*%VS10
+  talphai <- GG%*%gammai;  dim(talphai) <- dim(t(kronecker(diag(2),alphaR1)))
+  alphai = t(talphai)
+  Omegai = S00 - alphai%*%t(betai)%*%S10-S01%*%betai%*%t(alphai)+alphai%*%t(betai)%*%S11%*%betai%*%t(alphai)
+  
+  
+  error = 1
+  ######### restriction on identical beta in two regimes: beta_1 = betat_2
+  while  ( error > tol ) {
+    betar  = betai
+    alphar = alphai
+    phir   = phii
+    gammar = gammai
+    Omegar = Omegai
+    
+    phii = solve(t(HH)%*%kronecker(t(alphai)%*%solve(Omegai)%*%alphai,S11)%*%HH)%*%
+      (t(HH)%*%kronecker(t(alphai)%*%solve(Omegai),diag(nrow(betai)))%*%VS10
+       - t(HH)%*%kronecker(t(alphai)%*%solve(Omegai)%*%alphai,S11)%*%hh)
+    
+    betai <-HH%*%phii+hh ; dim(betai) <- dim(kronecker(diag(2),betaR))
+    
+    
+    gammai = solve(t(GG)%*%kronecker(solve(Omegai),t(betai)%*%S11%*%betai)%*%GG)%*%t(GG)%*%kronecker(solve(Omegai),t(betai))%*%VS10
+    
+    talphai <- GG%*%gammai;  dim(talphai) <- dim(t(kronecker(diag(2),alphaR1)))
+    
+    alphai = t(talphai)
+    Omegai = S00 - alphai%*%t(betai)%*%S10-S01%*%betai%*%t(alphai)+alphai%*%t(betai)%*%S11%*%betai%*%t(alphai)
+    error = max( abs(log(det(Omegai))-log(det(Omegar))) )
+    #log(det(Omegai))
+    ### literature:  Identifying, Estimating and Testing Restricted CointegratedSystems: An Overview H. Peter Boswijk Jurgen A. Doornik 2003      
+  }
+  
+  #### output: uncontrained estimation under identical beta 
+  error = 1
+  
+  ##### unconstrained is not free beta in extended notation but identical in two extended block 
+  #### initial value for the unconstrained iteration 
+  betaU <- t(cbind(t(cbind(beta1,beta2*0)),t(cbind(beta1*0,beta2))))
+  
+  HH0 = A[,-which((as.vector(betaU)==0)|(as.vector(betaU)==1)  )]
+  dim(HH0)[2]
+  H0 <- HH0[,1: (dim(HH0)[2]/2)]
+  H0[(dim(HH0)[1]/2+1):dim(HH0)[1],] = HH0[(dim(HH0)[1]/2+1):dim(HH0)[1],(dim(HH0)[2]/2+1):dim(HH0)[2]]
+  #H0 - HH
+  h0 = matrix(0,length(betaU),1)
+  h0[ which(as.vector(betaU)==1) ,] = 1
+  
+  
+  
+  betai[1:n,1:crk]  = beta1;  betai[(n+1):(2*n),(crk+1):(2*crk)]   = beta2;
+  alphai[1:n,1:crk] = alpha1; alphai[(n+1):(2*n),(crk+1):(2*crk)]  = alpha2;
+  Omegai[1:n,1:n]   = Omega1; Omegai[(n+1):(n+n),(n+1):(n+n)]      = Omega2; 
+  # phii   = solve(t(HH0)%*%kronecker(t(alphai)%*%solve(Omegai)%*%alphai,S11)%*%HH0)%*%
+  #   (t(HH0)%*%kronecker(t(alphai)%*%solve(Omegai),diag(nrow(betai)))%*%VS10
+  #    - t(HH0)%*%kronecker(t(alphai)%*%solve(Omegai)%*%alphai,S11)%*%h0)
+  phii   = solve(t(H0)%*%kronecker(t(alphai)%*%solve(Omegai)%*%alphai,S11)%*%H0)%*%
+    (t(H0)%*%kronecker(t(alphai)%*%solve(Omegai),diag(nrow(betai)))%*%VS10
+     - t(H0)%*%kronecker(t(alphai)%*%solve(Omegai)%*%alphai,S11)%*%h0)
+  
+  
+  gammai = solve(t(G0)%*%kronecker(solve(Omegai),t(betai)%*%S11%*%betai)%*%G0)%*%t(G0)%*%kronecker(solve(Omegai),t(betai))%*%VS10
+  
+  ##### unconstrained is not free beta in extended notation but identical in two extended block 
+  
+  
+  error = 1
+  
+  while  ( error > tol ) {
+    beta0  = betai
+    alpha0 = alphai
+    phi0   = phii
+    gamma0 = gammai
+    Omega0 = Omegai
+    
+    phii = solve(t(H0)%*%kronecker(t(alphai)%*%solve(Omegai)%*%alphai,S11)%*%H0)%*%
+      (t(H0)%*%kronecker(t(alphai)%*%solve(Omegai),diag(nrow(betai)))%*%VS10
+       - t(H0)%*%kronecker(t(alphai)%*%solve(Omegai)%*%alphai,S11)%*%h0)
+    
+    betai <-H0%*%phii+h0 ; dim(betai) <- dim(kronecker(diag(2),betaR))
+    
+    
+    gammai = solve(t(G0)%*%kronecker(solve(Omegai),t(betai)%*%S11%*%betai)%*%G0)%*%t(G0)%*%kronecker(solve(Omegai),t(betai))%*%VS10
+    
+    talphai <- G0%*%gammai;  dim(talphai) <- dim(t(kronecker(diag(2),alphaR1)))
+    
+    alphai = t(talphai)
+    Omegai = S00 - alphai%*%t(betai)%*%S10-S01%*%betai%*%t(alphai)+alphai%*%t(betai)%*%S11%*%betai%*%t(alphai)
+    error = max( abs(log(det(Omegai))-log(det(Omega0))) )
+    #O0 = diag(c(rep(1,4),rep(0,4)))%*%Omega0%*%diag(c(rep(1,4),rep(0,4)))+diag(c(rep(0,4),rep(1,4)))%*%Omega0%*%diag(c(rep(0,4),rep(1,4)))
+    #Oi = diag(c(rep(1,4),rep(0,4)))%*%Omegai%*%diag(c(rep(1,4),rep(0,4)))+diag(c(rep(0,4),rep(1,4)))%*%Omegai%*%diag(c(rep(0,4),rep(1,4)))
+    #error = max( abs(log(det(Oi))-log(det(O0))) )
+    
+    #log(det(Omegai))
+    ### literature:  Identifying, Estimating and Testing Restricted CointegratedSystems: An Overview H. Peter Boswijk Jurgen A. Doornik 2003      
+  }
+  
+  LR = T1*(log(det(Omegar))-log(det(Omega0)))  
+  if (dim(G0)[2]-dim(GG)[2]+dim(H0)[2]-dim(HH)[2]>0) {
+    p_value <- 1- pchisq(LR,dim(G0)[2]-dim(GG)[2]+dim(H0)[2]-dim(HH)[2]) }  else {p_value <- 1}
+  
+  
+  
+  
+  ret = list(alphar,betar,Omegar,alpha0,beta0,Omega0,LR,p_value)
+  names(ret) = c("alphar","betar","Omegar","alpha0","beta0","Omega0","LR","p_value")
+  return(ret)
 }
+
+
 
 
 

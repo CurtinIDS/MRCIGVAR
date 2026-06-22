@@ -14,8 +14,8 @@ AB_CIVARTest <- function(...) {
 
 # Legacy alias for ABC_MRCIVARestm()
 ABC_MRCIVARestm <- function(...) {
-  .Deprecated(new = "abc_mrciva_restm")
-  abc_mrciva_restm(...)
+  .Deprecated(new = "abc_mrciva_test")
+  abc_mrcivar_test(...)
 }
 
 # Legacy alias for abLRtest2()
@@ -32,8 +32,8 @@ ABSVAR <- function(...) {
 
 # Legacy alias for ACCIRFconfR()
 ACCIRFconfR <- function(...) {
-  .Deprecated(new = "accir_fconf_r")
-  accir_fconf_r(...)
+  .Deprecated(new = "accirf_conf_r")
+  accirf_conf_r(...)
 }
 
 # Legacy alias for B2CIB()
@@ -74,8 +74,8 @@ CCIVARData <- function(...) {
 
 # Legacy alias for CCIVARest()
 CCIVARest <- function(...) {
-  .Deprecated(new = "cciva_rest")
-  cciva_rest(...)
+  .Deprecated(new = "ccivar_estimate")
+  ccivar_estimate(...)
 }
 
 # Legacy alias for CIA2A()
@@ -326,8 +326,8 @@ JointX <- function(...) {
 
 # Legacy alias for MIxCIVARData()
 MIxCIVARData <- function(...) {
-  .Deprecated(new = "m_ix_civar_data")
-  m_ix_civar_data(...)
+  .Deprecated(new = "mixed_civar_data")
+  mixed_civar_data(...)
 }
 
 # Legacy alias for MRCIGVAR_Select()
@@ -356,20 +356,20 @@ MRCIGVARest <- function(...) {
 
 # Legacy alias for MRCIVAR_Selectm()
 MRCIVAR_Selectm <- function(...) {
-  .Deprecated(new = "mrcivar_select_m")
-  mrcivar_select_m(...)
+  .Deprecated(new = "mrcivar_select")
+  mrcivar_select(...)
 }
 
 # Legacy alias for MRCIVARDatam()
 MRCIVARDatam <- function(...) {
-  .Deprecated(new = "mrcivar_data_m")
-  mrcivar_data_m(...)
+  .Deprecated(new = "mrcivar_data")
+  mrcivar_data(...)
 }
 
 # Legacy alias for MRCIVARestm1()
 MRCIVARestm1 <- function(...) {
-  .Deprecated(new = "mrcivar_estimatem1")
-  mrcivar_estimatem1(...)
+  .Deprecated(new = "mrcivar_estimate")
+  mrcivar_estimate(...)
 }
 
 # Legacy alias for MRCVECMest2()
