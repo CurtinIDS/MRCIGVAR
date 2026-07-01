@@ -191,7 +191,7 @@ The same high-level ideas extend to other supported classes:
 - `var_data()` / `var_estimate()`
 - `civar_data()` / `civar_estimate()`
 - `mrvar_data()` / `mrvar_estimate()`
-- `mrcivar_data_m()` / `mrcivar_estimatem1()`
+- `mrcivar_data()` / `mrcivar_estimate()`
 - `gvar_data()` / `gvar_estimate()`
 - `mrgvar_data()` / `mrgvar_estimate()`
 

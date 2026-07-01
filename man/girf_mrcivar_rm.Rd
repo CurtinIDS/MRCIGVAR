@@ -8,7 +8,7 @@ girf_mrcivar_rm(res, shock, R, nstep, Omega_hist = NA, resid_method)
 }
 \arguments{
 \item{res}{A fitted MRCIVAR object, typically returned by
-\code{mrcivar_estimatem1()}.}
+\code{mrcivar_estimate()}.}
 
 \item{shock}{Numeric vector of length \code{n} defining the impulse.}
 
@@ -50,10 +50,10 @@ Sigma[,,1] <- diag(n)
 Sigma[,,2] <- diag(n)
 p <- matrix(0,2,2)
 p[,1] <- c(3,3)
-res_d <- mrcivar_data_m(n=n, p=p, T=250, S=2, SESVI=1, TH=0, 
+res_d <- mrcivar_data(n=n, p=p, T=250, S=2, SESVI=1, TH=0, 
                          Sigmao=Sigma, type="const", r=2)
 max(abs(res_d$Y))
-res_e <- mrcivar_estimatem1(res=res_d)
+res_e <- mrcivar_estimate(res=res_d)
 res_e$Summary
 Mod(spectral_radius(res_e$B[,,,1]))
 Mod(spectral_radius(res_e$B[,,,2]))

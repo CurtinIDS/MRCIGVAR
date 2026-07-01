@@ -832,7 +832,7 @@ girf_mrcigvar_rm_cb <- function(res, shock, R, nstep, Omega_hist=NA, resid_metho
 #' bootstrap confidence bands for each regime.
 #'
 #' @param res_e A fitted MRCIVAR object, typically returned by
-#'   `mrcivar_estimatem1()`.
+#'   `mrcivar_estimate()`.
 #' @param nstep Integer scalar giving the number of IRF horizons.
 #' @param irf Character string specifying the IRF type. Supported values are
 #'   `"gen"`, `"chol"`, `"chol1"`, `"gen1"`, and `"comb1"`.
@@ -856,9 +856,9 @@ girf_mrcigvar_rm_cb <- function(res, shock, R, nstep, Omega_hist=NA, resid_metho
 #' Sigma[,,2] = diag(n)
 #' p = matrix(0,2,2)
 #' p[,1] = c(3,3)
-#' res_d = mrcivar_data_m(n=n, p=p, T=250, S=2, SESVI=1, TH=0, Sigmao=Sigma, type="const", r=2)
+#' res_d = mrcivar_data(n=n, p=p, T=250, S=2, SESVI=1, TH=0, Sigmao=Sigma, type="const", r=2)
 #' max(abs(res_d$Y))
-#' res_e = mrcivar_estimatem1(res=res_d)
+#' res_e = mrcivar_estimate(res=res_d)
 #'
 #' if (! max(Mod(spectral_radius(res_e$Bo[,,,1])), Mod(spectral_radius(res_e$Bo[,,,2])) ) > 1.0001 ) {
 #'   IRF = irf_mrcivar_cb(res_e, nstep=20, irf="gen1", runs=100, comb=NA, G=NA, conf=c(0.05,0.95))
@@ -886,7 +886,7 @@ irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"), runs = 100
   Uo = res_e$Uo
   Y = res_e$Y
   X = res_e$X
-  res_d = mrcivar_data_m(n=n, p=p, T=T, S=S, SESVI=SESVI, TH=TH, Bo=Bo, Co=Co, Sigmao=Sigmao, Uo=Uo, type=type, X=X, r=r)
+  res_d = mrcivar_data(n=n, p=p, T=T, S=S, SESVI=SESVI, TH=TH, Bo=Bo, Co=Co, Sigmao=Sigmao, Uo=Uo, type=type, X=X, r=r)
   neq = res_e$n
   nvar = res_e$n
   response1 <- array(0, dim = c(neq, nvar, nstep, length(conf) + 1))
@@ -902,8 +902,8 @@ irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"), runs = 100
   for (i in 1:runs) {
     for (s in 1:S) Uo_run[, , s] = rnorm_sigma(T, Sigmao[, , s])
     if (length(p) > 1) {
-      res_run = mrcivar_data_m(n = n, p = p, T = T, S = S, SESVI = SESVI, TH = TH, Bo = Bo, Co = Co, Sigmao = Sigmao, Uo = Uo_run, type = type, X=X, r = r)
-      res_e_run = mrcivar_estimatem1(res = res_run)
+      res_run = mrcivar_data(n = n, p = p, T = T, S = S, SESVI = SESVI, TH = TH, Bo = Bo, Co = Co, Sigmao = Sigmao, Uo = Uo_run, type = type, X=X, r = r)
+      res_e_run = mrcivar_estimate(res = res_run)
     }
     IRF1 = irf_from_params(B = res_e_run$Bo[, , , 1], sigma = res_e_run$Sigma[, , 1], nstep = nstep, comb = NA, irf = irf, G = NA)
     IRF2 = irf_from_params(B = res_e_run$Bo[, , , 2], sigma = res_e_run$Sigma[, , 2], nstep = nstep, comb = NA, irf = irf, G = NA)
@@ -943,7 +943,7 @@ irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"), runs = 100
 #' multivariate models, Journal of Econometrics, 74 (1996) 119-74.
 #'
 #' @param res A fitted MRCIVAR object, typically returned by
-#'   `mrcivar_estimatem1()`.
+#'   `mrcivar_estimate()`.
 #' @param shock Numeric vector of length `n` defining the impulse.
 #' @param R Integer scalar giving the number of simulation runs used to average
 #'   over random effects.
@@ -964,10 +964,10 @@ irf_mrcivar_cb = function (res_e, nstep = 20, irf = c("gen", "gen1"), runs = 100
 #' Sigma[,,2] <- diag(n)
 #' p <- matrix(0,2,2)
 #' p[,1] <- c(3,3)
-#' res_d <- mrcivar_data_m(n=n, p=p, T=250, S=2, SESVI=1, TH=0, 
+#' res_d <- mrcivar_data(n=n, p=p, T=250, S=2, SESVI=1, TH=0, 
 #'                          Sigmao=Sigma, type="const", r=2)
 #' max(abs(res_d$Y))
-#' res_e <- mrcivar_estimatem1(res=res_d)
+#' res_e <- mrcivar_estimate(res=res_d)
 #' res_e$Summary
 #' Mod(spectral_radius(res_e$B[,,,1]))
 #' Mod(spectral_radius(res_e$B[,,,2]))
@@ -1062,10 +1062,10 @@ girf_mrcivar_rm <- function(res, shock, R, nstep, Omega_hist=NA, resid_method) {
     residS[[i]] = residI
 
     for (k in 1:n) {
-      YR[,,k] = mrcivar_data_m(n=n, p=p, T=(P+nstep+1), S=S, SESVI=SESVI, TH=TH, 
+      YR[,,k] = mrcivar_data(n=n, p=p, T=(P+nstep+1), S=S, SESVI=SESVI, TH=TH, 
                                Bo=Bo, Co=Co, Sigmao=Sigmao, Uo=residR[[i]][,,k,], 
                                type=type, X=X, Yo=Yo, d=d)$Y
-      YS[,,k] = mrcivar_data_m(n=n, p=p, T=(P+nstep+1), S=S, SESVI=SESVI, TH=TH, 
+      YS[,,k] = mrcivar_data(n=n, p=p, T=(P+nstep+1), S=S, SESVI=SESVI, TH=TH, 
                                Bo=Bo, Co=Co, Sigmao=Sigmao, Uo=residS[[i]][,,k,], 
                                type=type, X=X, Yo=Yo, d=d)$Y
     }
@@ -1100,7 +1100,7 @@ girf_mrcivar_rm <- function(res, shock, R, nstep, Omega_hist=NA, resid_method) {
 #' multivariate models, Journal of Econometrics, 74 (1996) 119-74.
 #'
 #' @param res A fitted MRCIVAR object, typically returned by
-#'   `mrcivar_estimatem1()`.
+#'   `mrcivar_estimate()`.
 #' @param shock Numeric vector of length `n` defining the impulse.
 #' @param R Integer scalar giving the number of simulation runs used to average
 #'   over random effects.
@@ -1125,10 +1125,10 @@ girf_mrcivar_rm <- function(res, shock, R, nstep, Omega_hist=NA, resid_method) {
 #' Sigma[,,2] <- diag(n)
 #' p <- matrix(0,2,2)
 #' p[,1] <- c(3,3)
-#' res_d <- mrcivar_data_m(n=n, p=p, T=250, S=2, SESVI=1, TH=0, 
+#' res_d <- mrcivar_data(n=n, p=p, T=250, S=2, SESVI=1, TH=0, 
 #'                          Sigmao=Sigma, type="const", r=2)
 #' max(abs(res_d$Y))
-#' res_e <- mrcivar_estimatem1(res=res_d)
+#' res_e <- mrcivar_estimate(res=res_d)
 #' res_e$Summary
 #' Mod(spectral_radius(res_e$Bo[,,,1]))
 #' Mod(spectral_radius(res_e$Bo[,,,2]))
@@ -1164,9 +1164,9 @@ girf_mrcivar_rm_cb <- function (res, shock, R, nstep, Omega_hist=NA, resid_metho
   dim(GIRFBd) = c(n, n, nstep + 1, length(conf_level) + 1)
   GIRFBd[, , , 1] = girf_mrcivar_rm(res, shock = shock, R = 2*R, nstep, Omega_hist=Omega_hist, resid_method)
   for (i in 1:N) {
-    res_d = mrcivar_data_m(n = n, p = p, T = T, S = S, SESVI = SESVI, TH = TH, Bo = Bo, Co = Co, Sigmao, type = type, X = X, d = d)
+    res_d = mrcivar_data(n = n, p = p, T = T, S = S, SESVI = SESVI, TH = TH, Bo = Bo, Co = Co, Sigmao, type = type, X = X, d = d)
     if (length(colnames(res_d$Y))==0) colnames(res_d$Y) = paste("Y",1:ncol(res_d$Y),sep="")
-    RESS = mrcivar_estimatem1(res_d)
+    RESS = mrcivar_estimate(res_d)
     RF3 = girf_mrcivar_rm(res = RESS, shock = shock, R = R, nstep, Omega_hist=Omega_hist, resid_method)
     GIRF[, , , i] = RF3
   }
@@ -1655,7 +1655,7 @@ irf_mrgvar_cb = function (res, state = c(2, 1), nstep, comb, irf = c("gen", "cho
 #'
 #' @return The cumulative impulse response function
 #' @examples
-#' # Example usage of accir_fconf_r
+#' # Example usage of accirf_conf_r
 #' # Assuming IRF is a predefined impulse response function arrays
 #' p = matrix(c(2,1,0,0),2,2)
 #' res_d = mrvar_data(n=2,p=p,T=300,S=2,SESVI=1)
@@ -1664,12 +1664,12 @@ irf_mrgvar_cb = function (res, state = c(2, 1), nstep, comb, irf = c("gen", "cho
 #' res_e$Summary
 #' 
 #' IRF <- irf_mrvar_nm(res_e,nstep=10,comb=NA,irf="gen")
-#' cumulative_response <- accir_fconf_r(IRF)
+#' cumulative_response <- accirf_conf_r(IRF)
 #' @export
 #'
 #' @keywords internal
 #'
-accir_fconf_r <- function(IRF) {
+accirf_conf_r <- function(IRF) {
   ACCirf = IRF
   dm = dim(IRF)
   for (t in 2:dm[3]) {
@@ -1741,7 +1741,7 @@ irf_global_response_cb <- function(IRF_CB, comb_all) {
   }
   }
   
-  ACCbootconf3N = accir_fconf_r(globalbootconf)
+  ACCbootconf3N = accirf_conf_r(globalbootconf)
   return(list(globalbootconf, ACCbootconf3N))
 }
 

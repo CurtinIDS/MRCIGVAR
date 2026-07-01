@@ -6,7 +6,6 @@ Description: This package contains functions for data generation with flexible m
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Depends: 
     R (>= 2.10)
 Imports:
@@ -25,3 +24,4 @@ LazyData: true
 VignetteBuilder: knitr
 URL: https://github.com/CurtinIDS/MRCIGVAR
 BugReports: https://github.com/CurtinIDS/MRCIGVAR/issues
+Config/roxygen2/version: 8.0.0

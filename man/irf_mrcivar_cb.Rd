@@ -17,7 +17,7 @@ irf_mrcivar_cb(
 }
 \arguments{
 \item{res_e}{A fitted MRCIVAR object, typically returned by
-\code{mrcivar_estimatem1()}.}
+\code{mrcivar_estimate()}.}
 
 \item{nstep}{Integer scalar giving the number of IRF horizons.}
 
@@ -54,9 +54,9 @@ Sigma[,,1] = diag(n)
 Sigma[,,2] = diag(n)
 p = matrix(0,2,2)
 p[,1] = c(3,3)
-res_d = mrcivar_data_m(n=n, p=p, T=250, S=2, SESVI=1, TH=0, Sigmao=Sigma, type="const", r=2)
+res_d = mrcivar_data(n=n, p=p, T=250, S=2, SESVI=1, TH=0, Sigmao=Sigma, type="const", r=2)
 max(abs(res_d$Y))
-res_e = mrcivar_estimatem1(res=res_d)
+res_e = mrcivar_estimate(res=res_d)
 
 if (! max(Mod(spectral_radius(res_e$Bo[,,,1])), Mod(spectral_radius(res_e$Bo[,,,2])) ) > 1.0001 ) {
   IRF = irf_mrcivar_cb(res_e, nstep=20, irf="gen1", runs=100, comb=NA, G=NA, conf=c(0.05,0.95))

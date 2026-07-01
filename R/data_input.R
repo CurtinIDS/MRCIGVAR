@@ -620,7 +620,7 @@ civar_data <- function (n, p, T, r_np, A, B, Co, C1,U, Sigma, type, X, mu, Yo, c
 #'
 #' T = 100
 #' res_d <- ccivar_data(n1 = 4, n2 = 3, crk = 3, p = 3, T = T, type = "const")
-#' res_e <- cciva_rest(res = res_d)
+#' res_e <- ccivar_estimate(res = res_d)
 #' res_e$Summary
 #'
 #' @export
@@ -688,7 +688,7 @@ ccivar_data <- function(n1,n2,crk,p,T,type,Bc=NA) {
 #'   `p-value_E`, and `p-value_W`, and the number of stationary variables `k`.
 #' @examples
 #'
-#' #RR <- m_ix_civar_data(n=9,p=2,T=209,r=5,k=2,type="const",Bo=NA,Y=NA,D=NA)
+#' #RR <- mixed_civar_data(n=9,p=2,T=209,r=5,k=2,type="const",Bo=NA,Y=NA,D=NA)
 #' ## DGP of I(1) and I(0) mixed VECM
 #' #plot(ts(RR$Y))
 #' #
@@ -729,7 +729,7 @@ ccivar_data <- function(n1,n2,crk,p,T,type,Bc=NA) {
 #' #
 #' @export
 #'
-m_ix_civar_data = function(n,p,T,r,k,type,Bo=NA,Y=NA,X=NA,D=NA,Go=NA,B=NA,Sigma = NA) {
+mixed_civar_data = function(n,p,T,r,k,type,Bo=NA,Y=NA,X=NA,D=NA,Go=NA,B=NA,Sigma = NA) {
 
   if (anyNA(Bo)) {
     repeat {
@@ -1766,10 +1766,10 @@ mrcigvar_data_r <- function(res) {
 #' Sigma[,,2] = diag(4)
 #' p=matrix(0,2,2)
 #' p[,1] = c(3,3)
-#' res_d = mrcivar_data_m(n=4,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
+#' res_d = mrcivar_data(n=4,p=p,T=250,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="const",r=2)
 #' colnames(res_d$Y) = c("w","p","I","Q")
 #' max(abs(res_d$Y))
-#' res_e = mrcivar_estimatem1(res=res_d)
+#' res_e = mrcivar_estimate(res=res_d)
 #' res_e$Summary
 #'
 #' p=matrix(0,2,2)
@@ -1780,20 +1780,20 @@ mrcigvar_data_r <- function(res) {
 #' XX = cbind(XX,XX); dim(XX) = c(T,1,2)
 #' dim(XX)
 #'
-#' res_d = mrcivar_data_m(n=4,p=p,T=T,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="exog0",r=1,X=XX)
-#' res_e = mrcivar_estimatem1(res=res_d)
+#' res_d = mrcivar_data(n=4,p=p,T=T,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="exog0",r=1,X=XX)
+#' res_e = mrcivar_estimate(res=res_d)
 #' res_e$Summary
 #'
-#' res_d = mrcivar_data_m(n=4,p=p,T=T,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="exog1",r=1,X=XX)
-#' res_e = mrcivar_estimatem1(res=res_d)
+#' res_d = mrcivar_data(n=4,p=p,T=T,S=2,SESVI=1,TH=0,Sigmao=Sigma,type="exog1",r=1,X=XX)
+#' res_e = mrcivar_estimate(res=res_d)
 #' res_e$Summary
 #'
 #' @export
-mrcivar_data_m = function(n=2,p=matrix(2,2,2),T=100,S=2,SESVI,TH,Bo,Co,Sigmao,Uo,SV,type,X,mu,Yo,Do,d=1,r=1) {
+mrcivar_data = function(n=2,p=matrix(2,2,2),T=100,S=2,SESVI,TH,Bo,Co,Sigmao,Uo,SV,type,X,mu,Yo,Do,d=1,r=1) {
 ### T     : number of observations
 ### n     : number of variables
 ### p     : lag length, an S x 2 vector of lag length for each state and the number of exogenous variables for each state
-### S     : number of states of the underlying Markov Chain
+### S     : number of states of the underlying regimes
 ###         (n,p,T,S,SESVI) are parameters which must be provided.
 ### SESVI : index of the switching variable in the endogenous variables Y for the case of self-excited threshold model.
 ### TH    : (S-1)-vector of threshold values
@@ -2432,7 +2432,7 @@ mrvar_data = function(n,p,T,S,SESVI,TH,Bo,Co,Sigmao,Uo,SV,type,X,mu,Yo,Do,d) {
   ### T     : number of observations
   ### n     : number of variables
   ### p     : lag length, an S x 2 vector of lag length for each state and the number of exogenous variables for each state
-  ### S     : number of states of the underlying Markov Chain
+  ### S     : number of states of the underlying regimes
   ###         (n,p,T,S,SESVI) are parameters which must be provided.
   ### SESVI : index of the switching variable in the endogeneous variables Y for the case of self-excited threshhold model.
   ### TH    : (S-1)-vector of threshold values

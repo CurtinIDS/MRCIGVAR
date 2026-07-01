@@ -55,6 +55,11 @@ pages <- list(
     source = "vignettes/refactor-migration-guide.Rmd",
     target = "docs/reference/migration-guide.md",
     exclude = c("Related vignettes")
+  ),
+  list(
+    source = "vignettes/function-guide.Rmd",
+    target = "docs/reference/function-guide.md",
+    exclude = c("Related pages")
   )
 )
 
