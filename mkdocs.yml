@@ -38,5 +38,6 @@ nav:
       - MRCIGVAR Workflow: workflows/mrcigvar-workflow.md
       - IRF and GIRF Analysis: workflows/irf-and-girf.md
   - Reference:
+      - Function Guide: reference/function-guide.md
       - API Migration Guide: reference/migration-guide.md
       - API Reference Strategy: reference/api-reference-strategy.md

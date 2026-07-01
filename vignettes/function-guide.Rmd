@@ -1,0 +1,229 @@
+---
+title: "Function Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Function Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(MRCIGVAR)
+```
+
+## Purpose
+
+This vignette distils the function-introduction material from Dr Pu Chen's
+original package README in the upstream repository:
+<https://github.com/puchen8229/MRCIGVAR/blob/master/README.Rmd>.
+
+Rather than reproducing that long README section by section, this guide keeps
+the function-level orientation and theoretical framing, then points readers to
+the existing workflow vignettes whenever the same ground is already covered in
+more detail.
+
+The guide reorganises the important functions around the package's shared
+workflow:
+
+1. construct a model object
+2. estimate it
+3. compare specifications where relevant
+4. test restrictions when relevant
+5. compute IRFs or GIRFs
+
+That structure keeps the theoretical framing, but removes repeated setup,
+duplicated examples, and long blocks of nearly identical code.
+
+## Core function families
+
+Across the package, the public API follows a consistent pattern:
+
+- `*_data()` builds a model object or simulated data-generating process
+- `*_estimate()` fits the model and augments the object with summaries
+- `*_select_*()` compares lag or threshold specifications
+- `*_test()` performs model-specific restriction tests
+- `irf_*()` computes impulse responses
+- `girf_*()` computes generalized impulse responses for nonlinear models
+- `plot_irf()` visualises the resulting responses
+
+The main documentation question is therefore not "where do we place each
+function?" but "which model family does the function belong to?"
+
+## Single-regime families
+
+### VAR
+
+`VAR` is the baseline multivariate model family for stationary systems without
+cointegration or cross-country structure:
+
+- `var_data()` constructs or simulates a VAR object
+- `var_estimate()` estimates the coefficient matrices and summary criteria
+- `irf_var_cb()` computes impulse responses with confidence bands
+
+Use this family when you want the simplest benchmark workflow:
+
+```{r var-example, eval = FALSE}
+res_d <- var_data(n = 3, p = 2, T = 200, type = "const")
+res_e <- var_estimate(res = res_d)
+irf_cb <- irf_var_cb(res = res_e, nstep = 12, comb = NA, irf = "gen1")
+plot_irf(irf_cb)
+```
+
+### CIVAR
+
+`CIVAR` extends `VAR` to cointegrated systems. The theoretical distinction is
+that the model is estimated in a VECM form with cointegration rank restrictions:
+
+- `civar_data()` builds a cointegrated VAR object
+- `civar_estimate()` estimates the VECM representation
+- `civar_test()` tests restrictions on the cointegration space
+- `irf_civar_cb()` computes IRFs for the estimated system
+- `ccivar_data()` and `ccivar_estimate()` support conditional cointegration
+
+Use `CIVAR` when long-run equilibrium relationships matter.
+
+### GVAR
+
+`GVAR` adds a multi-country structure by combining domestic variables with
+foreign aggregates built from a weighting matrix:
+
+- `gvar_data()` constructs a global VAR object
+- `gvar_estimate()` fits country blocks and the global system
+- `gvar_select_()` compares lag specifications
+- `irf_gvar_cb()` computes global-system impulse responses
+
+Use this family when spillovers across countries are central to the analysis.
+
+### CIGVAR
+
+`CIGVAR` combines the global structure of `GVAR` with the cointegration logic
+of `CIVAR`:
+
+- `cigvar_data()`
+- `cigvar_estimate()`
+- `cigvar_select_()`
+- `irf_cigvar_cb()`
+
+This is the natural choice for global systems with long-run equilibrium
+relations.
+
+## Multi-regime families
+
+### MRVAR
+
+`MRVAR` introduces regime switching, typically through threshold conditions.
+That makes the model nonlinear because the active dynamics depend on the state:
+
+- `mrvar_data()`
+- `mrvar_estimate()`
+- `mrvar_select_()`
+- `irf_mrvar_nm_cb()` for within-regime IRFs without migration
+- `girf_mrvar_rm_cb()` for GIRFs with regime migration
+
+Use this family when you expect different short-run dynamics across states.
+
+### MRCIVAR
+
+`MRCIVAR` combines cointegration with regime dependence:
+
+- `mrcivar_data()`
+- `mrcivar_estimate()`
+- `mrcivar_select_()`
+- `irf_mrcivar_nm_cb()`
+- `girf_mrcivar_rm_cb()`
+
+This family is appropriate when both long-run equilibrium relations and
+state-dependent adjustments are important.
+
+### MRGVAR
+
+`MRGVAR` extends `GVAR` into a multi-regime global setting:
+
+- `mrgvar_data()`
+- `mrgvar_estimate()`
+- `mrgvar_select_()`
+- `irf_mrgvar_nm_cb()`
+- `girf_mrgvar_rm_cb()`
+
+It is useful for cross-country systems where transmission mechanisms differ by
+regime.
+
+### MRCIGVAR
+
+`MRCIGVAR` is the flagship model family in the package. It combines:
+
+- global country structure
+- cointegration
+- multi-regime switching
+
+The main functions are:
+
+- `mrcigvar_data()`
+- `mrcigvar_estimate()`
+- `mrcigvar_select_()`
+- `irf_mrcigvar_cb()`
+- `girf_mrcigvar_rm()`
+- `girf_mrcigvar_rm_cb()`
+
+In practice, this family should be documented as a workflow page plus this
+function guide, not as a single giant README section.
+
+## How to document each family
+
+For the Docs site, each family should follow the same compact pattern:
+
+1. one short theory paragraph
+2. one "main functions" list
+3. one minimal code example
+4. one note on when to prefer that family over nearby alternatives
+
+That is enough to introduce the function set without recreating the full
+teaching note inside the website navigation.
+
+When a family already has a strong workflow page, this guide should stay short
+and link outward instead of duplicating the same examples.
+
+## What to keep from the original README
+
+The original upstream README mixes together several different document
+types:
+
+- package overview
+- function catalog
+- long tutorial examples
+- advanced testing notes
+- empirical case-study material
+
+Those should be split across the docs as follows:
+
+- keep package overview material in `README.Rmd` and `docs/index.md`
+- keep workflow walkthroughs in the existing workflow vignettes
+- keep function introductions in this guide
+- move long empirical examples to dedicated vignettes only if they are still
+  important for users
+
+## Recommended docs structure
+
+The clean integration path is:
+
+- `docs/index.md`: package overview
+- `docs/workflows/*.md`: end-to-end modelling examples
+- `docs/reference/function-guide.md`: concise theory and function map
+- `docs/reference/migration-guide.md`: legacy-to-refactored API mapping
+
+This avoids putting a second README into the Docs site while still preserving
+the client's detailed explanatory material in a maintainable way.
+
+## Related pages
+
+- `core-model-workflows` for `VAR`, `CIVAR`, `GVAR`, and `CIGVAR`
+- `mrcigvar-workflow` for the flagship multi-regime global workflow
+- `irf-and-girf` for response-analysis patterns
+- `refactor-migration-guide` for legacy naming compatibility
